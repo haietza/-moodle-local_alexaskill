@@ -54,7 +54,6 @@ class local_alexaskill_external extends external_api {
         
         // Context validation
         // OPTIONAL but in most web service it should present
-        //$context = get_context_instance(CONTEXT_USER, $USER->id);
         $context = context_user::instance($USER->id);
         self::validate_context($context);
         

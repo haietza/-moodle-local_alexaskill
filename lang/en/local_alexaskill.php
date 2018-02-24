@@ -15,16 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Language file.
+ *
  * @package   local_alexaskill
  * @author    Michelle Melton <meltonml@appstate.edu>
  * @copyright 2018, Michelle Melton
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2018022400;
-$plugin->requires  = 2017111301;
-$plugin->component = 'local_alexaskill';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '0.0.1';
+$string['pluginname'] = 'Alexa skill web service';
