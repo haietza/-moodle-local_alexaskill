@@ -25,6 +25,13 @@
 
 // We defined the web service functions to install.
 $functions = array(
+        'local_alexaskill_alexa' => array(
+                'classname'   => 'local_alexaskill_external',
+                'methodname'  => 'alexa',
+                'classpath'   => 'local/alexaskill/externallib.php',
+                'description' => 'Get type',
+                'type'        => 'read',
+        ),
         'local_alexaskill_hello_world' => array(
             'classname'   => 'local_alexaskill_external',
             'methodname'  => 'hello_world',
@@ -44,7 +51,7 @@ $functions = array(
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
         'Alexa Skill' => array(
-            'functions' => array ('local_alexaskill_hello_world', 'local_alexaskill_get_site_news'),
+            'functions' => array ('local_alexaskill_alexa', 'local_alexaskill_hello_world', 'local_alexaskill_get_site_news'),
             //'requiredcapability' => 'mod/forum:viewdiscussion',
             'restrictedusers' => 0,
             'enabled'=> 1,

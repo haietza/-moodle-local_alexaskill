@@ -27,6 +27,66 @@ require_once($CFG->libdir . "/externallib.php");
 require_once($CFG->dirroot . '/mod/forum/externallib.php');
 
 class local_alexaskill_external extends external_api {
+    public static function alexa_parameters() {
+        return new external_function_parameters(array(
+                'request' => new external_single_structure(array(
+                        'type' => new external_value(PARAM_TEXT),
+                        'requestId' => new external_value(PARAM_TEXT),
+                        'timestamp' => new external_value(PARAM_TEXT),
+                        'locale' => new external_value(PARAM_TEXT),
+                        'intent' => new external_single_structure(array(
+                                'name' => new external_value(PARAM_TEXT),
+                                'confirmationStatus' => new external_value(PARAM_TEXT)
+                        ))
+                ))  
+        ));
+    }
+    
+    public static function alexa($request) {
+        $obj = (object) $request;
+        //$obj = json_decode($json);
+        //return $obj->request->type;
+        if ($obj->type == 'IntentRequest') {
+            $text = 'Welcome to As You Learn';
+        }
+        return array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => $text
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        /**
+        return '{
+                    "version": "1.0",
+                    "response": {
+                        "outputSpeech": {
+                            "type": "PlainText",
+                            "text": "Welcome to As You Learn"
+                            },
+                        "shouldEndSession": true
+                    }
+                }';
+                */
+    }
+    
+    public static function alexa_returns() {
+        //return new external_value(PARAM_TEXT, 'The request type');
+        return new external_single_structure(array(
+                'version' => new external_value(PARAM_TEXT),
+                'response' => new external_single_structure(array(
+                        'outputSpeech' => new external_single_structure(array(
+                                'type' => new external_value(PARAM_TEXT),
+                                'text' => new external_value(PARAM_TEXT)
+                        )),
+                        'shouldEndSession' => new external_value(PARAM_BOOL)
+                ))
+        ));
+    }
+    
     /**
      * Returns description of method parameters
      * @return external_function_parameters
