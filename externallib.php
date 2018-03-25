@@ -74,16 +74,13 @@ class local_alexaskill_external extends external_api {
                         'intent' => new external_single_structure(array(
                                 'name' => new external_value(PARAM_TEXT),
                                 'confirmationStatus' => new external_value(PARAM_TEXT)
-                        ))
+                        ), '', VALUE_OPTIONAL)
                 ))
         ));
     }
     
-    public static function alexa($request) {
-        $obj = (object) $request;
-        //$obj = json_decode($request);
-        //return $obj->request->type;
-        if ($obj->type == 'IntentRequest') {
+    public static function alexa($version, $session, $context, $request) {
+        if ($request[type] == 'LaunchRequest') {
             $text = 'Welcome to As You Learn';
         }
         return array(
