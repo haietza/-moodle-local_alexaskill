@@ -82,6 +82,8 @@ class local_alexaskill_external extends external_api {
     public static function alexa($version, $session, $context, $request) {
         if ($request[type] == 'LaunchRequest') {
             $text = 'Welcome to As You Learn';
+        } else {
+            $text = 'Working on it';
         }
         return array(
                 'version' => '1.0',
@@ -96,7 +98,6 @@ class local_alexaskill_external extends external_api {
     }
     
     public static function alexa_returns() {
-        //return new external_value(PARAM_TEXT, 'The request type');
         return new external_single_structure(array(
                 'version' => new external_value(PARAM_TEXT),
                 'response' => new external_single_structure(array(

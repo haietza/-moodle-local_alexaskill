@@ -28,3 +28,6 @@ $plugin->requires  = 2017111301;
 $plugin->component = 'local_alexaskill';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '0.0.1';
+$plugin->dependencies = array(
+        'webservice_restjson' => ANY_VERSION
+);
