@@ -29,6 +29,43 @@ require_once($CFG->dirroot . '/mod/forum/externallib.php');
 class local_alexaskill_external extends external_api {
     public static function alexa_parameters() {
         return new external_function_parameters(array(
+                'version' => new external_value(PARAM_TEXT),
+                'session' => new external_single_structure(array(
+                        'new' => new external_value(PARAM_BOOL),
+                        'sessionId' => new external_value(PARAM_TEXT),
+                        'application' => new external_single_structure(array(
+                                'applicationId' => new external_value(PARAM_TEXT)
+                        )),
+                        'user' => new external_single_structure(array(
+                                'userId' => new external_value(PARAM_TEXT)
+                        ))
+                )),
+                'context' => new external_single_structure(array(
+                        'AudioPlayer' => new external_single_structure(array(
+                                'playerActivity' => new external_value(PARAM_TEXT)
+                        )),
+                        'Display' => new external_single_structure(array()),
+                        'System' => new external_single_structure(array(
+                                'application' => new external_single_structure(array(
+                                        'applicationId' => new external_value(PARAM_TEXT)
+                                )),
+                                'user' => new external_single_structure(array(
+                                        'userId' => new external_value(PARAM_TEXT)
+                                )),
+                                'device' => new external_single_structure(array(
+                                        'deviceId' => new external_value(PARAM_TEXT),
+                                        'supportedInterfaces' => new external_single_structure(array(
+                                                'AudioPlayer' => new external_single_structure(array()),
+                                                'Display' => new external_single_structure(array(
+                                                        'templateVersion' => new external_value(PARAM_TEXT),
+                                                        'markupVersion' => new external_value(PARAM_TEXT)
+                                                ))
+                                        ))
+                                )),
+                                'apiEndpoint' => new external_value(PARAM_TEXT),
+                                'apiAccessToken' => new external_value(PARAM_TEXT)
+                        ))
+                )),
                 'request' => new external_single_structure(array(
                         'type' => new external_value(PARAM_TEXT),
                         'requestId' => new external_value(PARAM_TEXT),
@@ -38,13 +75,13 @@ class local_alexaskill_external extends external_api {
                                 'name' => new external_value(PARAM_TEXT),
                                 'confirmationStatus' => new external_value(PARAM_TEXT)
                         ))
-                ))  
+                ))
         ));
     }
     
     public static function alexa($request) {
         $obj = (object) $request;
-        //$obj = json_decode($json);
+        //$obj = json_decode($request);
         //return $obj->request->type;
         if ($obj->type == 'IntentRequest') {
             $text = 'Welcome to As You Learn';
@@ -59,18 +96,6 @@ class local_alexaskill_external extends external_api {
                         'shouldEndSession' => true
                 )
         );
-        /**
-        return '{
-                    "version": "1.0",
-                    "response": {
-                        "outputSpeech": {
-                            "type": "PlainText",
-                            "text": "Welcome to As You Learn"
-                            },
-                        "shouldEndSession": true
-                    }
-                }';
-                */
     }
     
     public static function alexa_returns() {
