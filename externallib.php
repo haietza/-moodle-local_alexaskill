@@ -29,58 +29,14 @@ require_once($CFG->dirroot . '/mod/forum/externallib.php');
 class local_alexaskill_external extends external_api {
     public static function alexa_parameters() {
         return new external_function_parameters(array(
-                'version' => new external_value(PARAM_TEXT),
-                'session' => new external_single_structure(array(
-                        'new' => new external_value(PARAM_BOOL),
-                        'sessionId' => new external_value(PARAM_TEXT),
-                        'application' => new external_single_structure(array(
-                                'applicationId' => new external_value(PARAM_TEXT)
-                        )),
-                        'user' => new external_single_structure(array(
-                                'userId' => new external_value(PARAM_TEXT)
-                        ))
-                )),
-                'context' => new external_single_structure(array(
-                        'AudioPlayer' => new external_single_structure(array(
-                                'playerActivity' => new external_value(PARAM_TEXT)
-                        )),
-                        'Display' => new external_single_structure(array()),
-                        'System' => new external_single_structure(array(
-                                'application' => new external_single_structure(array(
-                                        'applicationId' => new external_value(PARAM_TEXT)
-                                )),
-                                'user' => new external_single_structure(array(
-                                        'userId' => new external_value(PARAM_TEXT)
-                                )),
-                                'device' => new external_single_structure(array(
-                                        'deviceId' => new external_value(PARAM_TEXT),
-                                        'supportedInterfaces' => new external_single_structure(array(
-                                                'AudioPlayer' => new external_single_structure(array()),
-                                                'Display' => new external_single_structure(array(
-                                                        'templateVersion' => new external_value(PARAM_TEXT),
-                                                        'markupVersion' => new external_value(PARAM_TEXT)
-                                                ))
-                                        ))
-                                )),
-                                'apiEndpoint' => new external_value(PARAM_TEXT),
-                                'apiAccessToken' => new external_value(PARAM_TEXT)
-                        ))
-                )),
-                'request' => new external_single_structure(array(
-                        'type' => new external_value(PARAM_TEXT),
-                        'requestId' => new external_value(PARAM_TEXT),
-                        'timestamp' => new external_value(PARAM_TEXT),
-                        'locale' => new external_value(PARAM_TEXT),
-                        'intent' => new external_single_structure(array(
-                                'name' => new external_value(PARAM_TEXT),
-                                'confirmationStatus' => new external_value(PARAM_TEXT)
-                        ), '', VALUE_OPTIONAL)
-                ))
+                'request' => new external_value(PARAM_TEXT)
         ));
     }
     
-    public static function alexa($version, $session, $context, $request) {
-        if ($request[type] == 'LaunchRequest') {
+    //public static function alexa($version, $session, $context, $request) {
+    public static function alexa($request) {
+        $json = json_decode($request, true);
+        if ($json["request"]["type"] == 'LaunchRequest') {
             $text = 'Welcome to As You Learn';
         } else {
             $text = 'Working on it';
