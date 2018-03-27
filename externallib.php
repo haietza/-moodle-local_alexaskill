@@ -40,7 +40,7 @@ class local_alexaskill_external extends external_api {
         } elseif ($json["request"]["type"] == 'IntentRequest') {
             switch($json["request"]["intent"]["name"]) {
                 case "GetSiteAnnouncementsIntent":
-                    $text = self::get_site_announcements();
+                    $text = self::get_site_announcements(1);
                     break;
             }
         } else {
@@ -140,6 +140,6 @@ class local_alexaskill_external extends external_api {
         foreach ($siteannouncements as $post) {
             $post->message = strip_tags($post->message);
         }
-        return $siteannouncements;
+        return implode(" ", $siteannouncements);
     }
 }
