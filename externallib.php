@@ -140,7 +140,7 @@ class local_alexaskill_external extends external_api {
         $siteannouncements = '';
         foreach ($announcementrecords as $post) {
             $post->message = strip_tags($post->message);
-            $siteannouncements .= 'Announcement ' . $post->id . '. Subject ' . $post->subject . '. Message ' . $post->message . '. ';
+            $siteannouncements .= $post->subject . '. ' . $post->message . '. ';
         }
         
         return $siteannouncements;
