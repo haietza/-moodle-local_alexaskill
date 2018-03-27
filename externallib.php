@@ -62,7 +62,7 @@ class local_alexaskill_external extends external_api {
         global $SITE;
         
         //return 'Welcome to ' . $SITE->fullname;
-        return 'Welcome to AsULearn';
+        return 'Welcome to As You Learn';
     }
     
     public static function alexa_returns() {
