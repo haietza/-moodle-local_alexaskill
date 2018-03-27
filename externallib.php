@@ -136,10 +136,13 @@ class local_alexaskill_external extends external_api {
                     WHERE mdl_forum_discussions.forum = 1) 
                 ORDER BY mdl_forum_posts.id DESC';
         
-        $siteannouncements = $DB->get_records_sql($sql);
-        foreach ($siteannouncements as $post) {
+        $announcementrecords = $DB->get_records_sql($sql);
+        $siteannouncements = '';
+        foreach ($announcementrecords as $post) {
             $post->message = strip_tags($post->message);
+            $siteannouncements .= 'Announcement ' . $post->id . '. Subject ' . $post->subject . '. Message ' . $post->message . '. ';
         }
-        return implode(" ", $siteannouncements);
+        
+        return $siteannouncements;
     }
 }
