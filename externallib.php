@@ -33,11 +33,16 @@ class local_alexaskill_external extends external_api {
         ));
     }
     
-    //public static function alexa($version, $session, $context, $request) {
-    public static function alexa($request) {
+    public static function alexa($request) {        
         $json = json_decode($request, true);
         if ($json["request"]["type"] == 'LaunchRequest') {
-            $text = 'Welcome to As You Learn';
+            $text = self::launch_request();
+        } elseif ($json["request"]["type"] == 'IntentRequest') {
+            switch($json["request"]["intent"]["name"]) {
+                case "GetSiteAnnouncementsIntent":
+                    $text = self::get_site_announcements();
+                    break;
+            }
         } else {
             $text = 'Working on it';
         }
@@ -53,6 +58,13 @@ class local_alexaskill_external extends external_api {
         );
     }
     
+    private static function launch_request() {
+        global $SITE;
+        
+        //return 'Welcome to ' . $SITE->fullname;
+        return 'Welcome to AsULearn';
+    }
+    
     public static function alexa_returns() {
         return new external_single_structure(array(
                 'version' => new external_value(PARAM_TEXT),
@@ -64,19 +76,6 @@ class local_alexaskill_external extends external_api {
                         'shouldEndSession' => new external_value(PARAM_BOOL)
                 ))
         ));
-    }
-    
-    /**
-     * Returns description of method parameters
-     * @return external_function_parameters
-     */
-    public static function hello_world_parameters() {
-        // FUNCTIONNAME_parameters() always return an external_function_parameters().
-        // The external_function_parameters constructor expects an array of external_description.
-        return new external_function_parameters(
-                // a external_description can be: external_value, external_single_structure or external_multiple structure
-                array('welcomemessage' => new external_value(PARAM_TEXT, 'The welcome message. By default it is "Hello"', VALUE_DEFAULT, 'Hello '))
-                );
     }
     
     /**
@@ -107,36 +106,14 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
-     * Returns description of method result value
-     * @return external_description
-     */
-    public static function hello_world_returns() {
-        return new external_value(PARAM_TEXT, 'The welcome message + user first name');
-    }
-    
-    /**
-     * Returns description of method parameters
-     * @return external_function_parameters
-     */
-    public static function get_site_news_parameters() {
-        // FUNCTIONNAME_parameters() always return an external_function_parameters().
-        // The external_function_parameters constructor expects an array of external_description.
-        return new external_function_parameters(
-                // a external_description can be: external_value, external_single_structure or external_multiple structure
-                array('id' => new external_value(PARAM_INT, 1, VALUE_DEFAULT, 1))
-                );
-    }
-    
-    /**
      * The function itself
      * @return string welcome message
      */
-    public static function get_site_news($id = 1) {        
+    private static function get_site_announcements($id = 1) {        
         global $DB;
         
         // Parameters validation
-        $params = self::validate_parameters(self::get_site_news_parameters(),
-                array('id' => $id));
+        //$params = self::validate_parameters(self::get_site_news_parameters(), array('id' => $id));
         
         // Note: don't forget to validate the context and check capabilities
         
@@ -159,26 +136,10 @@ class local_alexaskill_external extends external_api {
                     WHERE mdl_forum_discussions.forum = 1) 
                 ORDER BY mdl_forum_posts.id DESC';
         
-        $sitenews = $DB->get_records_sql($sql);
-        foreach ($sitenews as $post) {
+        $siteannouncements = $DB->get_records_sql($sql);
+        foreach ($siteannouncements as $post) {
             $post->message = strip_tags($post->message);
         }
-        return $sitenews;
-    }
-    
-    /**
-     * Returns description of method result value
-     * @return external_description
-     */
-    public static function get_site_news_returns() {
-        return new external_multiple_structure(
-                new external_single_structure(
-                        array(
-                                'id' => new external_value(PARAM_INT, 'forum post id'),
-                                'subject' => new external_value(PARAM_TEXT, 'forum post subject'),
-                                'message' => new external_value(PARAM_TEXT, 'forum post message'),
-                        )
-                        )
-                );
+        return $siteannouncements;
     }
 }
