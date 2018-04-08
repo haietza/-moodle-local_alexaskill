@@ -28,4 +28,5 @@ curl_close($ch);
 
 $obj = json_decode($data, true);
 echo $obj['token'];
+//curl post to redirecturi with state and token
 ?>
