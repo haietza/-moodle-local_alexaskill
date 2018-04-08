@@ -55,5 +55,6 @@ $services = array(
             //'requiredcapability' => 'mod/forum:viewdiscussion',
             'restrictedusers' => 0,
             'enabled'=> 1,
+            'shortname' => 'alexa_skill_service',
         )
 );
