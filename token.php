@@ -1,4 +1,5 @@
 <?php
+global $CFG;
 $username = $_POST['username'];
 $password = $_POST['password'];
 $service = $_POST['service'];
@@ -14,19 +15,17 @@ $values = array(
 );
 //$params = http_build_query($values);
 $options = array(
-        //CURLOPT_URL => 'http://0.0.0.0:8080/alexa/login/token.php/',
+        //CURLOPT_URL => $CFG->wwwroot . '/login/token.php/',
         CURLOPT_URL => 'https://alexa.haietza.com/login/token.php/',
         CURLOPT_POSTFIELDS => $values,
         CURLOPT_RETURNTRANSFER => 1
 );
 curl_setopt_array($ch, $options);
 $data = curl_exec($ch);
-if ($data === FALSE) {
-    echo curl_error($ch);
-}
 curl_close($ch);
 
 $obj = json_decode($data, true);
-echo $obj['token'];
-//curl post to redirecturi with state and token
+//echo $obj['token'];
+$redirect = $redirect_uri . '#state=' . $state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
+header ("Location: $redirect");
 ?>
