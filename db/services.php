@@ -31,27 +31,13 @@ $functions = array(
                 'classpath'   => 'local/alexaskill/externallib.php',
                 'description' => 'Get type',
                 'type'        => 'read',
-        ),
-        'local_alexaskill_hello_world' => array(
-            'classname'   => 'local_alexaskill_external',
-            'methodname'  => 'hello_world',
-            'classpath'   => 'local/alexaskill/externallib.php',
-            'description' => 'Says hello to user',
-            'type'        => 'read',
-        ),
-        'local_alexaskill_get_site_news' => array(
-                'classname'   => 'local_alexaskill_external',
-                'methodname'  => 'get_site_news',
-                'classpath'   => 'local/alexaskill/externallib.php',
-                'description' => 'Gets site news',
-                'type'        => 'read',
         )
 );
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
         'Alexa Skill' => array(
-            'functions' => array ('local_alexaskill_alexa', 'local_alexaskill_hello_world', 'local_alexaskill_get_site_news'),
+            'functions' => array ('local_alexaskill_alexa'),
             //'requiredcapability' => 'mod/forum:viewdiscussion',
             'restrictedusers' => 0,
             'enabled'=> 1,

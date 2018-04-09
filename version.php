@@ -23,11 +23,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2018032701;
+$plugin->version   = 2018040900;
 $plugin->requires  = 2017111301;
 $plugin->component = 'local_alexaskill';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '0.0.1';
 $plugin->dependencies = array(
-        'webservice_restjson' => ANY_VERSION
+        'webservice_restjson' => 2018040900
 );
