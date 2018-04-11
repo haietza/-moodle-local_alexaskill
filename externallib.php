@@ -24,7 +24,7 @@
  */
 
 require_once($CFG->libdir . "/externallib.php");
-require_once($CFG->dirroot . '/mod/forum/externallib.php');
+//require_once($CFG->dirroot . '/mod/forum/externallib.php');
 
 class local_alexaskill_external extends external_api {
     
@@ -44,7 +44,15 @@ class local_alexaskill_external extends external_api {
         $json = json_decode($request, true);
         // Verify request is intended for my service: 
         if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
-            return http_response_code(404);
+            return http_response_code(400);
+        }
+        
+        // Verify signature
+        
+        
+        // Verify timestamp
+        if (!self::verify_time_stamp($json["request"]["timestamp"])) {
+            return http_response_code(400);
         }
         
         if ($json["request"]["type"] == 'LaunchRequest') {
@@ -73,10 +81,31 @@ class local_alexaskill_external extends external_api {
         );
     }
     
+    /**
+     * Function to verify appliation ID.
+     * 
+     * @param string $applicationId
+     * @return true if valid
+     */
     private static function verify_app_id($applicationId) {
         return $applicationId = APPLICATIONID;
     }
     
+    /**
+     * Function to parse ISO 8601 formatted string to verify within 150 seconds.
+     * 
+     * @param string $timestamp
+     * @return boolean timestamp is valid
+     */
+    private static function verify_timestamp($timestamp) {
+        return (time() - strtotime($timestamp)) < 150;
+    }
+    
+    /**
+     * Function to get welcome message.
+     * 
+     * @return string welcome
+     */
     private static function launch_request() {
         global $SITE;
         
@@ -85,7 +114,8 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
-     * Returns description of method return values
+     * Returns description of method return values.
+     * 
      * @return external_single_structure
      */
     public static function alexa_returns() {
@@ -102,7 +132,8 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
-     * Function to get front page site announcements
+     * Function to get front page site announcements.
+     * 
      * @return string site announcements
      */
     private static function get_site_announcements($id = 1) {        
@@ -143,7 +174,8 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
-     * Function to get a user's grades
+     * Function to get a user's grades.
+     * 
      * @return string grades of courses user is currently taking
      */
     private static function get_grades() {
