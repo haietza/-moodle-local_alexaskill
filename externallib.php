@@ -28,6 +28,8 @@ require_once($CFG->dirroot . '/mod/forum/externallib.php');
 
 class local_alexaskill_external extends external_api {
     
+    const APPLICATIONID = 'amzn1.ask.skill.74b90d83-aa64-4fee-abfc-735d33619522';
+    
     /**
      * Returns description of method parameters
      * @return external_function_parameters
@@ -40,6 +42,11 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request) {        
         $json = json_decode($request, true);
+        // Verify request is intended for my service: 
+        if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
+            return http_response_code(404);
+        }
+        
         if ($json["request"]["type"] == 'LaunchRequest') {
             $text = self::launch_request();
         } elseif ($json["request"]["type"] == 'IntentRequest') {
@@ -64,6 +71,10 @@ class local_alexaskill_external extends external_api {
                         'shouldEndSession' => true
                 )
         );
+    }
+    
+    private static function verify_app_id($applicationId) {
+        return $applicationId = APPLICATIONID;
     }
     
     private static function launch_request() {
