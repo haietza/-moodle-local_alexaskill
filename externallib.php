@@ -48,7 +48,9 @@ class local_alexaskill_external extends external_api {
         }
         
         // Verify signature
-        
+        if (!self::verify_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
+            return http_response_code(400);
+        }
         
         // Verify timestamp
         if (!self::verify_timestamp($json["request"]["timestamp"])) {
@@ -99,6 +101,31 @@ class local_alexaskill_external extends external_api {
      */
     private static function verify_timestamp($timestamp) {
         return (time() - strtotime($timestamp)) < 150;
+    }
+    
+    /**
+     * Function to verify the signature.
+     * 
+     * @param string $certurl
+     * @return boolean signature is valid
+     */
+    private static function verify_signature($certurl) {
+        //The protocol is equal to https (case insensitive).
+        $protocol = strtolower(parse_url($certurl, PHP_URL_SCHEME));
+        
+        //The hostname is equal to s3.amazonaws.com (case insensitive).
+        $hostname = strtolower(parse_url($certurl, PHP_URL_HOST));
+        
+        //The path starts with /echo.api/ (case sensitive).
+        $path = substr(strtolower(parse_url($certurl, PHP_URL_PATH)), 0, 9);
+        
+        //If a port is defined in the URL, the port is equal to 443.
+        $port = parse_url($certurl, PHP_URL_PORT);
+                
+        return ($protocol == 'https' 
+                && $hostname == 's3.amazonaws.com' 
+                && $path == '/echo.api' 
+                && ($port == 443 || $port == NULL));
     }
     
     /**
