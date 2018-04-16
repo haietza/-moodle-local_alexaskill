@@ -117,14 +117,14 @@ class local_alexaskill_external extends external_api {
         $hostname = strtolower(parse_url($certurl, PHP_URL_HOST));
         
         //The path starts with /echo.api/ (case sensitive).
-        $path = substr(strtolower(parse_url($certurl, PHP_URL_PATH)), 0, 9);
+        $path = substr(parse_url($certurl, PHP_URL_PATH), 0, 10);
         
         //If a port is defined in the URL, the port is equal to 443.
         $port = parse_url($certurl, PHP_URL_PORT);
                 
         return ($protocol == 'https' 
                 && $hostname == 's3.amazonaws.com' 
-                && $path == '/echo.api' 
+                && $path == '/echo.api/' 
                 && ($port == 443 || $port == NULL));
     }
     
