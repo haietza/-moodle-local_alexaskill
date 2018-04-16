@@ -51,7 +51,7 @@ class local_alexaskill_external extends external_api {
         
         
         // Verify timestamp
-        if (!self::verify_time_stamp($json["request"]["timestamp"])) {
+        if (!self::verify_timestamp($json["request"]["timestamp"])) {
             return http_response_code(400);
         }
         
@@ -88,7 +88,7 @@ class local_alexaskill_external extends external_api {
      * @return true if valid
      */
     private static function verify_app_id($applicationId) {
-        return $applicationId = APPLICATIONID;
+        return $applicationId == self::APPLICATIONID;
     }
     
     /**
