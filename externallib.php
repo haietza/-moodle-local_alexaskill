@@ -151,6 +151,7 @@ class local_alexaskill_external extends external_api {
         $verify = openssl_verify($request, base64_decode($signature), $cert);
         if ($verify != 1) {
             error_log('OpenSSL verify failed');
+            error_log(openssl_error_string());
             return false;
         }
         
