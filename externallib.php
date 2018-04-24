@@ -44,6 +44,7 @@ class local_alexaskill_external extends external_api {
         $json = json_decode($request, true);
         // Verify request is intended for my service: 
         if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
+            error_log('Application ID wrong');
             return http_response_code(400);
         }
         
@@ -55,6 +56,7 @@ class local_alexaskill_external extends external_api {
         
         // Verify timestamp
         if (!self::verify_timestamp($json["request"]["timestamp"])) {
+            error_log('Timestamp wrong');
             return http_response_code(400);
         }
         
@@ -131,6 +133,7 @@ class local_alexaskill_external extends external_api {
                 || $hostname != 's3.amazonaws.com'
                 || $path != '/echo.api/'
                 || ($port != 443 && $port != NULL)) {
+                    error_log('Signature URL wrong');
                     return false;
         }
         
@@ -144,17 +147,20 @@ class local_alexaskill_external extends external_api {
         // Compare the asserted hash value and derived hash values to ensure that they match.
         $verify = openssl_verify($request, base64_decode($signature), $cert);
         if ($verify != 1) {
+            error_log('OpenSSL verify failed');
             return false;
         }
         
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
         if (!$parsedcert) {
+            error_log('No parsed cert');
             return false;
         }
         
         // The domain echo-api.amazon.com is present in the Subject Alternative Names (SANs) section of the signing certificate
         if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
+            error_log('SAN wrong');
             return false;
         }
         
@@ -163,6 +169,7 @@ class local_alexaskill_external extends external_api {
         $validTo = $parsedcert['validTo_time_t'];
         $time = time();
         if (!($validFrom <= $time && $time <= $validTo)) {
+            error_log('Expired cert');
             return false;
         }
         
