@@ -146,8 +146,8 @@ class local_alexaskill_external extends external_api {
         // Generate a SHA-1 hash value from the full HTTPS request body to produce the derived hash value
         // Compare the asserted hash value and derived hash values to ensure that they match.
         error_log('cert ' . $cert);
-        error_log('signature ' . $signature);
-        
+        error_log('signature ' . $signature);     
+        error_log('decode ' . base64_decode($signature));
         $verify = openssl_verify($request, base64_decode($signature), $cert);
         if ($verify != 1) {
             error_log('OpenSSL verify failed');
