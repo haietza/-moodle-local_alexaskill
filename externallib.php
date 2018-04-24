@@ -47,8 +47,9 @@ class local_alexaskill_external extends external_api {
             return http_response_code(400);
         }
         
-        // Verify signature
-        if (!self::verify_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
+        echo $_SERVER['HTTP_SIGNATURE'];
+        // Validate signature
+        if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
             return http_response_code(400);
         }
         
@@ -104,28 +105,68 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
-     * Function to verify the signature.
+     * Function to validate the signature.
      * 
      * @param string $certurl
+     * @param array $json
      * @return boolean signature is valid
      */
-    private static function verify_signature($certurl) {
-        //The protocol is equal to https (case insensitive).
+    private static function validate_signature($certurl, $signature, $request) {
+        global $CFG;
+
+        // The protocol is equal to https (case insensitive).
         $protocol = strtolower(parse_url($certurl, PHP_URL_SCHEME));
         
-        //The hostname is equal to s3.amazonaws.com (case insensitive).
+        // The hostname is equal to s3.amazonaws.com (case insensitive).
         $hostname = strtolower(parse_url($certurl, PHP_URL_HOST));
         
-        //The path starts with /echo.api/ (case sensitive).
+        // The path starts with /echo.api/ (case sensitive).
         $path = substr(parse_url($certurl, PHP_URL_PATH), 0, 10);
         
         //If a port is defined in the URL, the port is equal to 443.
         $port = parse_url($certurl, PHP_URL_PORT);
-                
-        return ($protocol == 'https' 
-                && $hostname == 's3.amazonaws.com' 
-                && $path == '/echo.api/' 
-                && ($port == 443 || $port == NULL));
+        
+        // Verify signature URL.
+        if ($protocol != 'https'
+                || $hostname != 's3.amazonaws.com'
+                || $path != '/echo.api/'
+                || ($port != 443 && $port != NULL)) {
+                    return false;
+        }
+        
+        // Download PEM file.
+        $cert = file_get_contents($certurl);
+        
+        // Once you have determined that the signing certificate is valid, extract the public key from it.
+        // Base64-decode the Signature header value on the request to obtain the encrypted signature.
+        // Use the public key extracted from the signing certificate to decrypt the encrypted signature to produce the asserted hash value.
+        // Generate a SHA-1 hash value from the full HTTPS request body to produce the derived hash value
+        // Compare the asserted hash value and derived hash values to ensure that they match.
+        $verify = openssl_verify($request, base64_decode($signature), $cert);
+        if ($verify != 1) {
+            return false;
+        }
+        
+        // Parse certificate.
+        $parsedcert = openssl_x509_parse($cert);
+        if (!$parsedcert) {
+            return false;
+        }
+        
+        // The domain echo-api.amazon.com is present in the Subject Alternative Names (SANs) section of the signing certificate
+        if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
+            return false;
+        }
+        
+        // The signing certificate has not expired (examine both the Not Before and Not After dates)
+        $validFrom = $parsedcert['validFrom_time_t'];
+        $validTo = $parsedcert['validTo_time_t'];
+        $time = time();
+        if (!($validFrom <= $time && $time <= $validTo)) {
+            return false;
+        }
+        
+        return true;
     }
     
     /**
