@@ -138,8 +138,26 @@ class local_alexaskill_external extends external_api {
                     return false;
         }
         
+        // Determine if we need to download a new Signature Certificate Chain from Amazon
+        $md5pem = '/var/cache/amazon_echo' . md5($_SERVER['HTTP_SIGNATURECERTCHAINURL']) . '.pem';
+        $echoServiceDomain = 'echo-api.amazon.com';
+        // If we haven't received a certificate with this URL before,
+        // store it as a cached copy
+        if (!file_exists($md5pem)) {
+            file_put_contents($md5pem, file_get_contents($certurl));
+        }
+        // Validate certificate chain and signature
+        $pem = file_get_contents($md5pem);
+        $pubkeyid = openssl_pkey_get_public($md5pem);
+        $ssl_check = openssl_verify($request, base64_decode($signature), $pubkeyid, 'sha1' );
+        if ($ssl_check != 1) {
+            error_log(openssl_error_string());
+            return false;
+        }
+        openssl_free_key($pubkeyid);
+        
         // Download PEM file.
-        $cert = file_get_contents($certurl);
+        //$cert = file_get_contents($certurl);
         
         // Once you have determined that the signing certificate is valid, extract the public key from it.
         // Base64-decode the Signature header value on the request to obtain the encrypted signature.
@@ -149,12 +167,6 @@ class local_alexaskill_external extends external_api {
         error_log('cert ' . $cert);
         error_log('signature ' . $signature);     
         error_log('decode ' . base64_decode($signature));
-        //$verify = openssl_verify($request, base64_decode($signature), $cert, 'sha1');
-        //if ($verify != 1) {
-            //error_log('OpenSSL verify failed');
-            //error_log(openssl_error_string());
-            //return false;
-        //}
         
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
