@@ -148,13 +148,11 @@ class local_alexaskill_external extends external_api {
         }
         // Validate certificate chain and signature
         $pem = file_get_contents($md5pem);
-        $pubkeyid = openssl_pkey_get_public($md5pem);
-        $ssl_check = openssl_verify($request, base64_decode($signature), $pubkeyid, 'sha1' );
+        $ssl_check = openssl_verify($request, base64_decode($signature), $pem, 'SHA1' );
         if ($ssl_check != 1) {
             error_log(openssl_error_string());
             return false;
         }
-        openssl_free_key($pubkeyid);
         
         // Download PEM file.
         //$cert = file_get_contents($certurl);
