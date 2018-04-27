@@ -48,7 +48,6 @@ class local_alexaskill_external extends external_api {
             return http_response_code(400);
         }
         
-        echo $_SERVER['HTTP_SIGNATURE'];
         // Validate signature
         if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
             return http_response_code(400);
@@ -71,6 +70,8 @@ class local_alexaskill_external extends external_api {
                     $text = self::get_grades();
                     break;
             }
+        } elseif ($json["request"]["type"] == 'SessionEndedRequest') {
+            $text = $json["request"]["error"]["message"];
         } else {
             $text = 'Working on it';
         }
@@ -148,12 +149,12 @@ class local_alexaskill_external extends external_api {
         error_log('cert ' . $cert);
         error_log('signature ' . $signature);     
         error_log('decode ' . base64_decode($signature));
-        $verify = openssl_verify($request, base64_decode($signature), $cert, 'sha1');
-        if ($verify != 1) {
-            error_log('OpenSSL verify failed');
-            error_log(openssl_error_string());
-            return false;
-        }
+        //$verify = openssl_verify($request, base64_decode($signature), $cert, 'sha1');
+        //if ($verify != 1) {
+            //error_log('OpenSSL verify failed');
+            //error_log(openssl_error_string());
+            //return false;
+        //}
         
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
