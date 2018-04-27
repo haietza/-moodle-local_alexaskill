@@ -139,8 +139,8 @@ class local_alexaskill_external extends external_api {
         }
         
         // Determine if we need to download a new Signature Certificate Chain from Amazon
-        $md5pem = '/var/cache/amazon_echo' . md5($_SERVER['HTTP_SIGNATURECERTCHAINURL']) . '.pem';
-        $echoServiceDomain = 'echo-api.amazon.com';
+        $md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
+        error_log($md5pem);
         // If we haven't received a certificate with this URL before,
         // store it as a cached copy
         if (!file_exists($md5pem)) {
