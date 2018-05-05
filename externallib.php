@@ -42,23 +42,25 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request) {        
         $json = json_decode($request, true);
-        // Verify request is intended for my service: 
-        if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
-            error_log('Application ID wrong');
-            return http_response_code(400);
-        }
         
-        // Validate signature
+        // Check the signature of the request
         if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
             return http_response_code(400);
         }
         
-        // Verify timestamp
+        // Check the request timestamp.
         if (!self::verify_timestamp($json["request"]["timestamp"])) {
             error_log('Timestamp wrong');
             return http_response_code(400);
         }
         
+        // Verify request is intended for my service.
+        if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
+            error_log('Application ID wrong');
+            return http_response_code(400);
+        }
+        
+        // Process request.
         if ($json["request"]["type"] == 'LaunchRequest') {
             $text = self::launch_request();
         } elseif ($json["request"]["type"] == 'IntentRequest') {
@@ -116,7 +118,7 @@ class local_alexaskill_external extends external_api {
      */
     private static function validate_signature($certurl, $signature, $request) {
         global $CFG;
-
+        
         // The protocol is equal to https (case insensitive).
         $protocol = strtolower(parse_url($certurl, PHP_URL_SCHEME));
         
@@ -138,33 +140,8 @@ class local_alexaskill_external extends external_api {
                     return false;
         }
         
-        // Determine if we need to download a new Signature Certificate Chain from Amazon
-        //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
-        // If we haven't received a certificate with this URL before,
-        // store it as a cached copy
-        //if (!file_exists($md5pem)) {
-            //file_put_contents($md5pem, file_get_contents($certurl));
-        //}
-        // Validate certificate chain and signature
-        //$pem = file_get_contents($md5pem);
-        $pem = file_get_contents($certurl);
-        $ssl_check = openssl_verify($request, base64_decode($signature), $pem, 'SHA1' );
-        if ($ssl_check != 1) {
-            error_log(openssl_error_string());
-            return false;
-        }
-        
-        // Download PEM file.
-        //$cert = file_get_contents($certurl);
-        
-        // Once you have determined that the signing certificate is valid, extract the public key from it.
-        // Base64-decode the Signature header value on the request to obtain the encrypted signature.
-        // Use the public key extracted from the signing certificate to decrypt the encrypted signature to produce the asserted hash value.
-        // Generate a SHA-1 hash value from the full HTTPS request body to produce the derived hash value
-        // Compare the asserted hash value and derived hash values to ensure that they match.
-        error_log('cert ' . $cert);
-        error_log('signature ' . $signature);     
-        error_log('decode ' . base64_decode($signature));
+        // Download PEM-enoded X.509 certificate chain.
+        $cert = file_get_contents($certurl);
         
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
@@ -173,13 +150,7 @@ class local_alexaskill_external extends external_api {
             return false;
         }
         
-        // The domain echo-api.amazon.com is present in the Subject Alternative Names (SANs) section of the signing certificate
-        if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
-            error_log('SAN wrong');
-            return false;
-        }
-        
-        // The signing certificate has not expired (examine both the Not Before and Not After dates)
+        // Check that signing certificate has not expired.
         $validFrom = $parsedcert['validFrom_time_t'];
         $validTo = $parsedcert['validTo_time_t'];
         $time = time();
@@ -188,6 +159,38 @@ class local_alexaskill_external extends external_api {
             return false;
         }
         
+        // Check SAN.
+        if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
+            error_log('SAN wrong');
+            return false;
+        }
+        
+        // Check all certs combine to trusted root CA???
+        
+        // Extract public key from signing certificate.
+        
+        // Base64-decode the Signature header on request to obtain encrypted signature.
+        
+        // Use public key to decrypt encrypted signature to produce asserted hash value.
+        
+        // Generate SHA-1 hash from full HTTPS request body to produce derived hash value.
+        
+        // Compare asserted and derived hashes for matching.
+        
+        // Determine if we need to download a new Signature Certificate Chain from Amazon
+        //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
+        // If we haven't received a certificate with this URL before,
+        // store it as a cached copy
+        //if (!file_exists($md5pem)) {
+            //file_put_contents($md5pem, file_get_contents($certurl));
+        //}
+
+        //$ssl_check = openssl_verify($request, base64_decode($signature), $cert, 'SHA1' );
+        //if ($ssl_check != 1) {
+        //    error_log(openssl_error_string());
+        //    return false;
+        //}
+
         return true;
     }
     
