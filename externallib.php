@@ -140,6 +140,14 @@ class local_alexaskill_external extends external_api {
                     return false;
         }
         
+        // Determine if we need to download a new Signature Certificate Chain from Amazon
+        //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
+        // If we haven't received a certificate with this URL before,
+        // store it as a cached copy
+        //if (!file_exists($md5pem)) {
+        //file_put_contents($md5pem, file_get_contents($certurl));
+        //}
+        
         // Download PEM-enoded X.509 certificate chain.
         $cert = file_get_contents($certurl);
         
@@ -169,35 +177,15 @@ class local_alexaskill_external extends external_api {
         
         // Extract public key from signing certificate.
         $publickey = openssl_pkey_get_public($cert);
-        error_log('public key ' . $publickey);
         
         // Base64-decode the Signature header on request to obtain encrypted signature.
-        $encryptedsignature = base64_decode($signature);
-        error_log('encrypted sig ' . $encryptedsignature);
-        
-        // Use public key to decrypt encrypted signature to produce asserted hash value.
-        
         // Generate SHA-1 hash from full HTTPS request body to produce derived hash value.
-        
         // Compare asserted and derived hashes for matching.
-        
-        $verifysign = openssl_verify($request, $encryptedsignature, $publickey);
-        error_log('verified ' . $verifysign);
-        
-        
-        // Determine if we need to download a new Signature Certificate Chain from Amazon
-        //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
-        // If we haven't received a certificate with this URL before,
-        // store it as a cached copy
-        //if (!file_exists($md5pem)) {
-            //file_put_contents($md5pem, file_get_contents($certurl));
-        //}
-
-        //$ssl_check = openssl_verify($request, base64_decode($signature), $cert, 'SHA1' );
-        //if ($ssl_check != 1) {
-        //    error_log(openssl_error_string());
+        $verifysig = openssl_verify($request, base64_decode($signature), $publickey, OPENSSL_ALGO_SHA1);
+        if ($verifysig != 1) {
+            error_log(openssl_error_string());
         //    return false;
-        //}
+        }
 
         return true;
     }
