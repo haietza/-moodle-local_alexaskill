@@ -168,14 +168,22 @@ class local_alexaskill_external extends external_api {
         // Check all certs combine to trusted root CA???
         
         // Extract public key from signing certificate.
+        $publickey = openssl_pkey_get_public($cert);
+        error_log('public key ' . $publickey);
         
         // Base64-decode the Signature header on request to obtain encrypted signature.
+        $encryptedsignature = base64_decode($signature);
+        error_log('encrypted sig ' . $encryptedsignature);
         
         // Use public key to decrypt encrypted signature to produce asserted hash value.
         
         // Generate SHA-1 hash from full HTTPS request body to produce derived hash value.
         
         // Compare asserted and derived hashes for matching.
+        
+        $verifysign = openssl_verify($request, $encryptedsignature, $publickey);
+        error_log('verified ' . $verifysign);
+        
         
         // Determine if we need to download a new Signature Certificate Chain from Amazon
         //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
