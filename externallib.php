@@ -173,18 +173,27 @@ class local_alexaskill_external extends external_api {
             return false;
         }
         
-        // Check all certs combine to trusted root CA???
+        // Check all certs combine to trusted root CA.
+        $decodedsignature = base64_decode($signature);
+        $verifysig = openssl_verify($request, $decodedsignature, $cert, OPENSSL_ALGO_SHA1);
+        if ($verifysig != 1) {
+            error_log(openssl_error_string());
+            // return false;
+        }
         
         // Extract public key from signing certificate.
         $publickey = openssl_pkey_get_public($cert);
         
         // Base64-decode the Signature header on request to obtain encrypted signature.
+        openssl_public_decrypt($decodedsignature, $decryptedsignature, $publickey);
+        
         // Generate SHA-1 hash from full HTTPS request body to produce derived hash value.
+        $responsehash = sha1($request);
+        $decryptedsignature = bin2hex($decryptedsignature);
+        
         // Compare asserted and derived hashes for matching.
-        $verifysig = openssl_verify($request, base64_decode($signature), $publickey, OPENSSL_ALGO_SHA1);
-        if ($verifysig != 1) {
-            error_log(openssl_error_string());
-        //    return false;
+        if (substr($decryptedsignature, 30) !== $responsehash) {
+            return false;
         }
 
         return true;
