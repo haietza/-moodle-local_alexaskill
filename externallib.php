@@ -111,6 +111,7 @@ class local_alexaskill_external extends external_api {
     
     /**
      * Function to validate the signature.
+     * Thanks to https://github.com/craigh411/alexa-request-validator
      * 
      * @param string $certurl
      * @param array $json
@@ -178,7 +179,7 @@ class local_alexaskill_external extends external_api {
         $verifysig = openssl_verify($request, $decodedsignature, $cert, OPENSSL_ALGO_SHA1);
         if ($verifysig != 1) {
             error_log(openssl_error_string());
-            // return false;
+            return false;
         }
         
         // Extract public key from signing certificate.
