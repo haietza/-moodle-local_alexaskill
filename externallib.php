@@ -25,6 +25,9 @@
 
 require_once($CFG->libdir . "/externallib.php");
 //require_once($CFG->dirroot . '/mod/forum/externallib.php');
+require_once($CFG->dirroot . '/calendar/externallib.php');
+require_once($CFG->dirroot . '/lib/grouplib.php');
+require_once($CFG->dirroot . '/lib/enrollib.php');
 
 class local_alexaskill_external extends external_api {
     
@@ -42,7 +45,7 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request) {        
         $json = json_decode($request, true);
-        
+        /*
         // Check the signature of the request
         if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
             return http_response_code(400);
@@ -59,7 +62,7 @@ class local_alexaskill_external extends external_api {
             error_log('Application ID wrong');
             return http_response_code(400);
         }
-        
+        */
         // Process request.
         if ($json["request"]["type"] == 'LaunchRequest') {
             $text = self::launch_request();
@@ -70,6 +73,9 @@ class local_alexaskill_external extends external_api {
                     break;
                 case "GetGradesIntent":
                     $text = self::get_grades();
+                    break;
+                case "GetDueDatesIntent":
+                    $text = self::get_due_dates();
                     break;
             }
         } elseif ($json["request"]["type"] == 'SessionEndedRequest') {
@@ -297,13 +303,13 @@ class local_alexaskill_external extends external_api {
         }
         
         // Make sure SQL query is best way to get grades - no internal function?
-        $sql = 'select mdl_course.fullname, mdl_grade_grades.finalgrade
-                from mdl_grade_grades
-                inner join mdl_grade_items
-                on mdl_grade_grades.itemid = mdl_grade_items.id
-                inner join mdl_course
-                on mdl_grade_items.courseid = mdl_course.id
-                where mdl_grade_grades.userid = :userid
+        $sql = 'SELECT mdl_course.fullname, mdl_grade_grades.finalgrade
+                FROM mdl_grade_grades
+                INNER JOIN mdl_grade_items
+                ON mdl_grade_grades.itemid = mdl_grade_items.id
+                INNER JOIN mdl_course
+                ON mdl_grade_items.courseid = mdl_course.id
+                WHERE mdl_grade_grades.userid = :userid
                 AND mdl_grade_items.itemtype = "course"
                 AND mdl_course.visible = 1
                 AND mdl_course.showgrades = 1';
@@ -316,5 +322,40 @@ class local_alexaskill_external extends external_api {
         }
         
         return $grades;
+    }
+    
+    /**
+     * Function to get a user's due dates.
+     * 
+     * @return string calendar event dates
+     */
+    private static function get_due_dates() {
+        global $DB, $USER;
+        
+        // Context validation
+        // OPTIONAL but in most web service it should present
+        $context = context_user::instance($USER->id);
+        self::validate_context($context);
+        
+        // Capability checking
+        // OPTIONAL but in most web service it should present
+        //if (!has_capability('moodle/grade:view', $context)) {
+            //throw new moodle_exception('nopermissiontoviewgrades');
+        //}
+        
+        $courses = enrol_get_my_courses('id');
+        $courses = array_keys($courses);
+        $groups = groups_get_my_groups();
+        $groups = array_keys($groups);
+        $eventparams = array('eventids' => array(), 'courseids' => $courses, 'groupids' => $groups, 'categoryids' => array());
+        $options = array('userevents' => true, 'siteevents' => true, 'timestart' => time(), 'timeend' => null, 'ignorehidden' => null);
+        $events = core_calendar_external::get_calendar_events($eventparams, $options);
+        
+        $duedates = '';
+        foreach($events['events'] as $event) {
+            $duedates .= $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '. ';
+        }
+        
+        return $duedates;
     }
 }
