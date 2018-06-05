@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Language file.
+ * External web service template.
  *
  * @package   local_alexaskill
  * @author    Michelle Melton <meltonml@appstate.edu>
@@ -23,6 +23,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Alexa skill web service';
-$string['alexaskill_applicationid_label'] = 'Alexa skill application ID';
-$string['alexaskill_applicationid_desc'] = 'Enter the application ID for the skill from the Alexa Skills Kit Developer Console';
+defined('MOODLE_INTERNAL') || die;
+
+//require_once(__DIR__ . '/classes/task/gradecleanup.php');
+
+// Verify moodle/site:config capability for system context - user can configure site settings.
+if ($hassiteconfig) {
+    $settings = new admin_settingpage('local_alexaskill', get_string('pluginname', 'local_alexaskill'));
+    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid', get_string('alexaskill_applicationid_label', 'local_alexaskill'), get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
+    $ADMIN->add('localplugins', $settings);
+}

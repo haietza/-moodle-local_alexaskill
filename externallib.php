@@ -31,9 +31,7 @@ require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
-    
-    const APPLICATIONID = 'amzn1.ask.skill.74b90d83-aa64-4fee-abfc-735d33619522';
-    
+        
     /**
      * Returns description of method parameters
      * @return external_function_parameters
@@ -53,22 +51,22 @@ class local_alexaskill_external extends external_api {
         }
         
         // Check the request timestamp.
-        if (!self::verify_timestamp($json["request"]["timestamp"])) {
+        if (!self::verify_timestamp($json['request']['timestamp'])) {
             error_log('Timestamp wrong');
             return http_response_code(400);
         }
+        */
         
         // Verify request is intended for my service.
-        if (!self::verify_app_id($json["session"]["application"]["applicationId"])) {
-            error_log('Application ID wrong');
+        if (!self::verify_app_id($json['session']['application']['applicationId'])) {
             return http_response_code(400);
         }
-        */
+        
         // Process request.
-        if ($json["request"]["type"] == 'LaunchRequest') {
+        if ($json['request']['type'] == 'LaunchRequest') {
             $text = self::launch_request();
-        } elseif ($json["request"]["type"] == 'IntentRequest') {
-            switch($json["request"]["intent"]["name"]) {
+        } elseif ($json['request']['type'] == 'IntentRequest') {
+            switch($json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
                     $text = self::get_site_announcements(1);
                     break;
@@ -79,8 +77,8 @@ class local_alexaskill_external extends external_api {
                     $text = self::get_due_dates();
                     break;
             }
-        } elseif ($json["request"]["type"] == 'SessionEndedRequest') {
-            $text = $json["request"]["error"]["message"];
+        } elseif ($json['request']['type'] == 'SessionEndedRequest') {
+            $text = $json['request']['error']['message'];
         } else {
             $text = 'Working on it';
         }
@@ -103,7 +101,7 @@ class local_alexaskill_external extends external_api {
      * @return true if valid
      */
     private static function verify_app_id($applicationId) {
-        return $applicationId == self::APPLICATIONID;
+        return $applicationId == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
     
     /**
