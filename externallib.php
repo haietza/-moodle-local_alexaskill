@@ -52,7 +52,6 @@ class local_alexaskill_external extends external_api {
         
         // Check the request timestamp.
         if (!self::verify_timestamp($json['request']['timestamp'])) {
-            error_log('Timestamp wrong');
             return http_response_code(400);
         }
         */
@@ -142,7 +141,6 @@ class local_alexaskill_external extends external_api {
                 || $hostname != 's3.amazonaws.com'
                 || $path != '/echo.api/'
                 || ($port != 443 && $port != NULL)) {
-                    error_log('Signature URL wrong');
                     return false;
         }
         
@@ -160,7 +158,6 @@ class local_alexaskill_external extends external_api {
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
         if (!$parsedcert) {
-            error_log('No parsed cert');
             return false;
         }
         
@@ -169,13 +166,11 @@ class local_alexaskill_external extends external_api {
         $validTo = $parsedcert['validTo_time_t'];
         $time = time();
         if (!($validFrom <= $time && $time <= $validTo)) {
-            error_log('Expired cert');
             return false;
         }
         
         // Check SAN.
         if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
-            error_log('SAN wrong');
             return false;
         }
         
@@ -183,7 +178,6 @@ class local_alexaskill_external extends external_api {
         $decodedsignature = base64_decode($signature);
         $verifysig = openssl_verify($request, $decodedsignature, $cert, OPENSSL_ALGO_SHA1);
         if ($verifysig != 1) {
-            error_log(openssl_error_string());
             return false;
         }
         
@@ -211,10 +205,10 @@ class local_alexaskill_external extends external_api {
      * @return string welcome
      */
     private static function launch_request() {
-        //global $SITE;
+        global $SITE;
         
-        //return 'Welcome to ' . $SITE->fullname;
-        return 'Welcome to As You Learn';
+        return 'Welcome to ' . $SITE->fullname;
+        //return 'Welcome to As You Learn';
     }
     
     /**
@@ -243,22 +237,6 @@ class local_alexaskill_external extends external_api {
     private static function get_site_announcements($id = 1) {        
         global $DB;
         
-        // Parameters validation
-        //$params = self::validate_parameters(self::get_site_news_parameters(), array('id' => $id));
-        
-        // Note: don't forget to validate the context and check capabilities
-        
-        // Context validation
-        // OPTIONAL but in most web service it should present
-        //$context = context_module::instance(1);
-        //self::validate_context($context);
-        
-        // Capability checking
-        // OPTIONAL but in most web service it should present
-        //if (!has_capability('mod/forum:viewdiscussion', $context)) {
-        //    throw new moodle_exception('nopermissiontoviewpage');
-        //}
-        
         $discussions = $DB->get_records('forum_discussions', array('course' => 1), 'id DESC', 'id');
         $forumposts = array();
         foreach ($discussions as $discussion) {
@@ -266,10 +244,15 @@ class local_alexaskill_external extends external_api {
         }
         
         $siteannouncements = '';
+        $count = 0;
         foreach ($forumposts as $forumpost) {
             foreach ($forumpost['posts'] as $post) {
-                $message = strip_tags($post->message);
-                $siteannouncements .= $post->subject . '. ' . $message . '. ';
+                // Only return 5 original posts (not replies)
+                if ($post->parent == 0 && $count < 5) {
+                    $message = strip_tags($post->message);
+                    $siteannouncements .= $post->subject . '. ' . $message . '. ';
+                    $count++;
+                }
             }
         }
         
@@ -287,22 +270,6 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_grades() {
         global $DB, $USER;
-        
-        // Parameters validation
-        //$params = self::validate_parameters(self::get_site_news_parameters(), array('id' => $id));
-        
-        // Note: don't forget to validate the context and check capabilities
-        
-        // Context validation
-        // OPTIONAL but in most web service it should present
-        $context = context_user::instance($USER->id);
-        self::validate_context($context);
-        
-        // Capability checking
-        // OPTIONAL but in most web service it should present
-        //if (!has_capability('moodle/grade:view', $context)) {
-        //    throw new moodle_exception('nopermissiontoviewgrades');
-        //}
         
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
@@ -326,17 +293,6 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_due_dates() {
         global $DB, $USER;
-        
-        // Context validation
-        // OPTIONAL but in most web service it should present
-        $context = context_user::instance($USER->id);
-        self::validate_context($context);
-        
-        // Capability checking
-        // OPTIONAL but in most web service it should present
-        //if (!has_capability('moodle/grade:view', $context)) {
-            //throw new moodle_exception('nopermissiontoviewgrades');
-        //}
         
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
