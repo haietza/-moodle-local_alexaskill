@@ -24,10 +24,11 @@
  */
 
 require_once($CFG->libdir . "/externallib.php");
-//require_once($CFG->dirroot . '/mod/forum/externallib.php');
+require_once($CFG->dirroot . '/mod/forum/externallib.php');
 require_once($CFG->dirroot . '/calendar/externallib.php');
 require_once($CFG->dirroot . '/lib/grouplib.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
+require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
     
@@ -212,7 +213,7 @@ class local_alexaskill_external extends external_api {
      * @return string welcome
      */
     private static function launch_request() {
-        global $SITE;
+        //global $SITE;
         
         //return 'Welcome to ' . $SITE->fullname;
         return 'Welcome to As You Learn';
@@ -251,28 +252,31 @@ class local_alexaskill_external extends external_api {
         
         // Context validation
         // OPTIONAL but in most web service it should present
-        $context = context_module::instance(1);
-        self::validate_context($context);
+        //$context = context_module::instance(1);
+        //self::validate_context($context);
         
         // Capability checking
         // OPTIONAL but in most web service it should present
-        if (!has_capability('mod/forum:viewdiscussion', $context)) {
-            throw new moodle_exception('nopermissiontoviewpage');
+        //if (!has_capability('mod/forum:viewdiscussion', $context)) {
+        //    throw new moodle_exception('nopermissiontoviewpage');
+        //}
+        
+        $discussions = $DB->get_records('forum_discussions', array('course' => 1), 'id DESC', 'id');
+        $forumposts = array();
+        foreach ($discussions as $discussion) {
+            $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
         }
         
-        $sql = 'SELECT mdl_forum_posts.id, mdl_forum_posts.subject, mdl_forum_posts.message
-                FROM mdl_forum_posts
-                WHERE mdl_forum_posts.discussion IN 
-                    (SELECT mdl_forum_discussions.id 
-                    FROM mdl_forum_discussions 
-                    WHERE mdl_forum_discussions.forum = 1) 
-                ORDER BY mdl_forum_posts.id DESC';
-        
-        $announcementrecords = $DB->get_records_sql($sql);
         $siteannouncements = '';
-        foreach ($announcementrecords as $post) {
-            $post->message = strip_tags($post->message);
-            $siteannouncements .= $post->subject . '. ' . $post->message . '. ';
+        foreach ($forumposts as $forumpost) {
+            foreach ($forumpost['posts'] as $post) {
+                $message = strip_tags($post->message);
+                $siteannouncements .= $post->subject . '. ' . $message . '. ';
+            }
+        }
+        
+        if ($siteannouncements == '') {
+            $siteannouncements = 'There are no site announcements.';
         }
         
         return $siteannouncements;
@@ -298,29 +302,22 @@ class local_alexaskill_external extends external_api {
         
         // Capability checking
         // OPTIONAL but in most web service it should present
-        if (!has_capability('moodle/grade:view', $context)) {
-            throw new moodle_exception('nopermissiontoviewgrades');
-        }
+        //if (!has_capability('moodle/grade:view', $context)) {
+        //    throw new moodle_exception('nopermissiontoviewgrades');
+        //}
         
-        // Make sure SQL query is best way to get grades - no internal function?
-        $sql = 'SELECT mdl_course.fullname, mdl_grade_grades.finalgrade
-                FROM mdl_grade_grades
-                INNER JOIN mdl_grade_items
-                ON mdl_grade_grades.itemid = mdl_grade_items.id
-                INNER JOIN mdl_course
-                ON mdl_grade_items.courseid = mdl_course.id
-                WHERE mdl_grade_grades.userid = :userid
-                AND mdl_grade_items.itemtype = "course"
-                AND mdl_course.visible = 1
-                AND mdl_course.showgrades = 1';
-        $params = array('userid' => $USER->id);
-        
-        $gradesrecords = $DB->get_records_sql($sql, $params);
+        $gradereport = gradereport_overview_external::get_course_grades($USER->id);
+        $coursenames = array();
         $grades = '';
-        foreach ($gradesrecords as $grade) {
-            $grades .= $grade->fullname . '. ' . $grade->finalgrade . '. ';
+        foreach($gradereport['grades'] as $grade) {
+            $course = $DB->get_record('course', array('id' => $grade[courseid]), 'fullname');
+            $coursenames[$grade['courseid']] = $course->fullname;
+            $grades .= $coursenames[$grade['courseid']] . '. ' . $grade['grade'] . '. ';
         }
         
+        if ($grades == '') {
+            $grades = 'You have no course grades.';
+        }
         return $grades;
     }
     
@@ -356,6 +353,9 @@ class local_alexaskill_external extends external_api {
             $duedates .= $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '. ';
         }
         
+        if ($duedates == '') {
+            $duedates = 'You have no upcoming due dates.';
+        }
         return $duedates;
     }
 }
