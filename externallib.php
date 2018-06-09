@@ -31,6 +31,17 @@ require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
+    
+    private $response = array(
+            'version' => '1.0',
+            'response' => array (
+                    'outputSpeech' => array(
+                            'type' => 'PlainText',
+                            'text' => 'Hello'
+                    ),
+                    'shouldEndSession' => true
+            )
+    );
         
     /**
      * Returns description of method parameters
@@ -44,6 +55,7 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request) {        
         $json = json_decode($request, true);
+        
         /*
         // Check the signature of the request
         if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
@@ -63,34 +75,47 @@ class local_alexaskill_external extends external_api {
         
         // Process request.
         if ($json['request']['type'] == 'LaunchRequest') {
-            $text = self::launch_request();
+            self::launch_request();
         } elseif ($json['request']['type'] == 'IntentRequest') {
             switch($json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
-                    $text = self::get_site_announcements(1);
+                    self::get_site_announcements(1);
                     break;
                 case "GetGradesIntent":
-                    $text = self::get_grades();
+                    self::verify_account_linking($json['session']['user']['accessToken'], 'get grades');
+                    self::get_grades();
                     break;
                 case "GetDueDatesIntent":
-                    $text = self::get_due_dates();
+                    self::verify_account_linking($json['session']['user']['accessToken'], 'get due dates');
+                    self::get_due_dates();
                     break;
             }
         } elseif ($json['request']['type'] == 'SessionEndedRequest') {
-            $text = $json['request']['error']['message'];
-        } else {
-            $text = 'Working on it';
+            self::session_ended_request($json['request']['error']['message']);
         }
-        return array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => $text
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
+        
+        return $this->response;
+    }
+    
+    /**
+     * Returns description of method return values.
+     *
+     * @return external_single_structure
+     */
+    public static function alexa_returns() {
+        return new external_single_structure(array(
+                'version' => new external_value(PARAM_TEXT, 'version number'),
+                'response' => new external_single_structure(array(
+                        'outputSpeech' => new external_single_structure(array(
+                                'type' => new external_value(PARAM_TEXT, 'type of speech output'),
+                                'text' => new external_value(PARAM_TEXT, 'text string to speak')
+                        )),
+                        'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
+                        'card' => new external_single_structure(array(
+                                'type' => new external_value(PARAM_TEXT, 'type of card'), 'card for app', false
+                        ))
+                ))
+        ));
     }
     
     /**
@@ -201,32 +226,34 @@ class local_alexaskill_external extends external_api {
     
     /**
      * Function to get welcome message.
-     * 
+     *
      * @return string welcome
      */
     private static function launch_request() {
         global $SITE;
         
-        return 'Welcome to ' . $SITE->fullname;
-        //return 'Welcome to As You Learn';
+        $this->response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, grades, or due dates. Which would you like?';
+        $this->response['response']['shouldEndSession'] = false;
     }
     
-    /**
-     * Returns description of method return values.
-     * 
-     * @return external_single_structure
-     */
-    public static function alexa_returns() {
-        return new external_single_structure(array(
-                'version' => new external_value(PARAM_TEXT, 'version number'),
-                'response' => new external_single_structure(array(
-                        'outputSpeech' => new external_single_structure(array(
-                                'type' => new external_value(PARAM_TEXT, 'type of speech output'),
-                                'text' => new external_value(PARAM_TEXT, 'text string to speak')
-                        )),
-                        'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session')
-                ))
-        ));
+    private static function session_ended_request($error) {
+        if ($error) {
+            $this->response['response']['outputSpeech']['text'] = $error;
+        } else {
+            $this->response['response']['outputSpeech']['text'] = 'Your session has ended. Thank you!';
+        }
+    }
+    
+    private static function verify_account_linking($accessToken, $task) {
+        global $SITE;
+        if (!$accessToken) {
+            $this->response['response']['card']['type'] = 'LinkAccount';
+            $this->resonse['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                    . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+            return $this->response;
+        } else {
+            return;
+        }
     }
     
     /**
