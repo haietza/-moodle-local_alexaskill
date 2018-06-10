@@ -26,5 +26,3 @@
 $string['pluginname'] = 'Alexa skill web service';
 $string['alexaskill_applicationid_label'] = 'Alexa skill application ID';
 $string['alexaskill_applicationid_desc'] = 'Enter the application ID for the skill from the Alexa Skills Kit Developer Console';
-$string['alexaskill_webservicetoken_label'] = 'Moodle web service user token';
-$string['alexaskill_webservicetoken_desc'] = 'Enter the web service user token';
