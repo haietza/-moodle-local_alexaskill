@@ -32,16 +32,7 @@ require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
     
-    private $response = array(
-            'version' => '1.0',
-            'response' => array (
-                    'outputSpeech' => array(
-                            'type' => 'PlainText',
-                            'text' => 'Hello'
-                    ),
-                    'shouldEndSession' => true
-            )
-    );
+    static $response;
         
     /**
      * Returns description of method parameters
@@ -53,7 +44,18 @@ class local_alexaskill_external extends external_api {
         ));
     }
     
-    public static function alexa($request) {        
+    public static function alexa($request) {  
+        self::$response = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Hello'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        
         $json = json_decode($request, true);
         
         /*
@@ -94,7 +96,7 @@ class local_alexaskill_external extends external_api {
             self::session_ended_request($json['request']['error']['message']);
         }
         
-        return $this->response;
+        return self::$response;
     }
     
     /**
@@ -112,8 +114,8 @@ class local_alexaskill_external extends external_api {
                         )),
                         'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
                         'card' => new external_single_structure(array(
-                                'type' => new external_value(PARAM_TEXT, 'type of card'), 'card for app', false
-                        ))
+                                'type' => new external_value(PARAM_TEXT, 'type of card')
+                        ), 'card for app', VALUE_OPTIONAL)
                 ))
         ));
     }
@@ -232,25 +234,25 @@ class local_alexaskill_external extends external_api {
     private static function launch_request() {
         global $SITE;
         
-        $this->response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, grades, or due dates. Which would you like?';
-        $this->response['response']['shouldEndSession'] = false;
+        self::$response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, grades, or due dates. Which would you like?';
+        self::$response['response']['shouldEndSession'] = false;
     }
     
     private static function session_ended_request($error) {
         if ($error) {
-            $this->response['response']['outputSpeech']['text'] = $error;
+            self::$response['response']['outputSpeech']['text'] = $error;
         } else {
-            $this->response['response']['outputSpeech']['text'] = 'Your session has ended. Thank you!';
+            self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Thank you!';
         }
     }
     
     private static function verify_account_linking($accessToken, $task) {
         global $SITE;
-        if (!$accessToken) {
-            $this->response['response']['card']['type'] = 'LinkAccount';
-            $this->resonse['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+        if ($accessToken == get_config('local_alexaskill', 'alexaskill_webservicetoken')) {
+            self::$response['response']['card']['type'] = 'LinkAccount';
+            self::$resonse['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
                     . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
-            return $this->response;
+            return self::$response;
         } else {
             return;
         }

@@ -31,5 +31,6 @@ defined('MOODLE_INTERNAL') || die;
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_alexaskill', get_string('pluginname', 'local_alexaskill'));
     $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid', get_string('alexaskill_applicationid_label', 'local_alexaskill'), get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
+    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_webservicetoken', get_string('alexaskill_webservicetoken_label', 'local_alexaskill'), get_string('alexaskill_webservicetoken_desc', 'local_alexaskill'), ''));
     $ADMIN->add('localplugins', $settings);
 }
