@@ -84,11 +84,17 @@ class local_alexaskill_external extends external_api {
                     self::get_site_announcements(1);
                     break;
                 case "GetGradesIntent":
-                    self::verify_account_linking($json['session']['user']['accessToken'], 'get grades');
+                    if (!array_key_exists('accessToken', $json['session']['user'])) {
+                        self::verify_account_linking('get grades');
+                        return self::$response;
+                    }
                     self::get_grades();
                     break;
                 case "GetDueDatesIntent":
-                    self::verify_account_linking($json['session']['user']['accessToken'], 'get due dates');
+                    if (!array_key_exists('accessToken', $json['session']['user'])) {
+                        self::verify_account_linking('get due dates');
+                        return self::$response;
+                    }
                     self::get_due_dates();
                     break;
                 case "AMAZON.CancelIntent":
@@ -254,16 +260,12 @@ class local_alexaskill_external extends external_api {
         }
     }
     
-    private static function verify_account_linking($accessToken, $task) {
+    private static function verify_account_linking($task) {
         global $SITE;
-        if ($accessToken == get_config('local_alexaskill', 'alexaskill_webservicetoken')) {
-            self::$response['response']['card']['type'] = 'LinkAccount';
-            self::$resonse['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
-                    . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
-            return self::$response;
-        } else {
-            return;
-        }
+        self::$response['response']['card']['type'] = 'LinkAccount';
+        self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+        return;
     }
     
     /**
@@ -297,7 +299,9 @@ class local_alexaskill_external extends external_api {
             $siteannouncements = 'There are no site announcements.';
         }
         
-        return $siteannouncements;
+        self::$response['response']['outputSpeech']['text'] = $siteannouncements;
+        
+        return;
     }
     
     /**
@@ -314,13 +318,15 @@ class local_alexaskill_external extends external_api {
         foreach($gradereport['grades'] as $grade) {
             $course = $DB->get_record('course', array('id' => $grade[courseid]), 'fullname');
             $coursenames[$grade['courseid']] = $course->fullname;
-            $grades .= $coursenames[$grade['courseid']] . '. ' . $grade['grade'] . '. ';
+            $grades .= 'Your grade in ' . $coursenames[$grade['courseid']] . ' is ' . $grade['grade'] . '. ';
         }
         
         if ($grades == '') {
             $grades = 'You have no course grades.';
         }
-        return $grades;
+        
+        self::$response['response']['outputSpeech']['text'] = $grades;
+        return;
     }
     
     /**
@@ -347,6 +353,8 @@ class local_alexaskill_external extends external_api {
         if ($duedates == '') {
             $duedates = 'You have no upcoming due dates.';
         }
-        return $duedates;
+        
+        self::$response['response']['outputSpeech']['text'] = $duedates;
+        return;
     }
 }
