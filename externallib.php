@@ -91,6 +91,14 @@ class local_alexaskill_external extends external_api {
                     self::verify_account_linking($json['session']['user']['accessToken'], 'get due dates');
                     self::get_due_dates();
                     break;
+                case "AMAZON.CancelIntent":
+                case "AMAZON.StopIntent":
+                    self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
+                    break;
+                case "AMAZON.HelpIntent":
+                    self::$response['response']['outputSpeech']['text'] = 'You can get site announcements, grades, or due dates. Which would you like?';
+                    self::$response['response']['shouldEndSession'] = false;
+                    break;
             }
         } elseif ($json['request']['type'] == 'SessionEndedRequest') {
             self::session_ended_request($json['request']['error']['message']);
@@ -240,9 +248,9 @@ class local_alexaskill_external extends external_api {
     
     private static function session_ended_request($error) {
         if ($error) {
-            self::$response['response']['outputSpeech']['text'] = $error;
+            self::$response['response']['outputSpeech']['text'] = 'Your session has ended because ' . $error;
         } else {
-            self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Thank you!';
+            self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
         }
     }
     
