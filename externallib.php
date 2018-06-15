@@ -324,8 +324,15 @@ class local_alexaskill_external extends external_api {
         $coursenames = array();
         $grades = '';
         foreach($gradereport['grades'] as $grade) {
-            $course = $DB->get_record('course', array('id' => $grade[courseid]), 'fullname');
-            $coursenames[$grade['courseid']] = $course->fullname;
+            $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
+            $coursename = array();
+            if (preg_match('/([A-Z][A-Z|\s][A-Z][0-9]{4}-[0-9]{3})_([^(]*)/', $course->fullname, $coursename) == 1) {
+                // [0] will be course number and name, [1] will be course number, [2] will be course name.
+                $coursenames[$grade['courseid']] = $coursename[0];
+            } else {
+                $coursenames[$grade['courseid']] = $course->fullname;
+            }
+            
             $grades .= 'Your grade in ' . $coursenames[$grade['courseid']] . ' is ' . $grade['grade'] . '. ';
         }
         
