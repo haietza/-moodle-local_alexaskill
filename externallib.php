@@ -284,10 +284,18 @@ class local_alexaskill_external extends external_api {
         
         $siteannouncements = '';
         $count = 0;
+        
+        // Get course setting for number of announcements.
+        // If over 5, limit to 5 initially for usability.
+        $limit = $DB->get_field('course', 'newsitems', array('id' => $id));
+        if ($limit > 5) {
+            $limit = 5;
+        }
+        
         foreach ($forumposts as $forumpost) {
             foreach ($forumpost['posts'] as $post) {
-                // Only return 5 original posts (not replies)
-                if ($post->parent == 0 && $count < 5) {
+                // Only return $limit number of original posts (not replies).
+                if ($post->parent == 0 && $count <= $limit) {
                     $message = strip_tags($post->message);
                     $siteannouncements .= $post->subject . '. ' . $message . '. ';
                     $count++;
@@ -335,7 +343,7 @@ class local_alexaskill_external extends external_api {
      * @return string calendar event dates
      */
     private static function get_due_dates() {
-        global $DB, $USER;
+        global $DB, $CFG, $USER;
         
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
@@ -346,8 +354,23 @@ class local_alexaskill_external extends external_api {
         $events = core_calendar_external::get_calendar_events($eventparams, $options);
         
         $duedates = '';
+        $count = 0;
+        
+        // Get site calendar setting for number of upcoming events.
+        // If over 5, limit to 5 initially for usability.
+        $limit = $CFG->calendar_maxevents;
+        if ($limit > 5) {
+            $limit = 5;
+        }
+        
+        // Get site calendar setting for days to look ahead.
+        $lookahead = $CFG->calendar_lookahead;
+        $lookahead = strtotime($lookahead . ' days');
+        
         foreach($events['events'] as $event) {
-            $duedates .= $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '. ';
+            if ($count <= $limit && $event['timestart'] < $lookahead) {
+                $duedates .= $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '. ';
+            }
         }
         
         if ($duedates == '') {
