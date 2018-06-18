@@ -40,11 +40,12 @@ class local_alexaskill_external extends external_api {
      */
     public static function alexa_parameters() {
         return new external_function_parameters(array(
-                'request' => new external_value(PARAM_TEXT, 'JSON request as a string')
+                'request' => new external_value(PARAM_TEXT, 'JSON request as a string'),
+                'token' => new external_value(PARAM_TEXT, 'Invalid token status', VALUE_OPTIONAL)
         ));
     }
     
-    public static function alexa($request) {  
+    public static function alexa($request, $token = '') {  
         self::$response = array(
                 'version' => '1.0',
                 'response' => array (
@@ -82,14 +83,15 @@ class local_alexaskill_external extends external_api {
                     self::get_site_announcements(1);
                     break;
                 case "GetGradesIntent":
-                    if (!array_key_exists('accessToken', $json['session']['user'])) {
+                    // accessToken may exist even if invalid. Need to see
+                    if ($token !== 'valid') {
                         self::verify_account_linking('get grades');
                         return self::$response;
                     }
                     self::get_grades();
                     break;
                 case "GetDueDatesIntent":
-                    if (!array_key_exists('accessToken', $json['session']['user'])) {
+                    if ($token !== 'valid') {
                         self::verify_account_linking('get due dates');
                         return self::$response;
                     }
