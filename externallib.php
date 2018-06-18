@@ -57,8 +57,7 @@ class local_alexaskill_external extends external_api {
         );
         
         $json = json_decode($request, true);
-        
-        /*
+
         // Check the signature of the request
         if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
             return http_response_code(400);
@@ -67,8 +66,7 @@ class local_alexaskill_external extends external_api {
         // Check the request timestamp.
         if (!self::verify_timestamp($json['request']['timestamp'])) {
             return http_response_code(400);
-        }
-        */
+        } 
         
         // Verify request is intended for my service.
         if (!self::verify_app_id($json['session']['application']['applicationId'])) {
