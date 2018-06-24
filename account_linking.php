@@ -58,7 +58,7 @@ if ($fromform = $mform->get_data()) {
     curl_close($ch);
     
     $obj = json_decode($data, true);
-    $redirect = $fromform->redirect_uri . '&state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
+    $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {
     // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed

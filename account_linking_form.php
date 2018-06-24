@@ -33,14 +33,12 @@ class account_linking_form extends moodleform {
         
         $mform->addElement('text', 'username', get_string('alexaskill_accountlinking_username', 'local_alexaskill'));
         $mform->setType('username', PARAM_USERNAME);
+        if (isloggedin()) {
+            $mform->setDefault('username', $USER->username);
+        }
         
         $mform->addElement('password', 'password', get_string('alexaskill_accountlinking_password', 'local_alexaskill'));
         $mform->setType('password', PARAM_RAW);
-        
-        if (isloggedin()) {
-            $mform->setDefault('username', $USER->username);
-            $mform->setDefault('password', $USER->password);
-        }
         
         $mform->addElement('hidden', 'service');
         $mform->setType('service', PARAM_TEXT);
@@ -80,17 +78,15 @@ class account_linking_form extends moodleform {
             switch ($obj['errorcode']) {
                 case 'enablewsdescription':
                 case 'servicenotavailable':
-                    $errors['service'] = $obj['error'];
-                    break;
-                case 'restoredaccountresetpassword':
-                case 'passwordisexpired':
-                    $errors['password'] = $obj['error'];
-                    break;
                 case 'sitemaintenance':
                 case 'noguest':
                 case 'usernotconfirmed':
                 case 'invalidlogin':
                     $errors['username'] = $obj['error'];
+                    break;
+                case 'restoredaccountresetpassword':
+                case 'passwordisexpired':
+                    $errors['password'] = $obj['error'];
                     break;
             }
             
