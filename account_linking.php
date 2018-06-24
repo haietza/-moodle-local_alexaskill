@@ -37,7 +37,6 @@ $PAGE->set_heading($site->fullname);
 $PAGE->set_pagelayout('login');
 
 $mform = new account_linking_form();
-$fromform = -1;
 
 // Form processing and displaying is done here
 if ($fromform = $mform->get_data()) {
@@ -67,7 +66,7 @@ if ($fromform = $mform->get_data()) {
     
     // Set default data (if any)
     $toform = new stdClass();
-    if ($fromform == null) {
+    if ($mform->is_submitted()) {
         // Form was submitted but data did not validate and form needs to be redisplayed (have to get url params from HTTP_REFERER).
         $urlquery = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY);
         $params = explode('&', $urlquery);
@@ -76,10 +75,16 @@ if ($fromform = $mform->get_data()) {
             $keyvalue = explode('=', $param);
             $paramvalues[$keyvalue[0]] = $keyvalue[1];
         }
+        $toform->state = $paramvalues['state'];
+        $toform->service = $paramvalues['client_id'];
+        $toform->response_type = $paramvalues['response_type'];
+        $toform->redirect_uri = $paramvalues['redirect_uri'];
+        
         unset($urlquery);
         unset($params);
         unset($param);
         unset($keyvalue);
+        unset($paramvalues);
     } else {
         // First display of the form, can get params from $_GET.
         $toform->state = $_GET['state'];
