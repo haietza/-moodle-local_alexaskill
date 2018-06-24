@@ -190,14 +190,30 @@ class local_alexaskill_external extends external_api {
         
         // Determine if we need to download a new Signature Certificate Chain from Amazon
         //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
-        // If we haven't received a certificate with this URL before,
-        // store it as a cached copy
+        // If we haven't received a certificate with this URL before, store it as a cached copy
         //if (!file_exists($md5pem)) {
-        //file_put_contents($md5pem, file_get_contents($certurl));
+            //file_put_contents($md5pem, file_get_contents($certurl));
         //}
         
+        // Create the Signature Certificate Chain directory if it does not exist.
+        $certdir = $CFG->dataroot . '/local_alexaskill';
+        if (!file_exists($certdir)) {
+            mkdir($certdir);
+        }
+        
+        // Make sure directory is writeable.
+        if (!is_writable($certdir)) {
+            chmod($certdir, 0777);
+        }
+        
+        // Download a new Signature Certificate Chain if we need to.
+        $certfile = $certdir . '/' . md5($certurl) . '.pem';
+        if (!file_exists($certfile)) {
+            file_put_contents($certfile, file_get_contents($certurl));
+        }
+        
         // Download PEM-enoded X.509 certificate chain.
-        $cert = file_get_contents($certurl);
+        $cert = file_get_contents($certfile);
         
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
