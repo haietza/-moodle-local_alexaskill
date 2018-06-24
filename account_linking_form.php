@@ -27,7 +27,7 @@ require_once("$CFG->libdir/formslib.php");
  
 class account_linking_form extends moodleform {
     public function definition() {
-        global $CFG, $SITE, $USER;
+        global $USER;
  
         $mform = $this->_form;
         
@@ -44,28 +44,57 @@ class account_linking_form extends moodleform {
         
         $mform->addElement('hidden', 'service');
         $mform->setType('service', PARAM_TEXT);
-        $mform->setDefault('service', 'alexa_skill_service');
         
         $mform->addElement('hidden', 'state');
         $mform->setType('state', PARAM_TEXT);
-        $mform->setDefault('state', $this->_customdata['state']);
-        
-        $mform->addElement('hidden', 'client_id');
-        $mform->setType('client_id', PARAM_TEXT);
-        $mform->setDefault('client_id', $this->_customdata['client_id']);
         
         $mform->addElement('hidden', 'response_type');
         $mform->setType('response_type', PARAM_TEXT);
-        $mform->setDefault('response_type', $this->_customdata['response_type']);
         
         $mform->addElement('hidden', 'redirect_uri');
-        $mform->setType('redirect_uri', PARAM_URL);
-        $mform->setDefault('redirect_uri', $this->_customdata['redirect_uri']);
+        $mform->setType('redirect_uri', PARAM_TEXT);
         
         $this->add_action_buttons(false, get_string('alexaskill_accountlinking_submit', 'local_alexaskill'));
     }
     
-    function validation($data, $files) {
-        return array();
+    function validation($data, $files) {  
+        $errors = array();
+        $ch = curl_init();
+        $values = array(
+                'username' => $data['username'],
+                'password' => $data['password'],
+                'service' => $data['service']
+        );
+        $options = array(
+                //CURLOPT_URL => $CFG->wwwroot . '/login/token.php/',
+                CURLOPT_URL => 'https://alexa.haietza.com/login/token.php/',
+                CURLOPT_POSTFIELDS => $values,
+                CURLOPT_RETURNTRANSFER => 1
+        );
+        curl_setopt_array($ch, $options);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        
+        $obj = json_decode($data, true);
+        if (!key_exists('token', $obj)) {
+            switch ($obj['errorcode']) {
+                case 'enablewsdescription':
+                case 'servicenotavailable':
+                    $errors['service'] = $obj['error'];
+                    break;
+                case 'restoredaccountresetpassword':
+                case 'passwordisexpired':
+                    $errors['password'] = $obj['error'];
+                    break;
+                case 'sitemaintenance':
+                case 'noguest':
+                case 'usernotconfirmed':
+                case 'invalidlogin':
+                    $errors['username'] = $obj['error'];
+                    break;
+            }
+            
+        }
+        return $errors;
     }
 }

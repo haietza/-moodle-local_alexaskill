@@ -37,16 +37,16 @@ $PAGE->set_heading($site->fullname);
 $PAGE->set_pagelayout('login');
 
 $mform = new account_linking_form();
-$formdata = new stdClass();
+$fromform = -1;
 
 // Form processing and displaying is done here
-if ($formdata = $mform->get_data()) {
+if ($fromform = $mform->get_data()) {
     //In this case you process validated data. $mform->get_data() returns data posted in form.
     $ch = curl_init();
     $values = array(
-            'username' => $formdata->username,
-            'password' => $formdata->password,
-            'service' => $formdata->service
+            'username' => $fromform->username,
+            'password' => $fromform->password,
+            'service' => $fromform->service
     );
     $options = array(
             //CURLOPT_URL => $CFG->wwwroot . '/login/token.php/',
@@ -59,14 +59,36 @@ if ($formdata = $mform->get_data()) {
     curl_close($ch);
     
     $obj = json_decode($data, true);
-    $redirect = $formdata->redirect_uri . '&state=' . $formdata->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
+    $redirect = $fromform->redirect_uri . '&state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {
     // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
     // or on the first display of the form.
     
     // Set default data (if any)
-    $mform->set_data($formdata);
+    $toform = new stdClass();
+    if ($fromform == null) {
+        // Form was submitted but data did not validate and form needs to be redisplayed (have to get url params from HTTP_REFERER).
+        $urlquery = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY);
+        $params = explode('&', $urlquery);
+        $paramvalues = array();
+        foreach ($params as $param) {
+            $keyvalue = explode('=', $param);
+            $paramvalues[$keyvalue[0]] = $keyvalue[1];
+        }
+        unset($urlquery);
+        unset($params);
+        unset($param);
+        unset($keyvalue);
+    } else {
+        // First display of the form, can get params from $_GET.
+        $toform->state = $_GET['state'];
+        $toform->service = $_GET['client_id'];
+        $toform->response_type = $_GET['response_type'];
+        $toform->redirect_uri = $_GET['redirect_uri'];
+    }
+    
+    $mform->set_data($toform);
     // Displays the form
     echo $OUTPUT->header();
     $mform->display();
