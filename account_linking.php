@@ -31,10 +31,10 @@ $loginsite = get_string('loginsite');
 
 $PAGE->set_url($CFG->wwwroot . '/local/alexaskill/account_linking.php');
 $PAGE->set_context(context_system::instance());
-$PAGE->navbar->add($loginsite);
-$PAGE->set_title("$site->fullname: $loginsite");
-$PAGE->set_heading($site->fullname);
 $PAGE->set_pagelayout('login');
+$PAGE->navbar->add($loginsite);
+$PAGE->set_title($site->fullname);
+$PAGE->set_heading($site->fullname);
 
 $mform = new account_linking_form();
 
@@ -96,6 +96,16 @@ if ($fromform = $mform->get_data()) {
     $mform->set_data($toform);
     // Displays the form
     echo $OUTPUT->header();
+    echo $OUTPUT->box_start('col-xl-6 push-xl-3 m-2-md col-sm-8 push-sm-2');
+    echo $OUTPUT->box_start('card');
+    echo $OUTPUT->box_start('card-block');
+    echo $OUTPUT->box_start('card-title text-xs-center');
+    echo $OUTPUT->heading($PAGE->title);
+    echo '<hr>';
+    echo $OUTPUT->box_end();
     $mform->display();
+    echo $OUTPUT->box_end();
+    echo $OUTPUT->box_end();
+    echo $OUTPUT->box_end();
     echo $OUTPUT->footer();
 }

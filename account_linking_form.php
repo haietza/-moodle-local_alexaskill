@@ -31,14 +31,16 @@ class account_linking_form extends moodleform {
  
         $mform = $this->_form;
         
-        $mform->addElement('text', 'username', get_string('alexaskill_accountlinking_username', 'local_alexaskill'));
+        $mform->addElement('text', 'username', get_string('alexaskill_accountlinking_username', 'local_alexaskill'), array('required' => true));
         $mform->setType('username', PARAM_USERNAME);
         if (isloggedin()) {
             $mform->setDefault('username', $USER->username);
         }
+        $mform->addHelpButton('username', 'alexaskill_accountlinking_username', 'local_alexaskill');
         
-        $mform->addElement('password', 'password', get_string('alexaskill_accountlinking_password', 'local_alexaskill'));
+        $mform->addElement('password', 'password', get_string('alexaskill_accountlinking_password', 'local_alexaskill'), array('required' => true));
         $mform->setType('password', PARAM_RAW);
+        $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
         
         $mform->addElement('hidden', 'service');
         $mform->setType('service', PARAM_TEXT);

@@ -23,9 +23,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG, $SITE;
+
 $string['pluginname'] = 'Alexa skill web service';
 $string['alexaskill_applicationid_label'] = 'Alexa skill application ID';
 $string['alexaskill_applicationid_desc'] = 'Enter the application ID for the skill from the Alexa Skills Kit Developer Console';
 $string['alexaskill_accountlinking_username'] = 'Username';
+$string['alexaskill_accountlinking_username_help'] = 'Enter your ' . $SITE->fullname . ' username';
 $string['alexaskill_accountlinking_password'] = 'Password';
+$string['alexaskill_accountlinking_password_help'] = 'Enter your ' . $SITE->fullname . ' password. <a href="' . $CFG->wwwroot . '/login/forgot_password.php">Forgotten your username or password?</a>';
 $string['alexaskill_accountlinking_submit'] = 'Link account';
