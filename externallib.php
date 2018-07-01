@@ -86,6 +86,9 @@ class local_alexaskill_external extends external_api {
                 case "GetSiteAnnouncementsIntent":
                     self::get_site_announcements(1);
                     break;
+                case "GetCourseAnnouncementsIntent":
+                    self::get_course_announcements($json);
+                    break;
                 case "GetGradesIntent":
                     // accessToken may exist even if invalid. Need to see
                     if ($token !== 'valid') {
@@ -133,7 +136,11 @@ class local_alexaskill_external extends external_api {
                         'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
                         'card' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of card')
-                        ), 'card for app', VALUE_OPTIONAL)
+                        ), 'card for app', VALUE_OPTIONAL),
+                        'directives' => new external_single_structure(array(
+                                'type' => new external_value(PARAM_TEXT, 'type of directive'),
+                                'slotToElicit' => new external_value(PARAM_TEXT, 'slot to elicit')
+                        ), 'directives', VALUE_OPTIONAL)
                 ))
         ));
     }
@@ -296,7 +303,7 @@ class local_alexaskill_external extends external_api {
     private static function get_site_announcements($id = 1) {        
         global $DB;
         
-        $discussions = $DB->get_records('forum_discussions', array('course' => 1), 'id DESC', 'id');
+        $discussions = $DB->get_records('forum_discussions', array('course' => $id), 'id DESC', 'id');
         $forumposts = array();
         foreach ($discussions as $discussion) {
             $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
@@ -328,8 +335,149 @@ class local_alexaskill_external extends external_api {
         }
         
         self::$response['response']['outputSpeech']['text'] = $siteannouncements;
-        
         return;
+    }
+    
+    private static function get_course_announcements($json) {
+        $usercourses = enrol_get_my_courses(array('id', 'fullname'));
+        if ($json['request']['dialogState'] != 'COMPLETED') {
+            // We don't know the course, prompt for it.
+            $courseannouncements = '';
+            $numcourses = sizeof($usercourses);
+            
+            // We don't know the course, but they don't have any.
+            if ($numcourses == 0) {
+                $courseannouncements = 'You have no courses for which to get announcements.';
+                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+                self::$response['response']['shouldEndSession'] = true;
+                return;
+            }
+            
+            // We don't know the course, but they only have one.
+            if ($numcourses == 1) {
+                global $DB;
+                
+                $discussions = $DB->get_records('forum_discussions', array('course' => $usercourses[0]->id), 'id DESC', 'id');
+                $forumposts = array();
+                foreach ($discussions as $discussion) {
+                    $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+                }
+                
+                $courseannouncements = '';
+                $count = 0;
+                
+                // Get course setting for number of announcements.
+                // If over 5, limit to 5 initially for usability.
+                $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourses[0]->id));
+                if ($limit > 5) {
+                    $limit = 5;
+                }
+                
+                foreach ($forumposts as $forumpost) {
+                    foreach ($forumpost['posts'] as $post) {
+                        // Only return $limit number of original posts (not replies).
+                        if ($post->parent == 0 && $count <= $limit) {
+                            $message = strip_tags($post->message);
+                            $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                            $count++;
+                        }
+                    }
+                }
+                
+                if ($courseannouncements == '') {
+                    // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
+                    // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
+                    $courseannouncements = 'There are no announcements for ' . $usercourses[0]->fullname . '.';
+                } else {
+                    $courseannouncements = 'The announcements for ' . $usercourses[0]->fullname . ' are ' . $courseannouncements;
+                }
+                
+                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+                return;
+            }
+            
+            $prompt = 'You can get course announcements for ';
+            $count = 0;
+            foreach ($usercourses as $usercourse) {
+                while ($count < $numcourses - 1) {
+                    $prompt .= $usercourse->fullname . ', ';
+                    $count++;
+                }    
+            }
+            $prompt .= 'or ' . $usercourse->fullname . '. Which would you like?';
+
+            self::$response['response']['outputSpeech']['text'] = $prompt;
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    'type' => 'Dialog.ElicitSlot',
+                    'slotToElicit' => 'course'
+            );
+            return;
+        } else {
+            // We know the course, get the announcements.
+            $course = $json['request']['intent']['slots']['course']['value'];
+            
+            // Translate the course custom slot ID into Appalachian format.
+            // Have to customize this for other schools...
+            if (strlen($course) == 6) {
+                $course = substr($course, 0, 1) . ' ' . substr($course, 1, 5);
+            }
+            
+            // Find courseid in list of user's courses;
+            $courseid = -1;
+            foreach ($usercourses as $usercourse) {
+                if (strpos($usercourse->fullname, $course) !== false) {
+                   $courseid = $usercourse->id;
+                }
+            }
+            
+            // We found courseid in list of users courses.
+            if ($courseid != -1) {
+                global $DB;
+                
+                $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
+                $forumposts = array();
+                foreach ($discussions as $discussion) {
+                    $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+                }
+                
+                $courseannouncements = '';
+                $count = 0;
+                
+                // Get course setting for number of announcements.
+                // If over 5, limit to 5 initially for usability.
+                $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
+                if ($limit > 5) {
+                    $limit = 5;
+                }
+                
+                foreach ($forumposts as $forumpost) {
+                    foreach ($forumpost['posts'] as $post) {
+                        // Only return $limit number of original posts (not replies).
+                        if ($post->parent == 0 && $count <= $limit) {
+                            $message = strip_tags($post->message);
+                            $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                            $count++;
+                        }
+                    }
+                }
+                
+                if ($courseannouncements == '') {
+                    // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
+                    // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
+                    $courseannouncements = 'There are no announcements for ' . $usercourses['id']->fullname . '.';
+                } else {
+                    $courseannouncements = 'The announcements for ' . $usercourses['id']->fullname . ' are ' . $courseannouncements;
+                }
+                
+                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+                return;
+            } else {
+                // We did not find courseid in list of user's courses.
+                self::$response['response']['outputSpeech']['text'] = "I don't have any records for that course.";
+                return;
+            }
+        }
     }
     
     /**
