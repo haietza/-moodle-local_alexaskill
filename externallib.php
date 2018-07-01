@@ -468,9 +468,9 @@ class local_alexaskill_external extends external_api {
                 if ($courseannouncements == '') {
                     // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
                     // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
-                    $courseannouncements = 'There are no announcements for ' . $usercourses['id']->fullname . '.';
+                    $courseannouncements = 'There are no announcements for ' . $usercourses[$courseid]->fullname . '.';
                 } else {
-                    $courseannouncements = 'The announcements for ' . $usercourses['id']->fullname . ' are ' . $courseannouncements;
+                    $courseannouncements = 'The announcements for ' . $usercourses[$courseid]->fullname . ' are ' . $courseannouncements;
                 }
                 
                 self::$response['response']['outputSpeech']['text'] = $courseannouncements;
