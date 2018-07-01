@@ -352,47 +352,51 @@ class local_alexaskill_external extends external_api {
         
         // User only has one course, no need to prompt.
         if ($numcourses == 1) {
-            foreach ($usercourses as $usercourse) {
-                global $DB;
+            global $DB;
+            $usercourse = reset($usercourses);
+            $coursename = $usercourse->fullname;
+            if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
+                // Strip course number off front of fullname and ' (TERM YEAR)' from end.
+                $coursename = substr($coursenamearray[1], 0, -1);
+            }
                 
-                $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
-                $forumposts = array();
-                foreach ($discussions as $discussion) {
-                    $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
-                }
+            $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
+            $forumposts = array();
+            foreach ($discussions as $discussion) {
+                $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+            }
+            
+            $courseannouncements = '';
+            $count = 0;
                 
-                $courseannouncements = '';
-                $count = 0;
+            // Get course setting for number of announcements.
+            // If over 5, limit to 5 initially for usability.
+            $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourse->id));
+            if ($limit > 5) {
+                $limit = 5;
+            }
                 
-                // Get course setting for number of announcements.
-                // If over 5, limit to 5 initially for usability.
-                $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourse->id));
-                if ($limit > 5) {
-                    $limit = 5;
-                }
-                
-                foreach ($forumposts as $forumpost) {
-                    foreach ($forumpost['posts'] as $post) {
-                        // Only return $limit number of original posts (not replies).
-                        if ($post->parent == 0 && $count <= $limit) {
-                            $message = strip_tags($post->message);
-                            $courseannouncements .= $post->subject . '. ' . $message . '. ';
-                            $count++;
-                        }
+            foreach ($forumposts as $forumpost) {
+                foreach ($forumpost['posts'] as $post) {
+                    // Only return $limit number of original posts (not replies).
+                    if ($post->parent == 0 && $count <= $limit) {
+                        $message = strip_tags($post->message);
+                        $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                        $count++;
                     }
                 }
-                
-                if ($courseannouncements == '') {
-                    // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
-                    // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
-                    $courseannouncements = 'There are no announcements for ' . $usercourse->fullname . '.';
-                } else {
-                    $courseannouncements = 'The announcements for ' . $usercourse->fullname . ' are ' . $courseannouncements;
-                }
-                
-                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-                return;
             }
+            
+            if ($courseannouncements == '') {
+                // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
+                // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
+                $courseannouncements = 'There are no announcements for ' . $coursename . '.';
+            } else {
+                $courseannouncements = 'The announcements for ' . $coursename . ' are ' . $courseannouncements;
+            }
+            
+            self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+            return;
         }
         
         if ($json['request']['dialogState'] == 'STARTED') {
@@ -400,12 +404,22 @@ class local_alexaskill_external extends external_api {
             $prompt = 'You can get course announcements for ';
             $count = 0;
             foreach ($usercourses as $usercourse) {
+                $coursename = $usercourse->fullname;
+                if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
+                    // Strip course number off front of fullname and ' (TERM YEAR)' from end.
+                    $coursename = substr($coursenamearray[1], 0, -1);
+                }
                 while ($count < $numcourses - 1) {
-                    $prompt .= $usercourse->fullname . ', ';
+                    $prompt .= $coursename . ', ';
                     $count++;
                 }    
             }
-            $prompt .= 'or ' . $usercourse->fullname . '. Which would you like?';
+            $coursename = $usercourse->fullname;
+            if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
+                // Strip course number off front of fullname and ' (TERM YEAR)' from end.
+                $coursename = substr($coursenamearray[1], 0, -1);
+            }
+            $prompt .= 'or ' . $coursename . '. Which would you like?';
 
             self::$response['response']['outputSpeech']['text'] = $prompt;
             self::$response['response']['shouldEndSession'] = false;
@@ -418,6 +432,7 @@ class local_alexaskill_external extends external_api {
             return;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
             // We know the course, get the announcements.
+            // Have to have input ID in custom course slot.
             $course = $json['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'];
             
             // Translate the course custom slot ID into Appalachian format.
@@ -465,12 +480,18 @@ class local_alexaskill_external extends external_api {
                     }
                 }
                 
+                $coursename = $usercourses[$courseid]->fullname;
+                if (preg_match('/.{12}([^()]+)/', $usercourses[$courseid]->fullname, $coursenamearray)) {
+                    // Strip course number off front of fullname and ' (TERM YEAR)' from end.
+                    $coursename = substr($coursenamearray[1], 0, -1);
+                }
+                
                 if ($courseannouncements == '') {
                     // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
                     // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
-                    $courseannouncements = 'There are no announcements for ' . $usercourses[$courseid]->fullname . '.';
+                    $courseannouncements = 'There are no announcements for ' . $coursename . '.';
                 } else {
-                    $courseannouncements = 'The announcements for ' . $usercourses[$courseid]->fullname . ' are ' . $courseannouncements;
+                    $courseannouncements = 'The announcements for ' . $coursename . ' are ' . $courseannouncements;
                 }
                 
                 self::$response['response']['outputSpeech']['text'] = $courseannouncements;
