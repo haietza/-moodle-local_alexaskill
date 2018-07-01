@@ -196,13 +196,6 @@ class local_alexaskill_external extends external_api {
                     return false;
         }
         
-        // Determine if we need to download a new Signature Certificate Chain from Amazon
-        //$md5pem = '/var/cache/amazon_echo/' . md5($certurl) . '.pem';
-        // If we haven't received a certificate with this URL before, store it as a cached copy
-        //if (!file_exists($md5pem)) {
-            //file_put_contents($md5pem, file_get_contents($certurl));
-        //}
-        
         // Create the Signature Certificate Chain directory if it does not exist.
         $certdir = $CFG->dataroot . '/local_alexaskill';
         if (!file_exists($certdir)) {
@@ -279,14 +272,25 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['shouldEndSession'] = false;
     }
     
+    /**
+     * Function to handle the session ended request.
+     *
+     * @param string $error
+     */
     private static function session_ended_request($error) {
         if ($error) {
             self::$response['response']['outputSpeech']['text'] = 'Your session has ended because ' . $error;
         } else {
             self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
         }
+        return;
     }
     
+    /**
+     * Function to return the LinkAccount card.
+     *
+     * @param string $task
+     */
     private static function verify_account_linking($task) {
         global $SITE;
         self::$response['response']['card']['type'] = 'LinkAccount';
@@ -338,6 +342,11 @@ class local_alexaskill_external extends external_api {
         return;
     }
     
+    /**
+     * Function to get course announcements.
+     *
+     * @param string $json
+     */
     private static function get_course_announcements($json) {
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         $numcourses = sizeof($usercourses);
@@ -354,11 +363,7 @@ class local_alexaskill_external extends external_api {
         if ($numcourses == 1) {
             global $DB;
             $usercourse = reset($usercourses);
-            $coursename = $usercourse->fullname;
-            if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
-                // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-                $coursename = substr($coursenamearray[1], 0, -1);
-            }
+            $coursename = self::get_course_name($usercourse->fullname);
                 
             $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
             $forumposts = array();
@@ -404,21 +409,13 @@ class local_alexaskill_external extends external_api {
             $prompt = 'You can get course announcements for ';
             $count = 0;
             foreach ($usercourses as $usercourse) {
-                $coursename = $usercourse->fullname;
-                if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
-                    // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-                    $coursename = substr($coursenamearray[1], 0, -1);
-                }
+                $coursename = self::get_course_name($usercourse->fullname);
                 while ($count < $numcourses - 1) {
                     $prompt .= $coursename . ', ';
                     $count++;
                 }    
             }
-            $coursename = $usercourse->fullname;
-            if (preg_match('/.{12}([^()]+)/', $usercourse->fullname, $coursenamearray)) {
-                // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-                $coursename = substr($coursenamearray[1], 0, -1);
-            }
+            $coursename = self::get_course_name($usercourse->fullname);
             $prompt .= 'or ' . $coursename . '. Which would you like?';
 
             self::$response['response']['outputSpeech']['text'] = $prompt;
@@ -480,11 +477,7 @@ class local_alexaskill_external extends external_api {
                     }
                 }
                 
-                $coursename = $usercourses[$courseid]->fullname;
-                if (preg_match('/.{12}([^()]+)/', $usercourses[$courseid]->fullname, $coursenamearray)) {
-                    // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-                    $coursename = substr($coursenamearray[1], 0, -1);
-                }
+                $coursename = self::get_course_name($usercourses[$courseid]->fullname);
                 
                 if ($courseannouncements == '') {
                     // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
@@ -506,8 +499,6 @@ class local_alexaskill_external extends external_api {
     
     /**
      * Function to get a user's grades.
-     * 
-     * @return string grades of courses user is currently taking
      */
     private static function get_grades() {
         global $DB, $USER;
@@ -517,15 +508,8 @@ class local_alexaskill_external extends external_api {
         $grades = '';
         foreach($gradereport['grades'] as $grade) {
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
-            $coursename = array();
-            if (preg_match('/([A-Z][A-Z|\s][A-Z][0-9]{4}-[0-9]{3})_([^(]*)/', $course->fullname, $coursename) == 1) {
-                // [0] will be course number and name, [1] will be course number, [2] will be course name.
-                $coursenames[$grade['courseid']] = $coursename[0];
-            } else {
-                $coursenames[$grade['courseid']] = $course->fullname;
-            }
-            
-            $grades .= 'Your grade in ' . $coursenames[$grade['courseid']] . ' is ' . $grade['grade'] . '. ';
+            $coursename = self::get_course_name($course->fullname);
+            $grades .= 'Your grade in ' . $coursename . ' is ' . $grade['grade'] . '. ';
         }
         
         if ($grades == '') {
@@ -538,8 +522,6 @@ class local_alexaskill_external extends external_api {
     
     /**
      * Function to get a user's due dates.
-     * 
-     * @return string calendar event dates
      */
     private static function get_due_dates() {
         global $DB, $CFG, $USER;
@@ -578,5 +560,22 @@ class local_alexaskill_external extends external_api {
         
         self::$response['response']['outputSpeech']['text'] = $duedates;
         return;
+    }
+    
+    /**
+     * Function to parse a course name from a regular expression.
+     * Allows user to customize how Alexa says course names.
+     *
+     * @param string $coursefullname
+     * @return string parsed course name
+     */
+    private static function get_course_name($coursefullname) {
+        $coursename = $coursefullname;
+        $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');
+        if (preg_match($pattern, $coursefullname, $coursenamearray)) {
+            // Strip course number off front of fullname and ' (TERM YEAR)' from end.
+            $coursename = substr($coursenamearray[1], 0, -1);
+        }
+        return $coursename;
     }
 }
