@@ -418,7 +418,7 @@ class local_alexaskill_external extends external_api {
             return;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
             // We know the course, get the announcements.
-            $course = $json['request']['intent']['slots']['course']['value'];
+            $course = $json['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'];
             
             // Translate the course custom slot ID into Appalachian format.
             // Have to customize this for other schools...
