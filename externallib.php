@@ -137,10 +137,10 @@ class local_alexaskill_external extends external_api {
                         'card' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of card')
                         ), 'card for app', VALUE_OPTIONAL),
-                        'directives' => new external_single_structure(array(
+                        'directives' => new external_multiple_structure(new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of directive'),
                                 'slotToElicit' => new external_value(PARAM_TEXT, 'slot to elicit')
-                        ), 'directives', VALUE_OPTIONAL)
+                        )), 'directives', VALUE_OPTIONAL)
                 ))
         ));
     }
@@ -410,8 +410,10 @@ class local_alexaskill_external extends external_api {
             self::$response['response']['outputSpeech']['text'] = $prompt;
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
-                    'type' => 'Dialog.ElicitSlot',
-                    'slotToElicit' => 'course'
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'course'
+                    ) 
             );
             return;
         } else {
