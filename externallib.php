@@ -340,24 +340,22 @@ class local_alexaskill_external extends external_api {
     
     private static function get_course_announcements($json) {
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
-        if ($json['request']['dialogState'] != 'COMPLETED') {
-            // We don't know the course, prompt for it.
-            $courseannouncements = '';
-            $numcourses = sizeof($usercourses);
-            
-            // We don't know the course, but they don't have any.
-            if ($numcourses == 0) {
-                $courseannouncements = 'You have no courses for which to get announcements.';
-                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-                self::$response['response']['shouldEndSession'] = true;
-                return;
-            }
-            
-            // We don't know the course, but they only have one.
-            if ($numcourses == 1) {
+        $numcourses = sizeof($usercourses);
+        
+        // User has no courses, and therefore no announcements.
+        if ($numcourses == 0) {
+            $courseannouncements = 'You have no courses for which to get announcements.';
+            self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+            self::$response['response']['shouldEndSession'] = true;
+            return;
+        }
+        
+        // User only has one course, no need to prompt.
+        if ($numcourses == 1) {
+            foreach ($usercourses as $usercourse) {
                 global $DB;
                 
-                $discussions = $DB->get_records('forum_discussions', array('course' => $usercourses[0]->id), 'id DESC', 'id');
+                $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
                 $forumposts = array();
                 foreach ($discussions as $discussion) {
                     $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
@@ -368,7 +366,7 @@ class local_alexaskill_external extends external_api {
                 
                 // Get course setting for number of announcements.
                 // If over 5, limit to 5 initially for usability.
-                $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourses[0]->id));
+                $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourse->id));
                 if ($limit > 5) {
                     $limit = 5;
                 }
@@ -387,15 +385,18 @@ class local_alexaskill_external extends external_api {
                 if ($courseannouncements == '') {
                     // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
                     // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
-                    $courseannouncements = 'There are no announcements for ' . $usercourses[0]->fullname . '.';
+                    $courseannouncements = 'There are no announcements for ' . $usercourse->fullname . '.';
                 } else {
-                    $courseannouncements = 'The announcements for ' . $usercourses[0]->fullname . ' are ' . $courseannouncements;
+                    $courseannouncements = 'The announcements for ' . $usercourse->fullname . ' are ' . $courseannouncements;
                 }
                 
                 self::$response['response']['outputSpeech']['text'] = $courseannouncements;
                 return;
             }
-            
+        }
+        
+        if ($json['request']['dialogState'] != 'COMPLETED') {
+            // We don't know the course, prompt for it.
             $prompt = 'You can get course announcements for ';
             $count = 0;
             foreach ($usercourses as $usercourse) {
