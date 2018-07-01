@@ -430,18 +430,18 @@ class local_alexaskill_external extends external_api {
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
             // We know the course, get the announcements.
             // Have to have input ID in custom course slot.
-            $course = $json['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'];
+            $courseslotid = $json['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'];
             
             // Translate the course custom slot ID into Appalachian format.
             // Have to customize this for other schools...
-            if (strlen($course) == 6) {
-                $course = substr($course, 0, 1) . ' ' . substr($course, 1, 5);
+            if (strlen($courseslotid) == 6) {
+                $courseslotid = substr($courseslotid, 0, 1) . ' ' . substr($courseslotid, 1, 5);
             }
             
             // Find courseid in list of user's courses;
             $courseid = -1;
             foreach ($usercourses as $usercourse) {
-                if (strpos($usercourse->fullname, $course) !== false) {
+                if (strpos($usercourse->fullname, $courseslotid) !== false) {
                    $courseid = $usercourse->id;
                 }
             }
