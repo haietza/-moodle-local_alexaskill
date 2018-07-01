@@ -395,7 +395,7 @@ class local_alexaskill_external extends external_api {
             }
         }
         
-        if ($json['request']['dialogState'] != 'COMPLETED') {
+        if ($json['request']['dialogState'] == 'STARTED') {
             // We don't know the course, prompt for it.
             $prompt = 'You can get course announcements for ';
             $count = 0;
@@ -416,7 +416,7 @@ class local_alexaskill_external extends external_api {
                     ) 
             );
             return;
-        } else {
+        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
             // We know the course, get the announcements.
             $course = $json['request']['intent']['slots']['course']['value'];
             
