@@ -426,7 +426,7 @@ class local_alexaskill_external extends external_api {
             );
             return;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' || $json['request']['dialogState'] == 'COMPLETED') {
-            if ($courseslotid = $json['request']['intent']['slots']['course']['value'] && $courseslotid <= $numcourses) {
+            if ($courseslotid = $json['request']['intent']['slots']['course']['value'] && $courseslotid < $numcourses) {
                 // We have a slot value for a valid course.
                 $courseid = $indexedcourses[$courseslotid - 1]->id;
                 global $DB;
