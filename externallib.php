@@ -409,12 +409,12 @@ class local_alexaskill_external extends external_api {
             // We don't know the course, prompt for it.
             $prompt = 'You can get course announcements for the following courses: ';
             
-            for ($i = 0; $i < sizeof($indexedcourses) - 1; $i++) {
+            for ($i = 0; $i < $numcourses - 1; $i++) {
                 $coursename = self::get_course_name($indexedcourses[$i]->fullname);
                 $prompt .= ($i + 1) . ', ' . $coursename . '; ';
             }
             $coursename = self::get_course_name($indexedcourses[$i]->fullname);
-            $prompt .= 'or ' . ($i + 1) . ', ' . $indexedcourses[$i] . '. Which would you like?';
+            $prompt .= 'or ' . ($i + 1) . ', ' . $coursename . '. Which would you like? Please say the option number.';
 
             self::$response['response']['outputSpeech']['text'] = $prompt;
             self::$response['response']['shouldEndSession'] = false;
