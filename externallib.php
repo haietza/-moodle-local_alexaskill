@@ -430,48 +430,45 @@ class local_alexaskill_external extends external_api {
             );
             return;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' || $json['request']['dialogState'] == 'COMPLETED') {
-            if ($coursevalue = $json['request']['intent']['slots']['course']['value']) {
+            if (($coursevalue = $json['request']['intent']['slots']['course']['value']) && ($courseid = array_search($coursevalue, $usercourses))) {
                 // We have a slot value for a valid course.
-                $courseid = array_search($coursevalue, $usercourses);
-                if ($courseid) {
-                    global $DB;
-                    
-                    $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
-                    $forumposts = array();
-                    foreach ($discussions as $discussion) {
-                        $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
-                    }
-                    
-                    $courseannouncements = '';
-                    $count = 0;
-                    
-                    // Get course setting for number of announcements.
-                    // If over 5, limit to 5 initially for usability.
-                    $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
-                    if ($limit > 5) {
-                        $limit = 5;
-                    }
-                    
-                    foreach ($forumposts as $forumpost) {
-                        foreach ($forumpost['posts'] as $post) {
-                            // Only return $limit number of original posts (not replies).
-                            if ($post->parent == 0 && $count <= $limit) {
-                                $message = strip_tags($post->message);
-                                $courseannouncements .= $post->subject . '. ' . $message . '. ';
-                                $count++;
-                            }
+                global $DB;
+                
+                $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
+                $forumposts = array();
+                foreach ($discussions as $discussion) {
+                    $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+                }
+                
+                $courseannouncements = '';
+                $count = 0;
+                
+                // Get course setting for number of announcements.
+                // If over 5, limit to 5 initially for usability.
+                $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
+                if ($limit > 5) {
+                    $limit = 5;
+                }
+                
+                foreach ($forumposts as $forumpost) {
+                    foreach ($forumpost['posts'] as $post) {
+                        // Only return $limit number of original posts (not replies).
+                        if ($post->parent == 0 && $count <= $limit) {
+                            $message = strip_tags($post->message);
+                            $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                            $count++;
                         }
                     }
-                                        
-                    if ($courseannouncements == '') {
-                        $courseannouncements = 'There are no announcements for ' . $coursevalue . '.';
-                    } else {
-                        $courseannouncements = 'The announcements for ' . $coursevalue . ' are ' . $courseannouncements;
-                    }
-                    
-                    self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-                    return;
                 }
+                
+                if ($courseannouncements == '') {
+                    $courseannouncements = 'There are no announcements for ' . $coursevalue . '.';
+                } else {
+                    $courseannouncements = 'The announcements for ' . $coursevalue . ' are ' . $courseannouncements;
+                }
+                
+                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
+                return;
             } else {
                 // We did not find course in list of user's courses.
                 self::$response['response']['outputSpeech']['text'] = "I don't have any records for that course.";
