@@ -413,13 +413,12 @@ class local_alexaskill_external extends external_api {
             
             $count = 0;
             foreach($usercourses as $usercourse) {
-                $coursename = self::get_course_name($usercourse->fullname);
-                while ($count < $numcourses - 1) {
-                    $prompt .= $coursename . ', ';
+                if ($count < $numcourses - 1) {
+                    $prompt .= $usercourse->preferredname . ', ';
                     $count++;
                 }
-                $prompt .= 'or ' . $coursename . '. Which would you like?';
             }
+            $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
 
             self::$response['response']['outputSpeech']['text'] = $prompt;
             self::$response['response']['shouldEndSession'] = false;
