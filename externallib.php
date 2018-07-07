@@ -430,7 +430,14 @@ class local_alexaskill_external extends external_api {
             );
             return;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' || $json['request']['dialogState'] == 'COMPLETED') {
-            if (($coursevalue = $json['request']['intent']['slots']['course']['value']) && ($courseid = array_search(strtolower($coursevalue), $usercourses))) {
+            $coursevalue = $json['request']['intent']['slots']['course']['value'];
+            $courseid = -1;
+            foreach ($usercourses as $usercourse) {
+                if ($usercourse->preferredname == strtolower($coursevalue)) {
+                    $courseid = $usercourse->id;
+                }
+            }
+            if ($courseid != -1) {
                 // We have a slot value for a valid course.
                 global $DB;
                 
