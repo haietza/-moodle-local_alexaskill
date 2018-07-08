@@ -281,7 +281,7 @@ class local_alexaskill_external extends external_api {
         
         $responses = array(
                 '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>Hello! I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates from ' . $SITE->fullname . '. Which would you like?</speak>'
+                '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
@@ -364,12 +364,11 @@ class local_alexaskill_external extends external_api {
         
         if ($siteannouncements == '') {
             $responses = array(
-                    '<speak>Sorry, there are no site announcements right now.</speak>',
-                    '<speak>I apologize, but there are no announcements for the site.</speak>'
+                    'Sorry, there are no site announcements right now.',
+                    'I apologize, but there are no announcements for the site.'
             );
             
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
             return;
         } else {
             $responses = array(
@@ -389,6 +388,7 @@ class local_alexaskill_external extends external_api {
      * @param string $json
      */
     private static function get_course_announcements($json) {
+        global $DB;
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_course_name($usercourse->fullname);
@@ -397,15 +397,17 @@ class local_alexaskill_external extends external_api {
         
         // User has no courses, and therefore no announcements.
         if ($numcourses == 0) {
-            $courseannouncements = 'You are not enrolled in any courses.';
-            self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-            self::$response['response']['shouldEndSession'] = true;
+            $responses = array(
+                    'Sorry, you are not enrolled in any courses.',
+                    'I apologize, but there are no active courses listed for you.'
+            );
+            
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
             return;
         }
         
         // User only has one course, no need to prompt.
         if ($numcourses == 1) {
-            global $DB;
             $usercourse = reset($usercourses);
             $coursename = self::get_course_name($usercourse->fullname);
                 
@@ -430,38 +432,53 @@ class local_alexaskill_external extends external_api {
                     // Only return $limit number of original posts (not replies).
                     if ($post->parent == 0 && $count <= $limit) {
                         $message = strip_tags($post->message);
-                        $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                        $courseannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
                         $count++;
                     }
                 }
             }
             
             if ($courseannouncements == '') {
-                // fullname = BIO4501-104_SUBCELLULAR AMPK LOCALIZATION (SECOND SUMMER 2018)
-                // or C S1440-104_COMPUTER SCIENCE I (SPRING 2016)
-                $courseannouncements = 'There are no announcements for ' . $coursename . '.';
+                $responses = array(
+                        'Sorry, there are no announcements for ' . $coursename . '.',
+                        'I apologize, but ' . $coursename . ' does not have any announcements.'
+                );
+                
+                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                return;
             } else {
-                $courseannouncements = 'The announcements for ' . $coursename . ' are ' . $courseannouncements;
+                $responses = array(
+                        '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $coursename . ': ',
+                        '<speak>Sure. The ' . $count . ' latest ' . $coursename . ' course announcements are: '
+                );
+                
+                self::$response['response']['outputSpeech']['type'] = 'SSML';
+                self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . '</speak>';
+                return;
             }
-            
-            self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-            return;
         }
         
         if ($json['request']['dialogState'] == 'STARTED') {
             // We don't know the course, prompt for it.
-            $prompt = 'You can get announcements for the following courses: ';
+            $responses = array(
+                    '<speak>Thanks. You can get announcements for the following courses: ',
+                    '<speak>Great. I can get announcements from the following courses for you: '
+            );
             
+            //$prompt = 'You can get announcements for the following courses: ';
+            $prompt = '';
             $count = 0;
             foreach($usercourses as $usercourse) {
                 if ($count < $numcourses - 1) {
-                    $prompt .= $usercourse->preferredname . ', ';
+                    $prompt .= $usercourse->preferredname . '<break time = "350ms"/> ';
                     $count++;
                 }
             }
             $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
 
-            self::$response['response']['outputSpeech']['text'] = $prompt;
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $prompt . '</speak>';
+            
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -473,15 +490,20 @@ class local_alexaskill_external extends external_api {
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' || $json['request']['dialogState'] == 'COMPLETED') {
             $coursevalue = $json['request']['intent']['slots']['course']['value'];
             $courseid = -1;
+            
             foreach ($usercourses as $usercourse) {
-                if ($usercourse->preferredname == strtolower($coursevalue)) {
+                // Check if they say the exact preferred name first.
+                if ($coursevalue == $usercourse->preferredname) {
                     $courseid = $usercourse->id;
+                    break;
+                } elseif (strpos($usercourse->preferredname, strtolower($coursevalue)) !== false) {
+                    // Otherwise check if they said part of the preferred name.
+                    $courseid = $usercourse->id;
+                    break;
                 }
             }
+
             if ($courseid != -1) {
-                // We have a slot value for a valid course.
-                global $DB;
-                
                 $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
                 $forumposts = array();
                 foreach ($discussions as $discussion) {
@@ -503,23 +525,41 @@ class local_alexaskill_external extends external_api {
                         // Only return $limit number of original posts (not replies).
                         if ($post->parent == 0 && $count <= $limit) {
                             $message = strip_tags($post->message);
-                            $courseannouncements .= $post->subject . '. ' . $message . '. ';
+                            $courseannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
                             $count++;
                         }
                     }
                 }
                 
                 if ($courseannouncements == '') {
-                    $courseannouncements = 'There are no announcements for ' . $coursevalue . '.';
+                    $responses = array(
+                            'Sorry, there are no announcements for ' . $coursename . '.',
+                            'I apologize, but ' . $coursename . ' does not have any announcements.'
+                    );
+                    
+                    self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                    return;
                 } else {
-                    $courseannouncements = 'The announcements for ' . $coursevalue . ' are ' . $courseannouncements;
+                    $responses = array(
+                            '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $coursename . ': ',
+                            '<speak>Sure. The ' . $count . ' latest ' . $coursename . ' course announcements are: '
+                    );
+                    
+                    self::$response['response']['outputSpeech']['type'] = 'SSML';
+                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . '</speak>';
+                    return;
                 }
-                
-                self::$response['response']['outputSpeech']['text'] = $courseannouncements;
-                return;
             } else {
                 // We did not find course in list of user's courses.
                 self::$response['response']['outputSpeech']['text'] = "I don't have any records for that course.";
+                return;
+                
+                $responses = array(
+                        'Sorry, there are no records for ' . $coursevalue . '.',
+                        'I apologize, but ' . $coursevalue . ' does not have any records.'
+                );
+                
+                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
                 return;
             } 
         }
@@ -537,15 +577,27 @@ class local_alexaskill_external extends external_api {
         foreach($gradereport['grades'] as $grade) {
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
             $coursename = self::get_course_name($course->fullname);
-            $grades .= 'Your grade in ' . $coursename . ' is ' . $grade['grade'] . '. ';
+            $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p> ';
         }
         
         if ($grades == '') {
-            $grades = 'You have no course grades.';
+            $responses = array(
+                    'Sorry, you have no overall grades posted.',
+                    'I apologize, but there are no overall grades posted for your courses.'
+            );
+            
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            return;
+        } else {
+            $responses = array(
+                    '<speak>Got it. Here are your overall course grades: ',
+                    '<speak>Okay. Your overall course grades are: '
+            );
+            
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $grades . '</speak>';
+            return;
         }
-        
-        self::$response['response']['outputSpeech']['text'] = $grades;
-        return;
     }
     
     /**
@@ -578,16 +630,28 @@ class local_alexaskill_external extends external_api {
         
         foreach($events['events'] as $event) {
             if ($count <= $limit && $event['timestart'] < $lookahead) {
-                $duedates .= $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '. ';
+                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
             }
         }
         
         if ($duedates == '') {
-            $duedates = 'You have no upcoming due dates.';
+            $responses = array(
+                    'Sorry, you have no upcoming events.',
+                    'I apologize, but there are no upcoming events on your calendar.'
+            );
+            
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            return;
+        } else {
+            $responses = array(
+                    '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
+                    '<speak>Okay. The next' . $count . ' important dates are: '
+            );
+            
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $duedates . '</speak>';
+            return;
         }
-        
-        self::$response['response']['outputSpeech']['text'] = $duedates;
-        return;
     }
     
     /**
