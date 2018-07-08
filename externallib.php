@@ -106,10 +106,22 @@ class local_alexaskill_external extends external_api {
                     break;
                 case "AMAZON.CancelIntent":
                 case "AMAZON.StopIntent":
-                    self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
+                    $responses = array(
+                        'Okay, have a nice day!',
+                        'Great. Take care!',
+                        'Thanks. Good bye!',
+                        'Sure. Until next time!'
+                    );
+                    self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
                     break;
                 case "AMAZON.HelpIntent":
-                    self::$response['response']['outputSpeech']['text'] = 'You can get site announcements, grades, or due dates. Which would you like?';
+                    //self::$response['response']['outputSpeech']['text'] = 'You can get site announcements, course announcements, grades, or due dates. Which would you like?';
+                    $responses = array(
+                        '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                        '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                    );
+                    self::$response['response']['outputSpeech']['type'] = "SSML";
+                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
                     self::$response['response']['shouldEndSession'] = false;
                     break;
             }
@@ -131,7 +143,8 @@ class local_alexaskill_external extends external_api {
                 'response' => new external_single_structure(array(
                         'outputSpeech' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of speech output'),
-                                'text' => new external_value(PARAM_TEXT, 'text string to speak')
+                                'text' => new external_value(PARAM_TEXT, 'text string to speak', VALUE_OPTIONAL),
+                                'ssml' => new external_value(PARAM_TEXT, 'the ssml string to speak', VALUE_OPTIONAL)
                         )),
                         'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
                         'card' => new external_single_structure(array(
@@ -268,8 +281,15 @@ class local_alexaskill_external extends external_api {
     private static function launch_request() {
         global $SITE;
         
-        self::$response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, grades, or due dates. Which would you like?';
+        $responses = array(
+                '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                '<speak>Hello! I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates from ' . $SITE->fullname . '. Which would you like?</speak>'
+        );
+        self::$response['response']['outputSpeech']['type'] = "SSML";
+        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
+        
+        //self::$response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, course announcements, grades, or due dates. Which would you like?';
     }
     
     /**
@@ -279,9 +299,23 @@ class local_alexaskill_external extends external_api {
      */
     private static function session_ended_request($error) {
         if ($error) {
-            self::$response['response']['outputSpeech']['text'] = 'Your session has ended because ' . $error;
+            $responses = array(
+                    'Sorry, there was a problem because of ' . $error,
+                    'Whoops! I had a bit of a problem due to ' . $error
+            );
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            
+            //self::$response['response']['outputSpeech']['text'] = 'Your session has ended because ' . $error;
         } else {
-            self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
+            $responses = array(
+                    'Okay, have a nice day!',
+                    'Great. Take care!',
+                    'Thanks. Good bye!',
+                    'Sure. Until next time!'
+            );
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            
+            //self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
         }
         return;
     }
@@ -356,7 +390,7 @@ class local_alexaskill_external extends external_api {
         
         // User has no courses, and therefore no announcements.
         if ($numcourses == 0) {
-            $courseannouncements = 'You have no courses for which to get announcements.';
+            $courseannouncements = 'You are not enrolled in any courses.';
             self::$response['response']['outputSpeech']['text'] = $courseannouncements;
             self::$response['response']['shouldEndSession'] = true;
             return;
