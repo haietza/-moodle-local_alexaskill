@@ -49,10 +49,7 @@ class local_alexaskill_external extends external_api {
         self::$response = array(
                 'version' => '1.0',
                 'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Hello'
-                        ),
+                        'outputSpeech' => array(),
                         'shouldEndSession' => true
                 )
         );
@@ -144,7 +141,7 @@ class local_alexaskill_external extends external_api {
                         'outputSpeech' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of speech output'),
                                 'text' => new external_value(PARAM_TEXT, 'text string to speak', VALUE_OPTIONAL),
-                                'ssml' => new external_value(PARAM_TEXT, 'the ssml string to speak', VALUE_OPTIONAL)
+                                'ssml' => new external_value(PARAM_RAW, 'the ssml string to speak', VALUE_OPTIONAL)
                         )),
                         'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
                         'card' => new external_single_structure(array(
@@ -285,7 +282,7 @@ class local_alexaskill_external extends external_api {
                 '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>Hello! I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates from ' . $SITE->fullname . '. Which would you like?</speak>'
         );
-        self::$response['response']['outputSpeech']['type'] = "SSML";
+        self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
         
