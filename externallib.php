@@ -49,7 +49,9 @@ class local_alexaskill_external extends external_api {
         self::$response = array(
                 'version' => '1.0',
                 'response' => array (
-                        'outputSpeech' => array(),
+                        'outputSpeech' => array(
+                                'type' => 'PlainText'
+                        ),
                         'shouldEndSession' => true
                 )
         );
@@ -112,7 +114,6 @@ class local_alexaskill_external extends external_api {
                     self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
                     break;
                 case "AMAZON.HelpIntent":
-                    //self::$response['response']['outputSpeech']['text'] = 'You can get site announcements, course announcements, grades, or due dates. Which would you like?';
                     $responses = array(
                         '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                         '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
@@ -285,8 +286,7 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
-        
-        //self::$response['response']['outputSpeech']['text'] = 'Welcome to ' . $SITE->fullname . '. You can get site announcements, course announcements, grades, or due dates. Which would you like?';
+        return;
     }
     
     /**
@@ -297,12 +297,10 @@ class local_alexaskill_external extends external_api {
     private static function session_ended_request($error) {
         if ($error) {
             $responses = array(
-                    'Sorry, there was a problem because of ' . $error,
+                    'Sorry, there was a problem because ' . $error,
                     'Whoops! I had a bit of a problem due to ' . $error
             );
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-            
-            //self::$response['response']['outputSpeech']['text'] = 'Your session has ended because ' . $error;
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];            
         } else {
             $responses = array(
                     'Okay, have a nice day!',
@@ -311,8 +309,6 @@ class local_alexaskill_external extends external_api {
                     'Sure. Until next time!'
             );
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-            
-            //self::$response['response']['outputSpeech']['text'] = 'Your session has ended. Good bye!';
         }
         return;
     }
@@ -343,34 +339,47 @@ class local_alexaskill_external extends external_api {
         foreach ($discussions as $discussion) {
             $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
         }
-        
-        $siteannouncements = '';
-        $count = 0;
-        
+
         // Get course setting for number of announcements.
         // If over 5, limit to 5 initially for usability.
         $limit = $DB->get_field('course', 'newsitems', array('id' => $id));
         if ($limit > 5) {
             $limit = 5;
         }
-        
+       
+        $siteannouncements = '';
+        $response = '';
+        $count = 0;
         foreach ($forumposts as $forumpost) {
             foreach ($forumpost['posts'] as $post) {
                 // Only return $limit number of original posts (not replies).
                 if ($post->parent == 0 && $count <= $limit) {
                     $message = strip_tags($post->message);
-                    $siteannouncements .= $post->subject . '. ' . $message . '. ';
+                    $siteannouncements .= '<p>' . $post->subject . '. ' . $message . '</p>';
                     $count++;
                 }
             }
         }
         
         if ($siteannouncements == '') {
-            $siteannouncements = 'There are no site announcements.';
-        }
-        
-        self::$response['response']['outputSpeech']['text'] = $siteannouncements;
-        return;
+            $responses = array(
+                    '<speak>Sorry, there are no site announcements right now.</speak>',
+                    '<speak>I apologize, but there are no announcements for the site.</speak>'
+            );
+            
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
+            return;
+        } else {
+            $responses = array(
+                    '<speak>Okay. Here are the ' . $limit . ' most recent site announcements: ',
+                    '<speak>Sure. The ' . $limit . ' latest site announcements are: '
+            );
+            
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $siteannouncements . '</speak>';
+            return;
+        }   
     }
     
     /**
