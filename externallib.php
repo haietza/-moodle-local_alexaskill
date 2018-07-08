@@ -343,7 +343,7 @@ class local_alexaskill_external extends external_api {
 
         // Get course setting for number of announcements.
         // If over 5, limit to 5 initially for usability.
-        $limit = $DB->get_field('course', 'newsitems', array('id' => $couseid));
+        $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
         if ($limit > 5) {
             $limit = 5;
         }
