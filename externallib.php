@@ -83,7 +83,7 @@ class local_alexaskill_external extends external_api {
         } elseif ($json['request']['type'] == 'IntentRequest') {
             switch($json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
-                    self::get_site_announcements(1);
+                    self::get_site_announcements();
                     break;
                 case "GetCourseAnnouncementsIntent":
                     self::get_course_announcements($json);
@@ -331,10 +331,11 @@ class local_alexaskill_external extends external_api {
      * 
      * @return string site announcements
      */
-    private static function get_site_announcements($id = 1) {        
+    private static function get_site_announcements() {        
         global $DB;
+        $courseid = 1;
         
-        $discussions = $DB->get_records('forum_discussions', array('course' => $id), 'id DESC', 'id');
+        $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
         $forumposts = array();
         foreach ($discussions as $discussion) {
             $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
@@ -342,7 +343,7 @@ class local_alexaskill_external extends external_api {
 
         // Get course setting for number of announcements.
         // If over 5, limit to 5 initially for usability.
-        $limit = $DB->get_field('course', 'newsitems', array('id' => $id));
+        $limit = $DB->get_field('course', 'newsitems', array('id' => $couseid));
         if ($limit > 5) {
             $limit = 5;
         }
@@ -355,7 +356,7 @@ class local_alexaskill_external extends external_api {
                 // Only return $limit number of original posts (not replies).
                 if ($post->parent == 0 && $count <= $limit) {
                     $message = strip_tags($post->message);
-                    $siteannouncements .= '<p>' . $post->subject . '. ' . $message . '</p>';
+                    $siteannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
                     $count++;
                 }
             }
@@ -372,8 +373,8 @@ class local_alexaskill_external extends external_api {
             return;
         } else {
             $responses = array(
-                    '<speak>Okay. Here are the ' . $limit . ' most recent site announcements: ',
-                    '<speak>Sure. The ' . $limit . ' latest site announcements are: '
+                    '<speak>Okay. Here are the ' . $count . ' most recent site announcements: ',
+                    '<speak>Sure. The ' . $count . ' latest site announcements are: '
             );
             
             self::$response['response']['outputSpeech']['type'] = 'SSML';
