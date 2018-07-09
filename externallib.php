@@ -101,26 +101,14 @@ class local_alexaskill_external extends external_api {
                         self::verify_account_linking('get due dates');
                         return self::$response;
                     }
-                    self::get_due_dates();
+                    self::get_due_dates($json);
                     break;
                 case "AMAZON.CancelIntent":
                 case "AMAZON.StopIntent":
-                    $responses = array(
-                        'Okay, have a nice day!',
-                        'Great. Take care!',
-                        'Thanks. Good bye!',
-                        'Sure. Until next time!'
-                    );
-                    self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                    self::say_good_bye();
                     break;
                 case "AMAZON.HelpIntent":
-                    $responses = array(
-                        '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                        '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                    );
-                    self::$response['response']['outputSpeech']['type'] = "SSML";
-                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
-                    self::$response['response']['shouldEndSession'] = false;
+                    self::get_help();
                     break;
             }
         } elseif ($json['request']['type'] == 'SessionEndedRequest') {
@@ -300,15 +288,10 @@ class local_alexaskill_external extends external_api {
                     'Sorry, there was a problem because ' . $error,
                     'Whoops! I had a bit of a problem due to ' . $error
             );
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];            
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)]; 
+            return;
         } else {
-            $responses = array(
-                    'Okay, have a nice day!',
-                    'Great. Take care!',
-                    'Thanks. Good bye!',
-                    'Sure. Until next time!'
-            );
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::say_good_bye();
         }
         return;
     }
@@ -332,25 +315,12 @@ class local_alexaskill_external extends external_api {
      * @return string site announcements
      */
     private static function get_site_announcements($json) {   
+        // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
-                $responses = array(
-                        '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                        '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                );
-                self::$response['response']['outputSpeech']['type'] = "SSML";
-                self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
-                self::$response['response']['shouldEndSession'] = false;
-                return;
+                self::get_help();
             } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
-                $responses = array(
-                        'Okay, have a nice day!',
-                        'Great. Take care!',
-                        'Thanks. Good bye!',
-                        'Sure. Until next time!'
-                );
-                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-                return;
+                self::say_good_bye();
             }
         }
         
@@ -636,7 +606,16 @@ class local_alexaskill_external extends external_api {
     /**
      * Function to get a user's due dates.
      */
-    private static function get_due_dates() {
+    private static function get_due_dates($json) {
+        // Handle dialog directive response to "Would you like anything else?"
+        if ($json['request']['dialogState'] == 'IN_PROGRESS') {
+            if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
+                self::get_help();
+            } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
+                self::say_good_bye();
+            }
+        }
+        
         global $DB, $CFG, $USER;
         
         $courses = enrol_get_my_courses('id');
@@ -673,7 +652,14 @@ class local_alexaskill_external extends external_api {
                     'I apologize, but there are no upcoming events on your calendar.'
             );
             
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)] . ' Would you like anything else?';
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
             return;
         } else {
             $responses = array(
@@ -682,7 +668,14 @@ class local_alexaskill_external extends external_api {
             );
             
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $duedates . '</speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $duedates . ' Would you like anything else? </speak>';
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
             return;
         }
     }
@@ -702,5 +695,27 @@ class local_alexaskill_external extends external_api {
             $coursename = substr($coursenamearray[1], 0, -1);
         }
         return strtolower($coursename);
+    }
+    
+    private static function get_help() {
+        $responses = array(
+                '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+        );
+        self::$response['response']['outputSpeech']['type'] = "SSML";
+        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
+        self::$response['response']['shouldEndSession'] = false;
+        return;
+    }
+    
+    private static function say_good_bye() {
+        $responses = array(
+                'Okay, have a nice day!',
+                'Great. Take care!',
+                'Thanks. Good bye!',
+                'Sure. Until next time!'
+        );
+        self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+        return;
     }
 }
