@@ -368,7 +368,8 @@ class local_alexaskill_external extends external_api {
                     'I apologize, but there are no announcements for the site.'
             );
             
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)] . 'Would you like anything else?';
+            self::$response['response']['shouldEndSession'] = false;
             return;
         } else {
             $responses = array(
@@ -377,7 +378,8 @@ class local_alexaskill_external extends external_api {
             );
             
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $siteannouncements . '</speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $siteannouncements . ' Would you like anything else?</speak>';
+            self::$response['response']['shouldEndSession'] = false;
             return;
         }   
     }
