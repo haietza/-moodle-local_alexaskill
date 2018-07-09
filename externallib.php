@@ -588,7 +588,7 @@ class local_alexaskill_external extends external_api {
         } else {
             $responses = array(
                     '<speak>Got it. Here are your overall course grades: ',
-                    '<speak>Okay. Your overall course grades are: '
+                    '<speak>Okay. These are your course grades overall: '
             );
             
             self::$response['response']['outputSpeech']['type'] = 'SSML';
