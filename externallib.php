@@ -487,7 +487,7 @@ class local_alexaskill_external extends external_api {
                     ) 
             );
             return;
-        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' || $json['request']['dialogState'] == 'COMPLETED') {
+        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
             $coursevalue = $json['request']['intent']['slots']['course']['value'];
             $courseid = -1;
             
