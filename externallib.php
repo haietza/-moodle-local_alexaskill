@@ -533,16 +533,16 @@ class local_alexaskill_external extends external_api {
                 
                 if ($courseannouncements == '') {
                     $responses = array(
-                            'Sorry, there are no announcements for ' . $coursename . '.',
-                            'I apologize, but ' . $coursename . ' does not have any announcements.'
+                            'Sorry, there are no announcements for ' . $usercourse->preferredname . '.',
+                            'I apologize, but ' . $usercourse->preferredname . ' does not have any announcements.'
                     );
                     
                     self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
                     return;
                 } else {
                     $responses = array(
-                            '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $coursename . ': ',
-                            '<speak>Sure. The ' . $count . ' latest ' . $coursename . ' course announcements are: '
+                            '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $usercourse->preferredname . ': ',
+                            '<speak>Sure. The ' . $count . ' latest ' . $usercourse->preferredname . ' course announcements are: '
                     );
                     
                     self::$response['response']['outputSpeech']['type'] = 'SSML';
@@ -551,9 +551,6 @@ class local_alexaskill_external extends external_api {
                 }
             } else {
                 // We did not find course in list of user's courses.
-                self::$response['response']['outputSpeech']['text'] = "I don't have any records for that course.";
-                return;
-                
                 $responses = array(
                         'Sorry, there are no records for ' . $coursevalue . '.',
                         'I apologize, but ' . $coursevalue . ' does not have any records.'
