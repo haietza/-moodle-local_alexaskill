@@ -319,8 +319,10 @@ class local_alexaskill_external extends external_api {
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
                 self::get_help();
+                return;
             } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
                 self::say_good_bye();
+                return;
             }
         }
         
@@ -398,8 +400,10 @@ class local_alexaskill_external extends external_api {
         if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
             if ($else == 'yes') {
                 self::get_help();
+                return;
             } elseif ($else == 'no') {
                 self::say_good_bye();
+                return;
             }
         }
         
@@ -627,8 +631,10 @@ class local_alexaskill_external extends external_api {
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
                 self::get_help();
+                return;
             } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
                 self::say_good_bye();
+                return;
             }
         }
         
@@ -685,8 +691,10 @@ class local_alexaskill_external extends external_api {
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
                 self::get_help();
+                return;
             } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
                 self::say_good_bye();
+                return;
             }
         }
         
