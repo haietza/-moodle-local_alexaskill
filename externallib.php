@@ -94,7 +94,7 @@ class local_alexaskill_external extends external_api {
                         self::verify_account_linking('get grades');
                         return self::$response;
                     }
-                    self::get_grades();
+                    self::get_grades($json);
                     break;
                 case "GetDueDatesIntent":
                     if ($token !== 'valid') {
@@ -356,11 +356,11 @@ class local_alexaskill_external extends external_api {
         
         if ($siteannouncements == '') {
             $responses = array(
-                    'Sorry, there are no site announcements right now.',
-                    'I apologize, but there are no announcements for the site.'
+                    'Sorry, there are no site announcements right now. Would you like anything else? ',
+                    'I apologize, but there are no announcements for the site. Do you need any other information?'
             );
             
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)] . 'Would you like anything else?';
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -394,28 +394,44 @@ class local_alexaskill_external extends external_api {
      * @param string $json
      */
     private static function get_course_announcements($json) {
+        // Handle dialog directive response to "Would you like anything else?"
+        if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
+            if ($else == 'yes') {
+                self::get_help();
+            } elseif ($else == 'no') {
+                self::say_good_bye();
+            }
+        }
+        
         global $DB;
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
-            $usercourse->preferredname = self::get_course_name($usercourse->fullname);
+            $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
         }
         $numcourses = sizeof($usercourses);
         
         // User has no courses, and therefore no announcements.
         if ($numcourses == 0) {
             $responses = array(
-                    'Sorry, you are not enrolled in any courses.',
-                    'I apologize, but there are no active courses listed for you.'
+                    'Sorry, you are not enrolled in any courses. Would you like anything else?',
+                    'I apologize, but there are no active courses listed for you. Can I get you anything else?'
             );
             
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
             return;
         }
         
         // User only has one course, no need to prompt.
         if ($numcourses == 1) {
             $usercourse = reset($usercourses);
-            $coursename = self::get_course_name($usercourse->fullname);
+            $coursename = self::get_preferred_course_name($usercourse->fullname);
                 
             $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
             $forumposts = array();
@@ -446,11 +462,18 @@ class local_alexaskill_external extends external_api {
             
             if ($courseannouncements == '') {
                 $responses = array(
-                        'Sorry, there are no announcements for ' . $coursename . '.',
-                        'I apologize, but ' . $coursename . ' does not have any announcements.'
+                        'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
+                        'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
                 );
                 
                 self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                self::$response['response']['shouldEndSession'] = false;
+                self::$response['response']['directives'] = array(
+                        array(
+                                'type' => 'Dialog.ElicitSlot',
+                                'slotToElicit' => 'else'
+                        )
+                );
                 return;
             } else {
                 $responses = array(
@@ -459,7 +482,14 @@ class local_alexaskill_external extends external_api {
                 );
                 
                 self::$response['response']['outputSpeech']['type'] = 'SSML';
-                self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . '</speak>';
+                self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . ' Would you like anything else?</speak>';
+                self::$response['response']['shouldEndSession'] = false;
+                self::$response['response']['directives'] = array(
+                        array(
+                                'type' => 'Dialog.ElicitSlot',
+                                'slotToElicit' => 'else'
+                        )
+                );
                 return;
             }
         }
@@ -493,8 +523,8 @@ class local_alexaskill_external extends external_api {
                     ) 
             );
             return;
-        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            $coursevalue = $json['request']['intent']['slots']['course']['value'];
+        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = $json['request']['intent']['slots']['course']['value'])) {
+            //$coursevalue = $json['request']['intent']['slots']['course']['value'];
             $courseid = -1;
             
             foreach ($usercourses as $usercourse) {
@@ -539,11 +569,18 @@ class local_alexaskill_external extends external_api {
                 
                 if ($courseannouncements == '') {
                     $responses = array(
-                            'Sorry, there are no announcements for ' . $usercourse->preferredname . '.',
-                            'I apologize, but ' . $usercourse->preferredname . ' does not have any announcements.'
+                            'Sorry, there are no announcements for ' . $usercourse->preferredname . '. Would you like anything else?',
+                            'I apologize, but ' . $usercourse->preferredname . ' does not have any announcements. Do you need anything else?'
                     );
                     
                     self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                    self::$response['response']['shouldEndSession'] = false;
+                    self::$response['response']['directives'] = array(
+                            array(
+                                    'type' => 'Dialog.ElicitSlot',
+                                    'slotToElicit' => 'else'
+                            )
+                    );
                     return;
                 } else {
                     $responses = array(
@@ -552,17 +589,31 @@ class local_alexaskill_external extends external_api {
                     );
                     
                     self::$response['response']['outputSpeech']['type'] = 'SSML';
-                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . '</speak>';
+                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . ' Would you like anything else?</speak>';
+                    self::$response['response']['shouldEndSession'] = false;
+                    self::$response['response']['directives'] = array(
+                            array(
+                                    'type' => 'Dialog.ElicitSlot',
+                                    'slotToElicit' => 'else'
+                            )
+                    );
                     return;
                 }
             } else {
                 // We did not find course in list of user's courses.
                 $responses = array(
-                        'Sorry, there are no records for ' . $coursevalue . '.',
-                        'I apologize, but ' . $coursevalue . ' does not have any records.'
+                        'Sorry, there are no records for ' . $coursevalue . '. Would you like anything else?',
+                        'I apologize, but ' . $coursevalue . ' does not have any records. Can I get you any other information?'
                 );
                 
                 self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+                self::$response['response']['shouldEndSession'] = false;
+                self::$response['response']['directives'] = array(
+                        array(
+                                'type' => 'Dialog.ElicitSlot',
+                                'slotToElicit' => 'else'
+                        )
+                );
                 return;
             } 
         }
@@ -571,7 +622,16 @@ class local_alexaskill_external extends external_api {
     /**
      * Function to get a user's grades.
      */
-    private static function get_grades() {
+    private static function get_grades($json) {
+        // Handle dialog directive response to "Would you like anything else?"
+        if ($json['request']['dialogState'] == 'IN_PROGRESS') {
+            if ($json['request']['intent']['slots']['else']['value'] == 'yes') {
+                self::get_help();
+            } elseif ($json['request']['intent']['slots']['else']['value'] == 'no') {
+                self::say_good_bye();
+            }
+        }
+        
         global $DB, $USER;
         
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
@@ -579,17 +639,24 @@ class local_alexaskill_external extends external_api {
         $grades = '';
         foreach($gradereport['grades'] as $grade) {
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
-            $coursename = self::get_course_name($course->fullname);
+            $coursename = self::get_preferred_course_name($course->fullname);
             $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p> ';
         }
         
         if ($grades == '') {
             $responses = array(
-                    'Sorry, you have no overall grades posted.',
-                    'I apologize, but there are no overall grades posted for your courses.'
+                    'Sorry, you have no overall grades posted. Would you like anything else?',
+                    'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?'
             );
             
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
             return;
         } else {
             $responses = array(
@@ -598,7 +665,14 @@ class local_alexaskill_external extends external_api {
             );
             
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $grades . '</speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $grades . ' Would you like anything else?</speak>';
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
             return;
         }
     }
@@ -648,11 +722,11 @@ class local_alexaskill_external extends external_api {
         
         if ($duedates == '') {
             $responses = array(
-                    'Sorry, you have no upcoming events.',
-                    'I apologize, but there are no upcoming events on your calendar.'
+                    'Sorry, you have no upcoming events. Would you like anything else?',
+                    'I apologize, but there are no upcoming events on your calendar. Do you need any other information?'
             );
             
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)] . ' Would you like anything else?';
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -687,7 +761,7 @@ class local_alexaskill_external extends external_api {
      * @param string $coursefullname
      * @return string parsed course name
      */
-    private static function get_course_name($coursefullname) {
+    private static function get_preferred_course_name($coursefullname) {
         $coursename = $coursefullname;
         $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');
         if (preg_match($pattern, $coursefullname, $coursenamearray)) {
