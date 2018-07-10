@@ -317,10 +317,10 @@ class local_alexaskill_external extends external_api {
     private static function get_site_announcements($json) {   
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'yes') {
+            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 self::get_help();
                 return;
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'no') {
+            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 self::say_good_bye();
                 return;
             }
@@ -398,10 +398,10 @@ class local_alexaskill_external extends external_api {
     private static function get_course_announcements($json) {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'yes') {
+            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 self::get_help();
                 return;
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'no') {
+            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 self::say_good_bye();
                 return;
             }
@@ -629,10 +629,10 @@ class local_alexaskill_external extends external_api {
     private static function get_grades($json) {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'yes') {
+            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 self::get_help();
                 return;
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'no') {
+            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 self::say_good_bye();
                 return;
             }
@@ -689,10 +689,10 @@ class local_alexaskill_external extends external_api {
     private static function get_due_dates($json) {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'yes') {
+            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 self::get_help();
                 return;
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values']['value']['name'] == 'no') {
+            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 self::say_good_bye();
                 return;
             }
