@@ -26,10 +26,12 @@
 global $CFG, $SITE;
 
 $string['pluginname'] = 'Alexa skill web service';
+$string['alexaskill_settings'] = 'Alexa skill settings';
 $string['alexaskill_applicationid_label'] = 'Alexa skill application ID';
 $string['alexaskill_applicationid_desc'] = 'Enter the application ID for the skill from the Alexa Skills Kit Developer Console';
 $string['alexaskill_coursenameregex_label'] = 'Course regular expression';
 $string['alexaskill_coursenameregex_desc'] = 'Enter a regular expression to parse the course fullname for how Alexa should say the course name.';
+$string['alexaskill_courseslotvalues'] = 'Alexa skill course slot values';
 $string['alexaskill_accountlinking_username'] = 'Username';
 $string['alexaskill_accountlinking_username_help'] = 'Enter your ' . $SITE->fullname . ' username';
 $string['alexaskill_accountlinking_password'] = 'Password';
