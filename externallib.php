@@ -350,7 +350,7 @@ class local_alexaskill_external extends external_api {
         }
         
         // Handle dialog directive response to "Would you like anything else?"
-        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && ($else = self::$json['request']['intent']['slots']['else']['value'])) {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && self::$json['request']['intent']['slots']['else']['value']) {
             if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 return self::get_help();
             } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
@@ -427,7 +427,7 @@ class local_alexaskill_external extends external_api {
                 if ($coursevalue == $usercourse->preferredname) {
                     $courseid = $usercourse->id;
                     break;
-                } elseif (strpos($usercourse->preferredname, strtolower($coursevalue)) !== false) {
+                } elseif (stripos($usercourse->preferredname, $coursevalue) !== false) {
                     // Otherwise check if they said part of the preferred name.
                     $courseid = $usercourse->id;
                     $coursename = $usercourse->preferredname;
