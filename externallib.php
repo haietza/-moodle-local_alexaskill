@@ -31,6 +31,8 @@ require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
+    // Static variable for web service request JSON.
+    static $json;
     
     // Static variable for web service response.
     static $response;
@@ -42,72 +44,69 @@ class local_alexaskill_external extends external_api {
     public static function alexa_parameters() {
         return new external_function_parameters(array(
                 'request' => new external_value(PARAM_TEXT, 'JSON request as a string'),
-                'token' => new external_value(PARAM_TEXT, 'Invalid token status', VALUE_OPTIONAL)
+                'token' => new external_value(PARAM_TEXT, 'Valid token status', VALUE_OPTIONAL)
         ));
     }
     
     public static function alexa($request, $token = '') {          
-        $json = json_decode($request, true);
+        self::$json = json_decode($request, true);
         
         // Only check the signature and timestamp if not on local server.
         // Cannot simulate signature since that is encrypted based on request.
         if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-            error_log('code is getting through localhost check');
-            // Check the signature of the request
+            // Check the URL of the signature certificate.
+            if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
+                error_log('invalid signature certificate URL');
+                return http_response_code(400);
+            }
+            
+            // Check the signature of the request.
             if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
                 error_log('invalid signature');
                 return http_response_code(400);
             }
             
             // Check the request timestamp.
-            if (!self::verify_timestamp($json['request']['timestamp'])) {
+            if (!self::verify_timestamp()) {
                 error_log('invalid timestamp');
                 return http_response_code(400);
             }
         }
         
         // Verify request is intended for my service.
-        if (!self::verify_app_id($json['session']['application']['applicationId'])) {
-            error_log('invalid app id');
+        if (!self::verify_application_id()) {
+            error_log('invalid application id');
             return http_response_code(400);
         }
         
         // Process request.
-        if ($json['request']['type'] == 'LaunchRequest') {
+        if (self::$json['request']['type'] == 'LaunchRequest') {
             return self::launch_request();
-        } elseif ($json['request']['type'] == 'IntentRequest') {
-            switch($json['request']['intent']['name']) {
+        } elseif (self::$json['request']['type'] == 'IntentRequest') {
+            switch(self::$json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
-                    return self::get_site_announcements($json);
+                    return self::get_site_announcements();
                     break;
-                case "GetCourseAnnouncementsIntent":
-                    return self::get_course_announcements($json);
+                case "GetCourseAnnouncementsIntent": 
+                    return self::get_course_announcements($token);
                     break;
                 case "GetGradesIntent":
-                    // accessToken may exist even if invalid. Need to see
-                    if ($token !== 'valid') {
-                        self::verify_account_linking('get grades');
-                        return self::$response;
-                    }
-                    return self::get_grades($json);
+                    return self::get_grades($token);
                     break;
                 case "GetDueDatesIntent":
-                    if ($token !== 'valid') {
-                        self::verify_account_linking('get due dates');
-                        return self::$response;
-                    }
-                    return self::get_due_dates($json);
+                    return self::get_due_dates($token);
                     break;
                 case "AMAZON.CancelIntent":
                 case "AMAZON.StopIntent":
                     return self::say_good_bye();
                     break;
                 case "AMAZON.HelpIntent":
+                default:
                     return self::get_help();
                     break;
             }
-        } elseif ($json['request']['type'] == 'SessionEndedRequest') {
-            return self::session_ended_request($json['request']['error']['message']);
+        } elseif (self::$json['request']['type'] == 'SessionEndedRequest') {
+            self::session_ended_request();
         }
     }
     
@@ -137,49 +136,13 @@ class local_alexaskill_external extends external_api {
         ));
     }
     
-    private static function initialize_response() {
-        self::$response = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
-    }
-    
     /**
-     * Function to verify appliation ID.
-     * 
-     * @param string $applicationId
+     * Function to verify signature certificate URL.
+     *
+     * @param string $certurl
      * @return true if valid
      */
-    private static function verify_app_id($applicationId) {
-        return $applicationId == get_config('local_alexaskill', 'alexaskill_applicationid');
-    }
-    
-    /**
-     * Function to parse ISO 8601 formatted string to verify within 150 seconds.
-     * 
-     * @param string $timestamp
-     * @return boolean timestamp is valid
-     */
-    private static function verify_timestamp($timestamp) {
-        return (time() - strtotime($timestamp)) < 150;
-    }
-    
-    /**
-     * Function to validate the signature.
-     * Thanks to https://github.com/craigh411/alexa-request-validator
-     * 
-     * @param string $certurl
-     * @param array $json
-     * @return boolean signature is valid
-     */
-    private static function validate_signature($certurl, $signature, $request) {
-        global $CFG;
-        
+    private static function verify_signature_certificate_url($certurl) {
         // The protocol is equal to https (case insensitive).
         $protocol = strtolower(parse_url($certurl, PHP_URL_SCHEME));
         
@@ -198,7 +161,22 @@ class local_alexaskill_external extends external_api {
                 || $path != '/echo.api/'
                 || ($port != 443 && $port != NULL)) {
                     return false;
-        }
+                }
+                
+        return true;
+    }
+    
+    /**
+     * Function to validate the signature.
+     * Thanks to https://github.com/craigh411/alexa-request-validator
+     *
+     * @param string $certurl
+     * @param string $signature
+     * @param string $request
+     * @return boolean signature is valid
+     */
+    private static function validate_signature($certurl, $signature, $request) {
+        global $CFG;
         
         // Create the Signature Certificate Chain directory if it does not exist.
         $certdir = $CFG->dataroot . '/local_alexaskill';
@@ -260,8 +238,41 @@ class local_alexaskill_external extends external_api {
         if (substr($decryptedsignature, 30) !== $responsehash) {
             return false;
         }
-
+        
         return true;
+    }
+    
+    /**
+     * Function to parse ISO 8601 formatted string to verify within 150 seconds.
+     *
+     * @return boolean timestamp is valid
+     */
+    private static function verify_timestamp() {
+        return (time() - strtotime(self::$json['request']['timestamp'])) < 150;
+    }
+    
+    /**
+     * Function to verify appliation ID.
+     *
+     * @return true if valid
+     */
+    private static function verify_application_id() {
+        return self::$json['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
+    }
+    
+    /**
+     * Function to initialize the JSON response.
+     */
+    private static function initialize_response() {
+        self::$response = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
     }
     
     /**
@@ -271,7 +282,6 @@ class local_alexaskill_external extends external_api {
      */
     private static function launch_request() {
         global $SITE;
-        
         self::initialize_response();
         
         $responses = array(
@@ -281,28 +291,16 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
-        
         return self::$response;
     }
     
     /**
-     * Function to handle the session ended request.
-     *
-     * @param string $error
+     * Function to log error for session ended request.
      */
-    private static function session_ended_request($error) {
-        self::initialize_response();
-        
-        if ($error) {
-            $responses = array(
-                    'Sorry, there was a problem because ' . $error,
-                    'Whoops! I had a bit of a problem due to ' . $error
-            );
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)]; 
-            return self::$response;
-        } else {
-            return self::say_good_bye();
-        }
+    private static function session_ended_request() {
+        error_log('SessionEndedRequest reason: ' . self::$json['request']['reason']);
+        error_log('SessionEndedRequest error type: ' . self::$json['request']['error']['type']);
+        error_log('SessionEndedRequest error message: ' . self::$json['request']['error']['message']);
     }
     
     /**
@@ -312,8 +310,6 @@ class local_alexaskill_external extends external_api {
      */
     private static function verify_account_linking($task) {
         global $SITE;
-        
-        self::initialize_response();
         
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -326,103 +322,42 @@ class local_alexaskill_external extends external_api {
      * 
      * @return string site announcements
      */
-    private static function get_site_announcements($json) {   
-        global $DB;
-        
-        self::initialize_response();
-        
+    private static function get_site_announcements() {   
         // Handle dialog directive response to "Would you like anything else?"
-        if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
+            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 return self::get_help();
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 return self::say_good_bye();
             }
         }
         
-        $courseid = 1;
-        
-        $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
-        $forumposts = array();
-        foreach ($discussions as $discussion) {
-            $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
-        }
-
-        // Get course setting for number of announcements.
-        // If over 5, limit to 5 initially for usability.
-        $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
-        if ($limit > 5) {
-            $limit = 5;
-        }
-       
-        $siteannouncements = '';
-        $response = '';
-        $count = 0;
-        foreach ($forumposts as $forumpost) {
-            foreach ($forumpost['posts'] as $post) {
-                // Only return $limit number of original posts (not replies).
-                if ($post->parent == 0 && $count <= $limit) {
-                    $message = strip_tags($post->message);
-                    $siteannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
-                    $count++;
-                }
-            }
-        }
-        
-        if ($siteannouncements == '') {
-            $responses = array(
-                    'Sorry, there are no site announcements right now. Would you like anything else? ',
-                    'I apologize, but there are no announcements for the site. Do you need any other information?'
-            );
-            
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
-        } else {
-            $responses = array(
-                    '<speak>Okay. Here are the ' . $count . ' most recent site announcements: ',
-                    '<speak>Sure. The ' . $count . ' latest site announcements are: '
-            );
-            
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $siteannouncements . ' Would you like anything else?</speak>';
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
-        }   
+        self::initialize_response();
+        self::get_announcements(1, 'the site');  
     }
     
     /**
      * Function to get course announcements.
-     *
-     * @param string $json
+     * 
+     * @param string $token
      */
-    private static function get_course_announcements($json) {
+    private static function get_course_announcements($token) {
         global $DB;
-        
         self::initialize_response();
         
+        if ($token !== 'valid') {
+            self::verify_account_linking('get course announcements');
+        }
+        
         // Handle dialog directive response to "Would you like anything else?"
-        if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && ($else = self::$json['request']['intent']['slots']['else']['value'])) {
+            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 return self::get_help();
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 return self::say_good_bye();
             }
         }
-        
-        
+
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
@@ -451,76 +386,16 @@ class local_alexaskill_external extends external_api {
         if ($numcourses == 1) {
             $usercourse = reset($usercourses);
             $coursename = self::get_preferred_course_name($usercourse->fullname);
-                
-            $discussions = $DB->get_records('forum_discussions', array('course' => $usercourse->id), 'id DESC', 'id');
-            $forumposts = array();
-            foreach ($discussions as $discussion) {
-                $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
-            }
-            
-            $courseannouncements = '';
-            $count = 0;
-                
-            // Get course setting for number of announcements.
-            // If over 5, limit to 5 initially for usability.
-            $limit = $DB->get_field('course', 'newsitems', array('id' => $usercourse->id));
-            if ($limit > 5) {
-                $limit = 5;
-            }
-                
-            foreach ($forumposts as $forumpost) {
-                foreach ($forumpost['posts'] as $post) {
-                    // Only return $limit number of original posts (not replies).
-                    if ($post->parent == 0 && $count <= $limit) {
-                        $message = strip_tags($post->message);
-                        $courseannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
-                        $count++;
-                    }
-                }
-            }
-            
-            if ($courseannouncements == '') {
-                $responses = array(
-                        'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
-                        'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
-                );
-                
-                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-                self::$response['response']['shouldEndSession'] = false;
-                self::$response['response']['directives'] = array(
-                        array(
-                                'type' => 'Dialog.ElicitSlot',
-                                'slotToElicit' => 'else'
-                        )
-                );
-                return self::$response;
-            } else {
-                $responses = array(
-                        '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $coursename . ': ',
-                        '<speak>Sure. The ' . $count . ' latest ' . $coursename . ' course announcements are: '
-                );
-                
-                self::$response['response']['outputSpeech']['type'] = 'SSML';
-                self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . ' Would you like anything else?</speak>';
-                self::$response['response']['shouldEndSession'] = false;
-                self::$response['response']['directives'] = array(
-                        array(
-                                'type' => 'Dialog.ElicitSlot',
-                                'slotToElicit' => 'else'
-                        )
-                );
-                return self::$response;
-            }
+            self::get_announcements($usercourse->id, $coursename); 
         }
-        
-        if ($json['request']['dialogState'] == 'STARTED') {
-            // We don't know the course, prompt for it.
+         
+        if (self::$json['request']['dialogState'] == 'STARTED') {
+            // We don't know the course, prompt for it.            
             $responses = array(
                     '<speak>Thanks. You can get announcements for the following courses: ',
                     '<speak>Great. I can get announcements from the following courses for you: '
             );
             
-            //$prompt = 'You can get announcements for the following courses: ';
             $prompt = '';
             $count = 0;
             foreach($usercourses as $usercourse) {
@@ -542,8 +417,10 @@ class local_alexaskill_external extends external_api {
                     ) 
             );
             return self::$response;
-        } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = $json['request']['intent']['slots']['course']['value'])) {
+        } elseif (self::$json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = self::$json['request']['intent']['slots']['course']['value'])) {
+            // User has requested announcements for a specific course.
             $courseid = -1;
+            $coursename = $coursevalue;
             
             foreach ($usercourses as $usercourse) {
                 // Check if they say the exact preferred name first.
@@ -553,72 +430,16 @@ class local_alexaskill_external extends external_api {
                 } elseif (strpos($usercourse->preferredname, strtolower($coursevalue)) !== false) {
                     // Otherwise check if they said part of the preferred name.
                     $courseid = $usercourse->id;
+                    $coursename = $usercourse->preferredname;
                     break;
                 }
             }
 
             if ($courseid != -1) {
-                $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
-                $forumposts = array();
-                foreach ($discussions as $discussion) {
-                    $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
-                }
-                
-                $courseannouncements = '';
-                $count = 0;
-                
-                // Get course setting for number of announcements.
-                // If over 5, limit to 5 initially for usability.
-                $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
-                if ($limit > 5) {
-                    $limit = 5;
-                }
-                
-                foreach ($forumposts as $forumpost) {
-                    foreach ($forumpost['posts'] as $post) {
-                        // Only return $limit number of original posts (not replies).
-                        if ($post->parent == 0 && $count <= $limit) {
-                            $message = strip_tags($post->message);
-                            $courseannouncements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
-                            $count++;
-                        }
-                    }
-                }
-                
-                if ($courseannouncements == '') {
-                    $responses = array(
-                            'Sorry, there are no announcements for ' . $usercourse->preferredname . '. Would you like anything else?',
-                            'I apologize, but ' . $usercourse->preferredname . ' does not have any announcements. Do you need anything else?'
-                    );
-                    
-                    self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-                    self::$response['response']['shouldEndSession'] = false;
-                    self::$response['response']['directives'] = array(
-                            array(
-                                    'type' => 'Dialog.ElicitSlot',
-                                    'slotToElicit' => 'else'
-                            )
-                    );
-                    return self::$response;
-                } else {
-                    $responses = array(
-                            '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $usercourse->preferredname . ': ',
-                            '<speak>Sure. The ' . $count . ' latest ' . $usercourse->preferredname . ' course announcements are: '
-                    );
-                    
-                    self::$response['response']['outputSpeech']['type'] = 'SSML';
-                    self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $courseannouncements . ' Would you like anything else?</speak>';
-                    self::$response['response']['shouldEndSession'] = false;
-                    self::$response['response']['directives'] = array(
-                            array(
-                                    'type' => 'Dialog.ElicitSlot',
-                                    'slotToElicit' => 'else'
-                            )
-                    );
-                    return self::$response;
-                }
+                // We found a valid course.
+                self::get_announcements($courseid, $coursename);
             } else {
-                // We did not find course in list of user's courses.
+                // We did not find course in list of user's courses.                
                 $responses = array(
                         'Sorry, there are no records for ' . $coursevalue . '. Would you like anything else?',
                         'I apologize, but ' . $coursevalue . ' does not have any records. Can I get you any other information?'
@@ -638,18 +459,87 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
+     * Function to get announcements for the site or a course.
+     */
+    private static function get_announcements($courseid, $coursename) {
+        global $DB;
+        
+        $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
+        $forumposts = array();
+        foreach ($discussions as $discussion) {
+            $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+        }
+        
+        // Get course setting for number of announcements.
+        // If over 5, limit to 5 initially for usability.
+        $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
+        if ($limit > 5 || $limit === false) {
+            $limit = 5;
+        }
+        
+        $announcements = '';
+        $count = 0;
+        foreach ($forumposts as $forumpost) {
+            foreach ($forumpost['posts'] as $post) {
+                // Only return $limit number of original posts (not replies).
+                if ($post->parent == 0 && $count <= $limit) {
+                    $message = strip_tags($post->message);
+                    $announcements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
+                    $count++;
+                }
+            }
+        }
+        
+        if ($announcements == '') {
+            $responses = array(
+                    'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
+                    'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
+            );
+            
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
+            return self::$response;
+        } else {
+            $responses = array(
+                    '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
+                    '<speak>Sure. The ' . $count . ' latest announcements for ' . $coursename . ' are: '
+            );
+            
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
+            self::$response['response']['shouldEndSession'] = false;
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                            'slotToElicit' => 'else'
+                    )
+            );
+            return self::$response;
+        }
+    }
+    
+    /**
      * Function to get a user's grades.
      */
-    private static function get_grades($json) {
+    private static function get_grades($token) {
         global $DB, $USER;
-        
         self::initialize_response();
         
+        if ($token !== 'valid') {
+            self::verify_account_linking('get grades');
+        }
+        
         // Handle dialog directive response to "Would you like anything else?"
-        if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
+            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 return self::get_help();
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 return self::say_good_bye();
             }
         }
@@ -700,16 +590,19 @@ class local_alexaskill_external extends external_api {
     /**
      * Function to get a user's due dates.
      */
-    private static function get_due_dates($json) {
+    private static function get_due_dates($token) {
         global $DB, $CFG, $USER;
-        
         self::initialize_response();
         
+        if ($token !== 'valid') {
+            self::verify_account_linking('get due dates');
+        }
+        
         // Handle dialog directive response to "Would you like anything else?"
-        if ($json['request']['dialogState'] == 'IN_PROGRESS') {
-            if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
+            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
                 return self::get_help();
-            } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
                 return self::say_good_bye();
             }
         }
@@ -722,20 +615,22 @@ class local_alexaskill_external extends external_api {
         $options = array('userevents' => true, 'siteevents' => true, 'timestart' => time(), 'timeend' => null, 'ignorehidden' => null);
         $events = core_calendar_external::get_calendar_events($eventparams, $options);
         
-        $duedates = '';
-        $count = 0;
-        
         // Get site calendar setting for number of upcoming events.
         // If over 5, limit to 5 initially for usability.
         $limit = $CFG->calendar_maxevents;
-        if ($limit > 5) {
+        if ($limit > 5 || !is_number($limit)) {
             $limit = 5;
         }
         
         // Get site calendar setting for days to look ahead.
         $lookahead = $CFG->calendar_lookahead;
+        if (!is_number($lookahead)) {
+            $lookahead = 21;
+        }
         $lookahead = strtotime($lookahead . ' days');
         
+        $duedates = '';
+        $count = 0;
         foreach($events['events'] as $event) {
             if ($count <= $limit && $event['timestart'] < $lookahead) {
                 $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
