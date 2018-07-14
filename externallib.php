@@ -50,7 +50,9 @@ class local_alexaskill_external extends external_api {
         $json = json_decode($request, true);
         
         // Only check the signature and timestamp if not on local server.
+        // Cannot simulate signature since that is encrypted based on request.
         if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+            error_log('code is getting through localhost check');
             // Check the signature of the request
             if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
                 error_log('invalid signature');
@@ -309,8 +311,10 @@ class local_alexaskill_external extends external_api {
      * @param string $task
      */
     private static function verify_account_linking($task) {
-        self::initialize_response();
         global $SITE;
+        
+        self::initialize_response();
+        
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
                 . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
@@ -323,7 +327,10 @@ class local_alexaskill_external extends external_api {
      * @return string site announcements
      */
     private static function get_site_announcements($json) {   
+        global $DB;
+        
         self::initialize_response();
+        
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -333,7 +340,6 @@ class local_alexaskill_external extends external_api {
             }
         }
         
-        global $DB;
         $courseid = 1;
         
         $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
@@ -403,7 +409,10 @@ class local_alexaskill_external extends external_api {
      * @param string $json
      */
     private static function get_course_announcements($json) {
+        global $DB;
+        
         self::initialize_response();
+        
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -413,7 +422,7 @@ class local_alexaskill_external extends external_api {
             }
         }
         
-        global $DB;
+        
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
@@ -534,7 +543,6 @@ class local_alexaskill_external extends external_api {
             );
             return self::$response;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = $json['request']['intent']['slots']['course']['value'])) {
-            //$coursevalue = $json['request']['intent']['slots']['course']['value'];
             $courseid = -1;
             
             foreach ($usercourses as $usercourse) {
@@ -633,7 +641,10 @@ class local_alexaskill_external extends external_api {
      * Function to get a user's grades.
      */
     private static function get_grades($json) {
+        global $DB, $USER;
+        
         self::initialize_response();
+        
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -642,8 +653,6 @@ class local_alexaskill_external extends external_api {
                 return self::say_good_bye();
             }
         }
-        
-        global $DB, $USER;
         
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
@@ -692,7 +701,10 @@ class local_alexaskill_external extends external_api {
      * Function to get a user's due dates.
      */
     private static function get_due_dates($json) {
+        global $DB, $CFG, $USER;
+        
         self::initialize_response();
+        
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -701,8 +713,6 @@ class local_alexaskill_external extends external_api {
                 return self::say_good_bye();
             }
         }
-        
-        global $DB, $CFG, $USER;
         
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
@@ -785,6 +795,7 @@ class local_alexaskill_external extends external_api {
     
     private static function get_help() {
         self::initialize_response();
+        
         $responses = array(
                 '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
@@ -792,11 +803,13 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = "SSML";
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
+        
         return self::$response;
     }
     
     private static function say_good_bye() {
         self::initialize_response();
+        
         $responses = array(
                 'Okay, have a nice day!',
                 'Great. Take care!',
@@ -804,6 +817,7 @@ class local_alexaskill_external extends external_api {
                 'Sure. Until next time!'
         );
         self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+        
         return self::$response;
     }
 }
