@@ -48,7 +48,6 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request, $token = '') {          
         $json = json_decode($request, true);
-        echo $_SERVER['HTTP_HOST'];
         
         // Only check the signature and timestamp if not on local server.
         if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
