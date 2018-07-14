@@ -45,17 +45,7 @@ class local_alexaskill_external extends external_api {
         ));
     }
     
-    public static function alexa($request, $token = '') {  
-        self::$response = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
-        
+    public static function alexa($request, $token = '') {          
         $json = json_decode($request, true);
         /*
         // Check the signature of the request
@@ -79,14 +69,14 @@ class local_alexaskill_external extends external_api {
         
         // Process request.
         if ($json['request']['type'] == 'LaunchRequest') {
-            self::launch_request();
+            return self::launch_request();
         } elseif ($json['request']['type'] == 'IntentRequest') {
             switch($json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
-                    self::get_site_announcements($json);
+                    return self::get_site_announcements($json);
                     break;
                 case "GetCourseAnnouncementsIntent":
-                    self::get_course_announcements($json);
+                    return self::get_course_announcements($json);
                     break;
                 case "GetGradesIntent":
                     // accessToken may exist even if invalid. Need to see
@@ -94,28 +84,28 @@ class local_alexaskill_external extends external_api {
                         self::verify_account_linking('get grades');
                         return self::$response;
                     }
-                    self::get_grades($json);
+                    return self::get_grades($json);
                     break;
                 case "GetDueDatesIntent":
                     if ($token !== 'valid') {
                         self::verify_account_linking('get due dates');
                         return self::$response;
                     }
-                    self::get_due_dates($json);
+                    return self::get_due_dates($json);
                     break;
                 case "AMAZON.CancelIntent":
                 case "AMAZON.StopIntent":
-                    self::say_good_bye();
+                    return self::say_good_bye();
                     break;
                 case "AMAZON.HelpIntent":
-                    self::get_help();
+                    return self::get_help();
                     break;
             }
         } elseif ($json['request']['type'] == 'SessionEndedRequest') {
-            self::session_ended_request($json['request']['error']['message']);
+            return self::session_ended_request($json['request']['error']['message']);
         }
         
-        return self::$response;
+        //return self::$response;
     }
     
     /**
@@ -142,6 +132,18 @@ class local_alexaskill_external extends external_api {
                         )), 'directives', VALUE_OPTIONAL)
                 ))
         ));
+    }
+    
+    private static function initialize_response() {
+        self::$response = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
     }
     
     /**
@@ -267,6 +269,8 @@ class local_alexaskill_external extends external_api {
     private static function launch_request() {
         global $SITE;
         
+        self::initialize_response();
+        
         $responses = array(
                 '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
@@ -274,7 +278,7 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
-        return;
+        return self::$response;
     }
     
     /**
@@ -289,11 +293,10 @@ class local_alexaskill_external extends external_api {
                     'Whoops! I had a bit of a problem due to ' . $error
             );
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)]; 
-            return;
+            return self::$response;
         } else {
-            self::say_good_bye();
+            return self::say_good_bye();
         }
-        return;
     }
     
     /**
@@ -306,7 +309,7 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
                 . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
-        return;
+        return self::$response;
     }
     
     /**
@@ -318,11 +321,9 @@ class local_alexaskill_external extends external_api {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                self::get_help();
-                return;
+                return self::get_help();
             } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                self::say_good_bye();
-                return;
+                return self::say_good_bye();
             }
         }
         
@@ -370,7 +371,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         } else {
             $responses = array(
                     '<speak>Okay. Here are the ' . $count . ' most recent site announcements: ',
@@ -386,7 +387,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         }   
     }
     
@@ -399,11 +400,9 @@ class local_alexaskill_external extends external_api {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                self::get_help();
-                return;
+                return self::get_help();
             } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                self::say_good_bye();
-                return;
+                return self::say_good_bye();
             }
         }
         
@@ -429,7 +428,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         }
         
         // User only has one course, no need to prompt.
@@ -478,7 +477,7 @@ class local_alexaskill_external extends external_api {
                                 'slotToElicit' => 'else'
                         )
                 );
-                return;
+                return self::$response;
             } else {
                 $responses = array(
                         '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $coursename . ': ',
@@ -494,7 +493,7 @@ class local_alexaskill_external extends external_api {
                                 'slotToElicit' => 'else'
                         )
                 );
-                return;
+                return self::$response;
             }
         }
         
@@ -526,7 +525,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'course'
                     ) 
             );
-            return;
+            return self::$response;
         } elseif ($json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = $json['request']['intent']['slots']['course']['value'])) {
             //$coursevalue = $json['request']['intent']['slots']['course']['value'];
             $courseid = -1;
@@ -585,7 +584,7 @@ class local_alexaskill_external extends external_api {
                                     'slotToElicit' => 'else'
                             )
                     );
-                    return;
+                    return self::$response;
                 } else {
                     $responses = array(
                             '<speak>Okay. Here are the ' . $count . ' most recent course announcements for ' . $usercourse->preferredname . ': ',
@@ -601,7 +600,7 @@ class local_alexaskill_external extends external_api {
                                     'slotToElicit' => 'else'
                             )
                     );
-                    return;
+                    return self::$response;
                 }
             } else {
                 // We did not find course in list of user's courses.
@@ -618,7 +617,7 @@ class local_alexaskill_external extends external_api {
                                 'slotToElicit' => 'else'
                         )
                 );
-                return;
+                return self::$response;
             } 
         }
     }
@@ -630,11 +629,9 @@ class local_alexaskill_external extends external_api {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                self::get_help();
-                return;
+                return self::get_help();
             } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                self::say_good_bye();
-                return;
+                return self::say_good_bye();
             }
         }
         
@@ -663,7 +660,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         } else {
             $responses = array(
                     '<speak>Got it. Here are your overall course grades: ',
@@ -679,7 +676,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         }
     }
     
@@ -690,11 +687,9 @@ class local_alexaskill_external extends external_api {
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                self::get_help();
-                return;
+                return self::get_help();
             } elseif ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                self::say_good_bye();
-                return;
+                return self::say_good_bye();
             }
         }
         
@@ -742,7 +737,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         } else {
             $responses = array(
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
@@ -758,7 +753,7 @@ class local_alexaskill_external extends external_api {
                             'slotToElicit' => 'else'
                     )
             );
-            return;
+            return self::$response;
         }
     }
     
@@ -787,7 +782,7 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = "SSML";
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
-        return;
+        return self::$response;
     }
     
     private static function say_good_bye() {
@@ -798,6 +793,6 @@ class local_alexaskill_external extends external_api {
                 'Sure. Until next time!'
         );
         self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-        return;
+        return self::$response;
     }
 }

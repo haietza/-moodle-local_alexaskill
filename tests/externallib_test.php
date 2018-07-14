@@ -62,13 +62,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Test
      */
     public function test_launch_request() {
-        global $USER, $SITE;
+        global $SITE;
  
         $this->resetAfterTest();
         
         $launchrequest = self::getMethod('launch_request');
-        //$obj = new webservice_restjson_server($authmethod, 'json');
-        $launchrequest->invokeArgs(null, array());
+        $response = $launchrequest->invokeArgs(null, array());
  
         // Set the required capabilities by the external function
         //$contextid = context_XXXX::instance()->id;
@@ -110,9 +109,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'shouldEndSession' => false
                 )
         );
-        
-        //$actual = local_alexaskill_external::launch_request();
-        
-        $this->assertTrue($expectedA == $launchrequest || $expectedB == $actual);
+                
+        $this->assertTrue($expectedA == $response || $expectedB == $response);
     }
 }

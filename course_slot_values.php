@@ -23,8 +23,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-//defined('MOODLE_INTERNAL') || die;
-
 require_once('../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 global $DB;
@@ -37,7 +35,6 @@ $site = get_site();
 $PAGE->set_url($CFG->wwwroot . '/local/alexaskill/course_slot_values.php');
 $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('admin');
-//$PAGE->navbar->add('Alexa crap');
 $PAGE->set_title($site->fullname);
 $PAGE->set_heading($site->fullname);
 
