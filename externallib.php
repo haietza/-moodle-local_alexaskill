@@ -287,6 +287,8 @@ class local_alexaskill_external extends external_api {
      * @param string $error
      */
     private static function session_ended_request($error) {
+        self::initialize_response();
+        
         if ($error) {
             $responses = array(
                     'Sorry, there was a problem because ' . $error,
@@ -305,6 +307,7 @@ class local_alexaskill_external extends external_api {
      * @param string $task
      */
     private static function verify_account_linking($task) {
+        self::initialize_response();
         global $SITE;
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -318,6 +321,7 @@ class local_alexaskill_external extends external_api {
      * @return string site announcements
      */
     private static function get_site_announcements($json) {   
+        self::initialize_response();
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -397,6 +401,7 @@ class local_alexaskill_external extends external_api {
      * @param string $json
      */
     private static function get_course_announcements($json) {
+        self::initialize_response();
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS' && ($else = $json['request']['intent']['slots']['else']['value'])) {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -626,6 +631,7 @@ class local_alexaskill_external extends external_api {
      * Function to get a user's grades.
      */
     private static function get_grades($json) {
+        self::initialize_response();
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -684,6 +690,7 @@ class local_alexaskill_external extends external_api {
      * Function to get a user's due dates.
      */
     private static function get_due_dates($json) {
+        self::initialize_response();
         // Handle dialog directive response to "Would you like anything else?"
         if ($json['request']['dialogState'] == 'IN_PROGRESS') {
             if ($json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
@@ -775,6 +782,7 @@ class local_alexaskill_external extends external_api {
     }
     
     private static function get_help() {
+        self::initialize_response();
         $responses = array(
                 '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
@@ -786,6 +794,7 @@ class local_alexaskill_external extends external_api {
     }
     
     private static function say_good_bye() {
+        self::initialize_response();
         $responses = array(
                 'Okay, have a nice day!',
                 'Great. Take care!',
