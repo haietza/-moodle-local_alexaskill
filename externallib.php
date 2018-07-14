@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External web service template.
+ * Amazon Alexa skill web service.
  *
  * @package   local_alexaskill
  * @author    Michelle Melton <meltonml@appstate.edu>
@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->libdir . "/externallib.php");
+require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/forum/externallib.php');
 require_once($CFG->dirroot . '/calendar/externallib.php');
 require_once($CFG->dirroot . '/lib/grouplib.php');
@@ -32,6 +32,7 @@ require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
     
+    // Static variable for web service response.
     static $response;
         
     /**
@@ -47,19 +48,22 @@ class local_alexaskill_external extends external_api {
     
     public static function alexa($request, $token = '') {          
         $json = json_decode($request, true);
-        /*
-        // Check the signature of the request
-        if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
-            error_log('invalid signature');
-            return http_response_code(400);
-        }
+        echo $_SERVER['HTTP_HOST'];
         
-        // Check the request timestamp.
-        if (!self::verify_timestamp($json['request']['timestamp'])) {
-            error_log('invalid timestamp');
-            return http_response_code(400);
+        // Only check the signature and timestamp if not on local server.
+        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+            // Check the signature of the request
+            if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
+                error_log('invalid signature');
+                return http_response_code(400);
+            }
+            
+            // Check the request timestamp.
+            if (!self::verify_timestamp($json['request']['timestamp'])) {
+                error_log('invalid timestamp');
+                return http_response_code(400);
+            }
         }
-        */
         
         // Verify request is intended for my service.
         if (!self::verify_app_id($json['session']['application']['applicationId'])) {
@@ -104,8 +108,6 @@ class local_alexaskill_external extends external_api {
         } elseif ($json['request']['type'] == 'SessionEndedRequest') {
             return self::session_ended_request($json['request']['error']['message']);
         }
-        
-        //return self::$response;
     }
     
     /**
@@ -278,6 +280,7 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
+        
         return self::$response;
     }
     
