@@ -310,6 +310,7 @@ class local_alexaskill_external extends external_api {
      */
     private static function verify_account_linking($task) {
         global $SITE;
+        self::initialize_response();
         
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -333,7 +334,7 @@ class local_alexaskill_external extends external_api {
         }
         
         self::initialize_response();
-        self::get_announcements(1, 'the site');  
+        return self::get_announcements(1, 'the site');  
     }
     
     /**
@@ -343,10 +344,9 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_course_announcements($token) {
         global $DB;
-        self::initialize_response();
-        
+
         if ($token !== 'valid') {
-            self::verify_account_linking('get course announcements');
+            return self::verify_account_linking('get course announcements');
         }
         
         // Handle dialog directive response to "Would you like anything else?"
@@ -358,6 +358,7 @@ class local_alexaskill_external extends external_api {
             }
         }
 
+        self::initialize_response();
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
