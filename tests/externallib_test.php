@@ -116,8 +116,37 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
     
     /**
-     * Test
+     * Test for valid timestamp.
      */
+    public function test_verify_timestamp_valid() {
+        $this->resetAfterTest();
+        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
+        $verifytimestamp = self::getMethod('verify_timestamp');
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertTrue($actual);
+    }
+    
+    /**
+     * Tests for invalid, empty, null timestamp.
+     */
+    public function test_verify_timestamp_invalid() {
+        $this->resetAfterTest();
+        
+        local_alexaskill_external::$json['request']['timestamp'] = '';
+        $verifytimestamp = self::getMethod('verify_timestamp');
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
+        local_alexaskill_external::$json['request']['timestamp'] = null;
+        $verifytimestamp = self::getMethod('verify_timestamp');
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
+        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1000);
+        $verifytimestamp = self::getMethod('verify_timestamp');
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+    }
  
     /**
      * Test launch request.
