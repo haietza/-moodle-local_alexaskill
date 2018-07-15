@@ -47,19 +47,80 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
     }
     
+    /**
+     * Tests tear down.
+     */
     protected function tearDown() {
         
     }
     
-    protected static function getMethod($name) {
+    /**
+     * Function to make private function accessible for tests.
+     * 
+     * @param string $methodname
+     * @return ReflectionMethod
+     */
+    protected static function getMethod($methodname) {
         $class = new ReflectionClass('local_alexaskill_external');
-        $method = $class->getMethod($name);
+        $method = $class->getMethod($methodname);
         $method->setAccessible(true);
         return $method;
     }
- 
+    
+    /**
+     * Test for valid signature certificate URL.
+     */
+    public function test_verify_signature_certificate_url_valid() {
+        $this->resetAfterTest();
+        $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertTrue($actual);
+    }
+    
+    /**
+     * Tests for invalid, empty, null signature certificate URL.
+     */
+    public function test_verify_signature_certificate_url_invalid() {
+        $this->resetAfterTest();
+        
+        $certurl = '';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = null;
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = 'http://s3.amazonaws.com/echo.api/echo-api-cert.pem';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = 'https://amazonaws.com/echo.api/echo-api-cert.pem';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = 'https://s3.amazonaws.com/amazon.api/echo-api-cert.pem';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = 'https://s3.amazonaws.com:22/echo.api/echo-api-cert.pem';
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+    }
+    
     /**
      * Test
+     */
+ 
+    /**
+     * Test launch request.
      */
     public function test_launch_request() {
         global $SITE;
