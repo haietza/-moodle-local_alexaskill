@@ -387,7 +387,7 @@ class local_alexaskill_external extends external_api {
         if ($numcourses == 1) {
             $usercourse = reset($usercourses);
             $coursename = self::get_preferred_course_name($usercourse->fullname);
-            self::get_announcements($usercourse->id, $coursename); 
+            return self::get_announcements($usercourse->id, $coursename); 
         }
          
         if (self::$json['request']['dialogState'] == 'STARTED') {
@@ -438,7 +438,7 @@ class local_alexaskill_external extends external_api {
 
             if ($courseid != -1) {
                 // We found a valid course.
-                self::get_announcements($courseid, $coursename);
+                return self::get_announcements($courseid, $coursename);
             } else {
                 // We did not find course in list of user's courses.                
                 $responses = array(
@@ -530,10 +530,9 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_grades($token) {
         global $DB, $USER;
-        self::initialize_response();
         
         if ($token !== 'valid') {
-            self::verify_account_linking('get grades');
+            return self::verify_account_linking('get grades');
         }
         
         // Handle dialog directive response to "Would you like anything else?"
@@ -545,6 +544,7 @@ class local_alexaskill_external extends external_api {
             }
         }
         
+        self::initialize_response();
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
         $grades = '';
@@ -593,10 +593,9 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_due_dates($token) {
         global $DB, $CFG, $USER;
-        self::initialize_response();
-        
+
         if ($token !== 'valid') {
-            self::verify_account_linking('get due dates');
+            return self::verify_account_linking('get due dates');
         }
         
         // Handle dialog directive response to "Would you like anything else?"
@@ -608,6 +607,7 @@ class local_alexaskill_external extends external_api {
             }
         }
         
+        self::initialize_response();
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
         $groups = groups_get_my_groups();
