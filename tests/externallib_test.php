@@ -228,4 +228,47 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         //$this->setExpectedException('required_capability_exception');
         //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
     }
+    
+    public function test_get_site_announcements_valid() {
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
+        
+        // else == Y
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
+        
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+        
+        $expectedA = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'SSML',
+                                'ssml' => '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                        ),
+                        'shouldEndSession' => false
+                )
+        );
+        
+        $expectedB = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'SSML',
+                                'ssml' => '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                        ),
+                        'shouldEndSession' => false
+                )
+        );
+        
+        $this->assertTrue($expectedA == $actual || $expectedB == $actual);
+        
+        // else == N
+        
+        // 0 announcements
+        
+        // 1-5 announcements
+        
+        // 5+ announcements
+    }
 }
