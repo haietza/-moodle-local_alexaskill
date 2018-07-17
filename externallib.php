@@ -44,7 +44,7 @@ class local_alexaskill_external extends external_api {
     public static function alexa_parameters() {
         return new external_function_parameters(array(
                 'request' => new external_value(PARAM_TEXT, 'JSON request as a string'),
-                'token' => new external_value(PARAM_TEXT, 'Valid token status', VALUE_OPTIONAL)
+                'token' => new external_value(PARAM_TEXT, 'Valid token status')
         ));
     }
     

@@ -44,7 +44,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Tests set up.
      */
     protected function setUp() {
-        
+        set_config('alexaskill_applicationid', LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID, 'local_alexaskill');
+        set_config('alexaskill_coursenameregex', LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, 'local_alexaskill');
     }
     
     /**
@@ -72,8 +73,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_signature_certificate_url_valid() {
         $this->resetAfterTest();
-        $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
         $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        
+        $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertTrue($actual);
     }
@@ -83,34 +85,29 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_signature_certificate_url_invalid() {
         $this->resetAfterTest();
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         
         $certurl = '';
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
         $certurl = null;
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
         $certurl = 'http://s3.amazonaws.com/echo.api/echo-api-cert.pem';
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
         $certurl = 'https://amazonaws.com/echo.api/echo-api-cert.pem';
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
         $certurl = 'https://s3.amazonaws.com/amazon.api/echo-api-cert.pem';
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
         $certurl = 'https://s3.amazonaws.com:22/echo.api/echo-api-cert.pem';
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
     }
@@ -120,8 +117,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_timestamp_valid() {
         $this->resetAfterTest();
-        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
         $verifytimestamp = self::getMethod('verify_timestamp');
+        
+        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
         $actual = $verifytimestamp->invokeArgs(null, array());
         $this->assertTrue($actual);
     }
@@ -131,20 +129,49 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_timestamp_invalid() {
         $this->resetAfterTest();
+        $verifytimestamp = self::getMethod('verify_timestamp');
         
         local_alexaskill_external::$json['request']['timestamp'] = '';
-        $verifytimestamp = self::getMethod('verify_timestamp');
         $actual = $verifytimestamp->invokeArgs(null, array());
         $this->assertFalse($actual);
         
         local_alexaskill_external::$json['request']['timestamp'] = null;
-        $verifytimestamp = self::getMethod('verify_timestamp');
         $actual = $verifytimestamp->invokeArgs(null, array());
         $this->assertFalse($actual);
         
         local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1000);
-        $verifytimestamp = self::getMethod('verify_timestamp');
         $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+    }
+    /**
+     * Test for valid application ID.
+     */
+    public function test_verify_application_id_valid() {
+        $this->resetAfterTest();
+        $verifyapplicationid = self::getMethod('verify_application_id');
+        
+        local_alexaskill_external::$json['session']['application']['applicationId'] = LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID;
+        $actual = $verifyapplicationid->invokeArgs(null, array());
+        $this->assertTrue($actual);
+    }
+    
+    /**
+     * Tests for invalid, empty, null application ID.
+     */
+    public function test_verify_application_id_invalid() {
+        $this->resetAfterTest();
+        $verifyapplicationid = self::getMethod('verify_application_id');
+        
+        local_alexaskill_external::$json['session']['application']['applicationId'] = '';
+        $actual = $verifyapplicationid->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
+        local_alexaskill_external::$json['session']['application']['applicationId'] = null;
+        $actual = $verifyapplicationid->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
+        local_alexaskill_external::$json['session']['application']['applicationId'] = 'abc123';
+        $actual = $verifyapplicationid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
  
