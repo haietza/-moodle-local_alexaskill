@@ -31,20 +31,7 @@ global $DB;
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_alexaskill', get_string('alexaskill_settings', 'local_alexaskill'));
     $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid', get_string('alexaskill_applicationid_label', 'local_alexaskill'), get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
-    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_coursenameregex', get_string('alexaskill_coursenameregex_label', 'local_alexaskill'), get_string('alexaskill_coursenameregex_desc', 'local_alexaskill'), '/.*/'));
-    
-    $courses = $DB->get_records('course', array(), '', 'id, fullname');
-    $coursepreferrednames = '<p>Copy the list of course names below, formatted according to the course regular expression in the Alexa skill settings, and paste into the Alexa developer console COURSE slot configuration:</p><p>';
-    foreach ($courses as $course) {
-        $coursename = $course->fullname;
-        $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');
-        if (preg_match($pattern, $coursename, $coursenamearray)) {
-            // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-            $coursename = substr($coursenamearray[1], 0, -1);
-        }
-        $coursepreferrednames .= strtolower($coursename) . '<br />';
-    }
-    $coursepreferrednames .= '</p>';
+    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_coursenameregex', get_string('alexaskill_coursenameregex_label', 'local_alexaskill'), get_string('alexaskill_coursenameregex_desc', 'local_alexaskill'), '/(.*)/'));
     
     $localalexaskillfolder = new admin_category('localalexaskillfolder', get_string('pluginname', 'local_alexaskill'));
     $ADMIN->add('localplugins', $localalexaskillfolder);

@@ -46,9 +46,13 @@ $coursepreferrednames = '<p>Copy the list of course names below, formatted accor
 foreach ($courses as $course) {
     $coursename = $course->fullname;
     $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');
+    // If no regular expression is configured, set to default.
+    if ($pattern == '') {
+        $pattern = '/(.*)/';
+    }
     if (preg_match($pattern, $coursename, $coursenamearray)) {
-        // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-        $coursename = substr($coursenamearray[1], 0, -1);
+        // Set course name to first capturing group of provided regular expression.
+        $coursename = $coursenamearray[1];
     }
     $coursepreferrednames .= strtolower($coursename) . '<br />';
 }
