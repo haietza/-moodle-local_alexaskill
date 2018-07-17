@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG, $SITE;
+global $SITE;
 
 $string['pluginname'] = 'Alexa skill web service';
 $string['alexaskill_settings'] = 'Alexa skill settings';

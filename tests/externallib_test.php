@@ -39,6 +39,8 @@ require_once($CFG->dirroot . '/local/alexaskill/externallib.php');
  * @group      local_alexaskill
  */
 class local_alexaskill_externallib_testcase extends externallib_advanced_testcase {
+    // Web service test response.
+    private $response;
     
     /**
      * Tests set up.
@@ -46,13 +48,23 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     protected function setUp() {
         set_config('alexaskill_applicationid', LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID, 'local_alexaskill');
         set_config('alexaskill_coursenameregex', LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, 'local_alexaskill');
+        
+        $this->response = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
     }
     
     /**
      * Tests tear down.
      */
     protected function tearDown() {
-        
+        unset($this->response);
     }
     
     /**
@@ -185,27 +197,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
         $actual = $launchrequest->invokeArgs(null, array());
         
-        $expectedA = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'SSML',
-                                'ssml' => '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                        ),
-                        'shouldEndSession' => false
-                )
-        );
+        $expectedA = $this->response;
+        $expectedA['response']['outputSpeech']['type'] = 'SSML';
+        $expectedA['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+        $expectedA['response']['shouldEndSession'] = false;
         
-        $expectedB = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'SSML',
-                                'ssml' => '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                        ),
-                        'shouldEndSession' => false
-                )
-        );
+        $expectedB = $this->response;
+        $expectedB['response']['outputSpeech']['type'] = 'SSML';
+        $expectedB['response']['outputSpeech']['ssml'] = '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+        $expectedB['response']['shouldEndSession'] = false;
                 
         $this->assertTrue($expectedA == $actual || $expectedB == $actual);
         
@@ -239,27 +239,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
         $actual = $getsiteannouncements->invokeArgs(null, array());
         
-        $expectedA = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'SSML',
-                                'ssml' => '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                        ),
-                        'shouldEndSession' => false
-                )
-        );
+        $expectedA = $this->response;
+        $expectedA['response']['outputSpeech']['type'] = 'SSML';
+        $expectedA['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+        $expectedA['response']['shouldEndSession'] = false;
         
-        $expectedB = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'SSML',
-                                'ssml' => '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-                        ),
-                        'shouldEndSession' => false
-                )
-        );
+        $expectedB = $this->response;
+        $expectedB['response']['outputSpeech']['type'] = 'SSML';
+        $expectedB['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+        $expectedB['response']['shouldEndSession'] = false;
         
         $this->assertTrue($expectedA == $actual || $expectedB == $actual);
         
@@ -268,49 +256,17 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
         $actual = $getsiteannouncements->invokeArgs(null, array());
         
-        $expectedA = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Okay, have a nice day!'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
+        $expectedA = $this->response;
+        $expectedA['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
         
-        $expectedB = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Great. Take care!'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
+        $expectedB = $this->response;
+        $expectedB['response']['outputSpeech']['text'] = 'Great. Take care!';
         
-        $expectedC = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Thanks. Good bye!'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
+        $expectedC = $this->response;
+        $expectedC['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
         
-        $expectedD = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Sure. Until next time!'
-                        ),
-                        'shouldEndSession' => true
-                )
-        );
+        $expectedD = $this->response;
+        $expectedD['response']['outputSpeech']['text'] = 'Sure. Until next time!';
         
         $this->assertTrue($expectedA == $actual 
                 || $expectedB == $actual 
