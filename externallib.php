@@ -328,11 +328,7 @@ class local_alexaskill_external extends external_api {
     private static function get_site_announcements() {   
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
-            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                return self::get_help();
-            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                return self::say_good_bye();
-            }
+            return self::in_progress();   
         }
         
         self::initialize_response();
@@ -353,11 +349,7 @@ class local_alexaskill_external extends external_api {
         
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && self::$json['request']['intent']['slots']['else']['value']) {
-            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                return self::get_help();
-            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                return self::say_good_bye();
-            }
+            return self::in_progress();
         }
 
         self::initialize_response();
@@ -539,11 +531,7 @@ class local_alexaskill_external extends external_api {
         
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
-            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                return self::get_help();
-            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                return self::say_good_bye();
-            }
+            return self::in_progress();
         }
         
         self::initialize_response();
@@ -602,11 +590,7 @@ class local_alexaskill_external extends external_api {
         
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
-            if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'yes') {
-                return self::get_help();
-            } elseif (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-                return self::say_good_bye();
-            }
+            return self::in_progress();
         }
         
         self::initialize_response();
@@ -691,6 +675,14 @@ class local_alexaskill_external extends external_api {
         return strtolower($coursename);
     }
     
+    private static function in_progress() {   
+        if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+            return self::say_good_bye();
+        } else {
+            return self::get_help();
+        }
+    }
+    
     private static function get_help() {
         self::initialize_response();
         
@@ -698,7 +690,7 @@ class local_alexaskill_external extends external_api {
                 '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
-        self::$response['response']['outputSpeech']['type'] = "SSML";
+        self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
         
