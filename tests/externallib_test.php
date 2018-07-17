@@ -264,6 +264,58 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertTrue($expectedA == $actual || $expectedB == $actual);
         
         // else == N
+        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+        
+        $expectedA = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Okay, have a nice day!'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        
+        $expectedB = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Great. Take care!'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        
+        $expectedC = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Thanks. Good bye!'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        
+        $expectedD = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Sure. Until next time!'
+                        ),
+                        'shouldEndSession' => true
+                )
+        );
+        
+        $this->assertTrue($expectedA == $actual 
+                || $expectedB == $actual 
+                || $expectedC == $actual 
+                || $expectedD == $actual);
         
         // 0 announcements
         
