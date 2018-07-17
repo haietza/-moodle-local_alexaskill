@@ -180,30 +180,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_launch_request() {
         global $SITE;
- 
         $this->resetAfterTest();
-        
         $launchrequest = self::getMethod('launch_request');
-        $response = $launchrequest->invokeArgs(null, array());
- 
-        // Set the required capabilities by the external function
-        //$contextid = context_XXXX::instance()->id;
-        //$roleid = $this->assignUserCapability('moodle/CAPABILITYNAME', $contextid);
- 
-        //$params = array(PARAM1, PARAM2, ...);
- 
-        //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
- 
-        // We need to execute the return values cleaning process to simulate the web service server
-        //$returnvalue = external_api::clean_returnvalue(COMPONENT_external::FUNCTION_NAME_returns(), $returnvalue);
- 
-        // Some PHPUnit assert
-        //$this->assertEquals(EXPECTED_VALUE, RETURNED_VALUE);
- 
-        // Call without required capability
-        //$this->unassignUserCapability('moodle/CAPABILITYNAME', $contextid, $roleid);
-        //$this->setExpectedException('required_capability_exception');
-        //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
+        
+        $actual = $launchrequest->invokeArgs(null, array());
         
         $expectedA = array(
                 'version' => '1.0',
@@ -227,6 +207,25 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 )
         );
                 
-        $this->assertTrue($expectedA == $response || $expectedB == $response);
+        $this->assertTrue($expectedA == $actual || $expectedB == $actual);
+        
+        // Set the required capabilities by the external function
+        //$contextid = context_XXXX::instance()->id;
+        //$roleid = $this->assignUserCapability('moodle/CAPABILITYNAME', $contextid);
+        
+        //$params = array(PARAM1, PARAM2, ...);
+        
+        //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
+        
+        // We need to execute the return values cleaning process to simulate the web service server
+        //$returnvalue = external_api::clean_returnvalue(COMPONENT_external::FUNCTION_NAME_returns(), $returnvalue);
+        
+        // Some PHPUnit assert
+        //$this->assertEquals(EXPECTED_VALUE, RETURNED_VALUE);
+        
+        // Call without required capability
+        //$this->unassignUserCapability('moodle/CAPABILITYNAME', $contextid, $roleid);
+        //$this->setExpectedException('required_capability_exception');
+        //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
     }
 }
