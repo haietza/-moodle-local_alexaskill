@@ -274,6 +274,25 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 || $expectedD == $actual);
         
         // 0 announcements
+        local_alexaskill_external::$json = null;
+        
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+        
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+        
+        $expectedA = $this->response;
+        $expectedA['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
+        
+        $expectedB = $this->response;
+        $expectedB['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
+
+        $this->assertTrue($expectedA == $actual || $expectedB == $actual); 
         
         // 1-5 announcements
         
@@ -301,7 +320,5 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedB['response']['shouldEndSession'] = false;
         
         $this->assertTrue($expectedA == $actual || $expectedB == $actual);
-        
-        // Remove user capability
     }
 }
