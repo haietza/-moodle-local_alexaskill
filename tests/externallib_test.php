@@ -160,6 +160,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $verifytimestamp->invokeArgs(null, array());
         $this->assertFalse($actual);
         
+        local_alexaskill_external::$json['request']['timestamp'] = false;
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
+        local_alexaskill_external::$json['request']['timestamp'] = 'foo';
+        $actual = $verifytimestamp->invokeArgs(null, array());
+        $this->assertFalse($actual);
+        
         local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1000);
         $actual = $verifytimestamp->invokeArgs(null, array());
         $this->assertFalse($actual);
