@@ -65,6 +65,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     protected function tearDown() {
         unset($this->response);
+        local_alexaskill_external::$json = null;
     }
     
     /**
@@ -104,6 +105,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertFalse($actual);
         
         $certurl = null;
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = false;
+        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $this->assertFalse($actual);
+        
+        $certurl = 'foo';
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
         
@@ -188,7 +197,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
  
     /**
-     * Test launch request.
+     * Test launch_request.
      */
     public function test_launch_request() {
         global $SITE;
@@ -229,11 +238,13 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         //$returnvalue = COMPONENT_external::FUNCTION_NAME($params);
     }
     
-    public function test_get_site_announcements_valid() {
+    /**
+     * Test get_site_announcements, responding to would you like anything else with yes.
+     */
+    public function test_get_site_announcements_valid_else_yes() {
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
         
-        // else == Y
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
         
@@ -250,8 +261,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedB['response']['shouldEndSession'] = false;
         
         $this->assertTrue($expectedA == $actual || $expectedB == $actual);
+    }
+    
+    /**
+     * Test get_site_announcements, responding to would you like anything else with no.
+     */
+    public function test_get_site_announcements_valid_else_no() {
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
         
-        // else == N
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
         
         $actual = $getsiteannouncements->invokeArgs(null, array());
@@ -272,9 +291,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 || $expectedB == $actual 
                 || $expectedC == $actual 
                 || $expectedD == $actual);
-        
-        // 0 announcements
-        local_alexaskill_external::$json = null;
+    }
+    
+    /**
+     * Test get_site_announcements, none.
+     */
+    public function test_get_site_announcements_valid_0() {
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
         
         $actual = $getsiteannouncements->invokeArgs(null, array());
         
@@ -292,18 +316,46 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedB = $this->response;
         $expectedB['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
 
-        $this->assertTrue($expectedA == $actual || $expectedB == $actual); 
-        
-        // 1-5 announcements
-        
-        // 5+ announcements
+        $this->assertTrue($expectedA == $actual || $expectedB == $actual);
     }
     
-    public function test_get_site_announcements_invalid() {
+    /**
+     * Test get_site_announcements, 1 post.
+     */
+    public function test_get_site_announcements_valid_1() {
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
+                
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array('course' => 1, 'forum' => $forum->id, 'userid' => '2'));
+        
+        $subject = 'Test subject';
+        $message = 'Test message.';
+        $post = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_post(array('discussion' => $discussion->id, 'userid' => 2, 'subject' => $subject, 'message' => $message));
+        
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+        
+        $announcements = '<p>' . $subject . '. ' . $message . '</p> ';
+                
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $expectedA = $this->response;
+        $expectedA['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for the site: ' . $announcements . ' Would you like anything else?</speak>';
+        
+        $expectedB = $this->response;
+        $expectedB['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for the site are: ' . $announcements . ' Would you like anything else?</speak>';
+        
+        $this->assertTrue($expectedA == $actual || $expectedB == $actual);
+    }
+    
+    // 5+ announcements
+    
+    /** 
+     * Test get_site_announcements, invalid response to would you like anything else.
+     */
+    public function test_get_site_announcements_invalid_else() {
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
         
-        // else == nonsense
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
         
