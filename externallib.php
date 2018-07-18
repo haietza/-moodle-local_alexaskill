@@ -158,14 +158,10 @@ class local_alexaskill_external extends external_api {
         $port = parse_url($certurl, PHP_URL_PORT);
         
         // Verify signature URL.
-        if ($protocol != 'https'
-                || $hostname != 's3.amazonaws.com'
-                || $path != '/echo.api/'
-                || ($port != 443 && $port != NULL)) {
-                    return false;
-                }
-                
-        return true;
+        return $protocol == 'https'
+                && $hostname == 's3.amazonaws.com'
+                && $path == '/echo.api/'
+                && ($port == 443 || $port == null);
     }
     
     /**
