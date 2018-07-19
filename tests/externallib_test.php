@@ -74,9 +74,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * @param string $methodname
      * @return ReflectionMethod
      */
-    protected static function get_method($methodname) {
+    protected static function getMethod($methodname) {
         $class = new ReflectionClass('local_alexaskill_external');
-        $method = $class->get_method($methodname);
+        $method = $class->getMethod($methodname);
         $method->setAccessible(true);
         return $method;
     }
@@ -86,7 +86,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_signature_certificate_url_valid() {
         $this->resetAfterTest();
-        $verifysignaturecertificateurl = self::get_method('verify_signature_certificate_url');
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
 
         $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
@@ -98,7 +98,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_signature_certificate_url_invalid() {
         $this->resetAfterTest();
-        $verifysignaturecertificateurl = self::get_method('verify_signature_certificate_url');
+        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
 
         $certurl = '';
         $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
@@ -138,7 +138,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_timestamp_valid() {
         $this->resetAfterTest();
-        $verifytimestamp = self::get_method('verify_timestamp');
+        $verifytimestamp = self::getMethod('verify_timestamp');
 
         local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
         $actual = $verifytimestamp->invokeArgs(null, array());
@@ -150,7 +150,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_timestamp_invalid() {
         $this->resetAfterTest();
-        $verifytimestamp = self::get_method('verify_timestamp');
+        $verifytimestamp = self::getMethod('verify_timestamp');
 
         local_alexaskill_external::$json['request']['timestamp'] = '';
         $actual = $verifytimestamp->invokeArgs(null, array());
@@ -178,7 +178,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_application_id_valid() {
         $this->resetAfterTest();
-        $verifyapplicationid = self::get_method('verify_application_id');
+        $verifyapplicationid = self::getMethod('verify_application_id');
 
         local_alexaskill_external::$json['session']['application']['applicationId'] = LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID;
         $actual = $verifyapplicationid->invokeArgs(null, array());
@@ -190,7 +190,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_verify_application_id_invalid() {
         $this->resetAfterTest();
-        $verifyapplicationid = self::get_method('verify_application_id');
+        $verifyapplicationid = self::getMethod('verify_application_id');
 
         local_alexaskill_external::$json['session']['application']['applicationId'] = '';
         $actual = $verifyapplicationid->invokeArgs(null, array());
@@ -200,7 +200,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $verifyapplicationid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['session']['application']['applicationId'] = 'abc123';
+        local_alexaskill_external::$json['session']['application']['applicationId'] = 'foo';
         $actual = $verifyapplicationid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
@@ -211,7 +211,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     public function test_launch_request() {
         global $SITE;
         $this->resetAfterTest();
-        $launchrequest = self::get_method('launch_request');
+        $launchrequest = self::getMethod('launch_request');
 
         $actual = $launchrequest->invokeArgs(null, array());
 
@@ -256,7 +256,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_get_site_announcements_valid_else_yes() {
         $this->resetAfterTest();
-        $getsiteannouncements = self::get_method('get_site_announcements');
+        $getsiteannouncements = self::getMethod('get_site_announcements');
 
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
@@ -283,7 +283,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_get_site_announcements_valid_else_no() {
         $this->resetAfterTest();
-        $getsiteannouncements = self::get_method('get_site_announcements');
+        $getsiteannouncements = self::getMethod('get_site_announcements');
 
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
@@ -313,7 +313,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_get_site_announcements_valid_0() {
         $this->resetAfterTest();
-        $getsiteannouncements = self::get_method('get_site_announcements');
+        $getsiteannouncements = self::getMethod('get_site_announcements');
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -339,7 +339,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_get_site_announcements_valid_1() {
         $this->resetAfterTest();
-        $getsiteannouncements = self::get_method('get_site_announcements');
+        $getsiteannouncements = self::getMethod('get_site_announcements');
 
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
         $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
@@ -376,7 +376,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_get_site_announcements_invalid_else() {
         $this->resetAfterTest();
-        $getsiteannouncements = self::get_method('get_site_announcements');
+        $getsiteannouncements = self::getMethod('get_site_announcements');
 
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';

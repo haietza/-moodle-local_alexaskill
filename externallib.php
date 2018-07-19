@@ -34,10 +34,10 @@ require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
     // Static variable for web service request JSON.
-    protected static $json;
+    static $json;
 
     // Static variable for web service response.
-    protected static $response;
+    static $response;
 
     /**
      * Returns description of method parameters
