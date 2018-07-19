@@ -26,40 +26,42 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/formslib.php");
- 
+
 class account_linking_form extends moodleform {
     public function definition() {
         global $USER;
- 
+
         $mform = $this->_form;
-        
-        $mform->addElement('text', 'username', get_string('alexaskill_accountlinking_username', 'local_alexaskill'), array('required' => true));
+
+        $mform->addElement('text', 'username',
+                get_string('alexaskill_accountlinking_username', 'local_alexaskill'),
+                array('required' => true));
         $mform->setType('username', PARAM_USERNAME);
         if (isloggedin()) {
             $mform->setDefault('username', $USER->username);
         }
         $mform->addHelpButton('username', 'alexaskill_accountlinking_username', 'local_alexaskill');
-        
+
         $mform->addElement('password', 'password', get_string('alexaskill_accountlinking_password', 'local_alexaskill'), array('required' => true));
         $mform->setType('password', PARAM_RAW);
         $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
-        
+
         $mform->addElement('hidden', 'service');
         $mform->setType('service', PARAM_TEXT);
-        
+
         $mform->addElement('hidden', 'state');
         $mform->setType('state', PARAM_TEXT);
-        
+
         $mform->addElement('hidden', 'response_type');
         $mform->setType('response_type', PARAM_TEXT);
-        
+
         $mform->addElement('hidden', 'redirect_uri');
         $mform->setType('redirect_uri', PARAM_TEXT);
-        
+
         $this->add_action_buttons(false, get_string('alexaskill_accountlinking_submit', 'local_alexaskill'));
     }
-    
-    function validation($data, $files) {  
+
+    public function validation($data, $files) {
         $errors = array();
         $ch = curl_init();
         $values = array(
@@ -67,16 +69,23 @@ class account_linking_form extends moodleform {
                 'password' => $data['password'],
                 'service' => $data['service']
         );
+
+        // Only use the root dir path if not on local server.
+        // CURL does not work on localhost.
+        $curlurl = 'https://alexa.haietza.com/login/token.php/';
+        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+            $curlurl = $CFG->wwwroot . '/login/token.php/';
+        }
+
         $options = array(
-                //CURLOPT_URL => $CFG->wwwroot . '/login/token.php/',
-                CURLOPT_URL => 'https://alexa.haietza.com/login/token.php/',
+                CURLOPT_URL => $curlurl,
                 CURLOPT_POSTFIELDS => $values,
                 CURLOPT_RETURNTRANSFER => 1
         );
         curl_setopt_array($ch, $options);
         $data = curl_exec($ch);
         curl_close($ch);
-        
+
         $obj = json_decode($data, true);
         if (!key_exists('token', $obj)) {
             switch ($obj['errorcode']) {
@@ -93,7 +102,6 @@ class account_linking_form extends moodleform {
                     $errors['password'] = $obj['error'];
                     break;
             }
-            
         }
         return $errors;
     }

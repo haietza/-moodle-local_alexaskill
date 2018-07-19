@@ -42,7 +42,8 @@ require_login(0, false);
 admin_externalpage_setup('alexacourseslotvalues');
 
 $courses = $DB->get_records('course', array(), '', 'id, fullname');
-$coursepreferrednames = '<p>Copy the list of course names below, formatted according to the course regular expression above, and paste into the Alexa developer console COURSE slot configuration:</p><p>';
+$coursepreferrednames = '<p>Copy the list of course names below, formatted according to the course regular expression above, '
+        . 'and paste into the Alexa developer console COURSE slot configuration:</p><p>';
 foreach ($courses as $course) {
     $coursename = $course->fullname;
     $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');

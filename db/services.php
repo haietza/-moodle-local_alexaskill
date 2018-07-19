@@ -16,12 +16,14 @@
 
 /**
  * Web service local plugin external functions and service definitions.
- * 
+ *
  * @package   local_alexaskill
  * @author    Michelle Melton <meltonml@appstate.edu>
  * @copyright 2018, Michelle Melton
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die;
 
 // We defined the web service functions to install.
 $functions = array(
@@ -38,9 +40,8 @@ $functions = array(
 $services = array(
         'Alexa Skill' => array(
             'functions' => array ('local_alexaskill_alexa'),
-            //'requiredcapability' => 'mod/forum:viewdiscussion',
             'restrictedusers' => 0,
-            'enabled'=> 1,
+            'enabled' => 1,
             'shortname' => 'alexa_skill_service',
         )
 );

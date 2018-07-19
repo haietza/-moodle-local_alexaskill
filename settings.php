@@ -30,9 +30,13 @@ global $DB;
 // Verify moodle/site:config capability for system context - user can configure site settings.
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_alexaskill', get_string('alexaskill_settings', 'local_alexaskill'));
-    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid', get_string('alexaskill_applicationid_label', 'local_alexaskill'), get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
-    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_coursenameregex', get_string('alexaskill_coursenameregex_label', 'local_alexaskill'), get_string('alexaskill_coursenameregex_desc', 'local_alexaskill'), '/(.*)/'));
-    
+    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid',
+            get_string('alexaskill_applicationid_label', 'local_alexaskill'),
+            get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
+    $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_coursenameregex',
+            get_string('alexaskill_coursenameregex_label', 'local_alexaskill'),
+            get_string('alexaskill_coursenameregex_desc', 'local_alexaskill'), '/(.*)/'));
+
     $localalexaskillfolder = new admin_category('localalexaskillfolder', get_string('pluginname', 'local_alexaskill'));
     $ADMIN->add('localplugins', $localalexaskillfolder);
     $ADMIN->add('localalexaskillfolder', $settings);

@@ -34,11 +34,11 @@ require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
     // Static variable for web service request JSON.
-    static $json;
-    
+    protected static $json;
+
     // Static variable for web service response.
-    static $response;
-        
+    protected static $response;
+
     /**
      * Returns description of method parameters
      * @return external_function_parameters
@@ -49,47 +49,47 @@ class local_alexaskill_external extends external_api {
                 'token' => new external_value(PARAM_TEXT, 'Valid token status')
         ));
     }
-    
-    public static function alexa($request, $token = '') {          
+
+    public static function alexa($request, $token = '') {
         self::$json = json_decode($request, true);
-        
+
         // Only check the signature and timestamp if not on local server.
         // Cannot simulate signature since that is encrypted based on request.
         if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
             // Check the URL of the signature certificate.
             if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
-                error_log('invalid signature certificate URL');
+                debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
                 return http_response_code(400);
             }
-            
+
             // Check the signature of the request.
             if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
-                error_log('invalid signature');
+                debugging('Invalid signature', NO_DEBUG_DISPLAY);
                 return http_response_code(400);
             }
-            
+
             // Check the request timestamp.
             if (!self::verify_timestamp()) {
-                error_log('invalid timestamp');
+                debugging('Invalid timestamp', NO_DEBUG_DISPLAY);
                 return http_response_code(400);
             }
         }
-        
+
         // Verify request is intended for my service.
         if (!self::verify_application_id()) {
-            error_log('invalid application id');
+            debugging('Invalid application id', NO_DEBUG_DISPLAY);
             return http_response_code(400);
         }
-        
+
         // Process request.
         if (self::$json['request']['type'] == 'LaunchRequest') {
             return self::launch_request();
-        } elseif (self::$json['request']['type'] == 'IntentRequest') {
+        } else if (self::$json['request']['type'] == 'IntentRequest') {
             switch(self::$json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
                     return self::get_site_announcements();
                     break;
-                case "GetCourseAnnouncementsIntent": 
+                case "GetCourseAnnouncementsIntent":
                     return self::get_course_announcements($token);
                     break;
                 case "GetGradesIntent":
@@ -107,11 +107,11 @@ class local_alexaskill_external extends external_api {
                     return self::get_help();
                     break;
             }
-        } elseif (self::$json['request']['type'] == 'SessionEndedRequest') {
+        } else if (self::$json['request']['type'] == 'SessionEndedRequest') {
             self::session_ended_request();
         }
     }
-    
+
     /**
      * Returns description of method return values.
      *
@@ -126,7 +126,7 @@ class local_alexaskill_external extends external_api {
                                 'text' => new external_value(PARAM_TEXT, 'text string to speak', VALUE_OPTIONAL),
                                 'ssml' => new external_value(PARAM_RAW, 'the ssml string to speak', VALUE_OPTIONAL)
                         )),
-                        'shouldEndSession' => new external_value(PARAM_BOOL,'true if responses ends session'),
+                        'shouldEndSession' => new external_value(PARAM_BOOL, 'true if responses ends session'),
                         'card' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of card')
                         ), 'card for app', VALUE_OPTIONAL),
@@ -137,7 +137,7 @@ class local_alexaskill_external extends external_api {
                 ))
         ));
     }
-    
+
     /**
      * Function to verify signature certificate URL.
      *
@@ -147,23 +147,23 @@ class local_alexaskill_external extends external_api {
     private static function verify_signature_certificate_url($certurl) {
         // The protocol is equal to https (case insensitive).
         $protocol = strtolower(parse_url($certurl, PHP_URL_SCHEME));
-        
+
         // The hostname is equal to s3.amazonaws.com (case insensitive).
         $hostname = strtolower(parse_url($certurl, PHP_URL_HOST));
-        
+
         // The path starts with /echo.api/ (case sensitive).
         $path = substr(parse_url($certurl, PHP_URL_PATH), 0, 10);
-        
-        //If a port is defined in the URL, the port is equal to 443.
+
+        // If a port is defined in the URL, the port is equal to 443.
         $port = parse_url($certurl, PHP_URL_PORT);
-        
+
         // Verify signature URL.
         return $protocol == 'https'
                 && $hostname == 's3.amazonaws.com'
                 && $path == '/echo.api/'
                 && ($port == 443 || $port == null);
     }
-    
+
     /**
      * Function to validate the signature.
      * Thanks to https://github.com/craigh411/alexa-request-validator
@@ -175,71 +175,71 @@ class local_alexaskill_external extends external_api {
      */
     private static function validate_signature($certurl, $signature, $request) {
         global $CFG;
-        
+
         // Create the Signature Certificate Chain directory if it does not exist.
         $certdir = $CFG->dataroot . '/local_alexaskill';
         if (!file_exists($certdir)) {
             mkdir($certdir);
         }
-        
+
         // Make sure directory is writeable.
         if (!is_writable($certdir)) {
             chmod($certdir, 0777);
         }
-        
+
         // Download a new Signature Certificate Chain if we need to.
         $certfile = $certdir . '/' . md5($certurl) . '.pem';
         if (!file_exists($certfile)) {
             file_put_contents($certfile, file_get_contents($certurl));
         }
-        
+
         // Download PEM-enoded X.509 certificate chain.
         $cert = file_get_contents($certfile);
-        
+
         // Parse certificate.
         $parsedcert = openssl_x509_parse($cert);
         if (!$parsedcert) {
             return false;
         }
-        
+
         // Check that signing certificate has not expired.
-        $validFrom = $parsedcert['validFrom_time_t'];
-        $validTo = $parsedcert['validTo_time_t'];
+        $validfrom = $parsedcert['validFrom_time_t'];
+        $validto = $parsedcert['validTo_time_t'];
         $time = time();
-        if (!($validFrom <= $time && $time <= $validTo)) {
+        if (!($validfrom <= $time && $time <= $validto)) {
             return false;
         }
-        
+
         // Check SAN.
         if (strpos($parsedcert['extensions']['subjectAltName'], 'echo-api.amazon.com') === false) {
             return false;
         }
-        
+
         // Check all certs combine to trusted root CA.
         $decodedsignature = base64_decode($signature);
         $verifysig = openssl_verify($request, $decodedsignature, $cert, OPENSSL_ALGO_SHA1);
         if ($verifysig != 1) {
             return false;
         }
-        
+
         // Extract public key from signing certificate.
         $publickey = openssl_pkey_get_public($cert);
-        
+
         // Base64-decode the Signature header on request to obtain encrypted signature.
         openssl_public_decrypt($decodedsignature, $decryptedsignature, $publickey);
-        
+
         // Generate SHA-1 hash from full HTTPS request body to produce derived hash value.
         $responsehash = sha1($request);
         $decryptedsignature = bin2hex($decryptedsignature);
-        
+
         // Compare asserted and derived hashes for matching.
         if (substr($decryptedsignature, 30) !== $responsehash) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * Function to parse ISO 8601 formatted string to verify within 150 seconds.
      *
@@ -248,7 +248,7 @@ class local_alexaskill_external extends external_api {
     private static function verify_timestamp() {
         return (time() - strtotime(self::$json['request']['timestamp'])) < 150;
     }
-    
+
     /**
      * Function to verify appliation ID.
      *
@@ -257,7 +257,7 @@ class local_alexaskill_external extends external_api {
     private static function verify_application_id() {
         return self::$json['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
-    
+
     /**
      * Function to initialize the JSON response.
      */
@@ -272,7 +272,7 @@ class local_alexaskill_external extends external_api {
                 )
         );
     }
-    
+
     /**
      * Function to get welcome message.
      *
@@ -281,26 +281,28 @@ class local_alexaskill_external extends external_api {
     private static function launch_request() {
         global $SITE;
         self::initialize_response();
-        
+
         $responses = array(
-                '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>'
+                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
         self::$response['response']['outputSpeech']['type'] = 'SSML';
-        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
+        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
         return self::$response;
     }
-    
+
     /**
      * Function to log error for session ended request.
      */
     private static function session_ended_request() {
-        error_log('SessionEndedRequest reason: ' . self::$json['request']['reason']);
-        error_log('SessionEndedRequest error type: ' . self::$json['request']['error']['type']);
-        error_log('SessionEndedRequest error message: ' . self::$json['request']['error']['message']);
+        debugging('SessionEndedRequest reason: ' . self::$json['request']['reason'], NO_DEBUG_DISPLAY);
+        debugging('SessionEndedRequest error type: ' . self::$json['request']['error']['type'], NO_DEBUG_DISPLAY);
+        debugging('SessionEndedRequest error message: ' . self::$json['request']['error']['message'], NO_DEBUG_DISPLAY);
     }
-    
+
     /**
      * Function to return the LinkAccount card.
      *
@@ -309,31 +311,31 @@ class local_alexaskill_external extends external_api {
     private static function verify_account_linking($task) {
         global $SITE;
         self::initialize_response();
-        
+
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
                 . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
         return self::$response;
     }
-    
+
     /**
      * Function to get front page site announcements.
-     * 
+     *
      * @return string site announcements
      */
-    private static function get_site_announcements() {   
+    private static function get_site_announcements() {
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
-            return self::in_progress();   
+            return self::in_progress();
         }
-        
+
         self::initialize_response();
-        return self::get_announcements(1, 'the site');  
+        return self::get_announcements(1, 'the site');
     }
-    
+
     /**
      * Function to get course announcements.
-     * 
+     *
      * @param string $token
      */
     private static function get_course_announcements($token) {
@@ -342,7 +344,7 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::verify_account_linking('get course announcements');
         }
-        
+
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && self::$json['request']['intent']['slots']['else']['value']) {
             return self::in_progress();
@@ -353,16 +355,16 @@ class local_alexaskill_external extends external_api {
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
         }
-        $numcourses = sizeof($usercourses);
-        
+        $numcourses = count($usercourses);
+
         // User has no courses, and therefore no announcements.
         if ($numcourses == 0) {
             $responses = array(
                     'Sorry, you are not enrolled in any courses. Would you like anything else?',
                     'I apologize, but there are no active courses listed for you. Can I get you anything else?'
             );
-            
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -372,24 +374,24 @@ class local_alexaskill_external extends external_api {
             );
             return self::$response;
         }
-        
+
         // User only has one course, no need to prompt.
         if ($numcourses == 1) {
             $usercourse = reset($usercourses);
             $coursename = self::get_preferred_course_name($usercourse->fullname);
-            return self::get_announcements($usercourse->id, $coursename); 
+            return self::get_announcements($usercourse->id, $coursename);
         }
-         
+
         if (self::$json['request']['dialogState'] == 'STARTED') {
-            // We don't know the course, prompt for it.            
+            // We don't know the course, prompt for it.
             $responses = array(
                     '<speak>Thanks. You can get announcements for the following courses: ',
                     '<speak>Great. I can get announcements from the following courses for you: '
             );
-            
+
             $prompt = '';
             $count = 0;
-            foreach($usercourses as $usercourse) {
+            foreach ($usercourses as $usercourse) {
                 if ($count < $numcourses - 1) {
                     $prompt .= $usercourse->preferredname . '<break time = "350ms"/> ';
                     $count++;
@@ -398,27 +400,28 @@ class local_alexaskill_external extends external_api {
             $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
 
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $prompt . '</speak>';
-            
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
+
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
                             'type' => 'Dialog.ElicitSlot',
                             'slotToElicit' => 'course'
-                    ) 
+                    )
             );
             return self::$response;
-        } elseif (self::$json['request']['dialogState'] == 'IN_PROGRESS' && ($coursevalue = self::$json['request']['intent']['slots']['course']['value'])) {
+        } else if (self::$json['request']['dialogState'] == 'IN_PROGRESS'
+                && ($coursevalue = self::$json['request']['intent']['slots']['course']['value'])) {
             // User has requested announcements for a specific course.
             $courseid = -1;
             $coursename = $coursevalue;
-            
+
             foreach ($usercourses as $usercourse) {
                 // Check if they say the exact preferred name first.
                 if ($coursevalue == $usercourse->preferredname) {
                     $courseid = $usercourse->id;
                     break;
-                } elseif (stripos($usercourse->preferredname, $coursevalue) !== false) {
+                } else if (stripos($usercourse->preferredname, $coursevalue) !== false) {
                     // Otherwise check if they said part of the preferred name.
                     $courseid = $usercourse->id;
                     $coursename = $usercourse->preferredname;
@@ -430,13 +433,13 @@ class local_alexaskill_external extends external_api {
                 // We found a valid course.
                 return self::get_announcements($courseid, $coursename);
             } else {
-                // We did not find course in list of user's courses.                
+                // We did not find course in list of user's courses.
                 $responses = array(
                         'Sorry, there are no records for ' . $coursevalue . '. Would you like anything else?',
                         'I apologize, but ' . $coursevalue . ' does not have any records. Can I get you any other information?'
                 );
-                
-                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+
+                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
                 self::$response['response']['shouldEndSession'] = false;
                 self::$response['response']['directives'] = array(
                         array(
@@ -445,29 +448,29 @@ class local_alexaskill_external extends external_api {
                         )
                 );
                 return self::$response;
-            } 
+            }
         }
     }
-    
+
     /**
      * Function to get announcements for the site or a course.
      */
     private static function get_announcements($courseid, $coursename) {
         global $DB;
-        
+
         $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
         $forumposts = array();
         foreach ($discussions as $discussion) {
             $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
         }
-        
+
         // Get course setting for number of announcements.
         // If over 5, limit to 5 initially for usability.
         $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
         if ($limit > 5 || $limit === false) {
             $limit = 5;
         }
-        
+
         $announcements = '';
         $count = 0;
         foreach ($forumposts as $forumpost) {
@@ -480,14 +483,14 @@ class local_alexaskill_external extends external_api {
                 }
             }
         }
-        
+
         if ($announcements == '') {
             $responses = array(
                     'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
                     'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
             );
-            
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -501,9 +504,10 @@ class local_alexaskill_external extends external_api {
                     '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
                     '<speak>Sure. The ' . $count . ' latest announcements for ' . $coursename . ' are: '
             );
-            
+
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $announcements
+                . ' Would you like anything else?</speak>';
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -514,39 +518,39 @@ class local_alexaskill_external extends external_api {
             return self::$response;
         }
     }
-    
+
     /**
      * Function to get a user's grades.
      */
     private static function get_grades($token) {
         global $DB, $USER;
-        
+
         if ($token !== 'valid') {
             return self::verify_account_linking('get grades');
         }
-        
+
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
             return self::in_progress();
         }
-        
+
         self::initialize_response();
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
         $grades = '';
-        foreach($gradereport['grades'] as $grade) {
+        foreach ($gradereport['grades'] as $grade) {
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
             $coursename = self::get_preferred_course_name($course->fullname);
             $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p> ';
         }
-        
+
         if ($grades == '') {
             $responses = array(
                     'Sorry, you have no overall grades posted. Would you like anything else?',
                     'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?'
             );
-            
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -560,9 +564,10 @@ class local_alexaskill_external extends external_api {
                     '<speak>Got it. Here are your overall course grades: ',
                     '<speak>Okay. These are your course grades overall: '
             );
-            
+
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $grades . ' Would you like anything else?</speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $grades
+                . ' Would you like anything else?</speak>';
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -573,7 +578,7 @@ class local_alexaskill_external extends external_api {
             return self::$response;
         }
     }
-    
+
     /**
      * Function to get a user's due dates.
      */
@@ -583,12 +588,12 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::verify_account_linking('get due dates');
         }
-        
+
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
             return self::in_progress();
         }
-        
+
         self::initialize_response();
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
@@ -597,36 +602,36 @@ class local_alexaskill_external extends external_api {
         $eventparams = array('eventids' => array(), 'courseids' => $courses, 'groupids' => $groups, 'categoryids' => array());
         $options = array('userevents' => true, 'siteevents' => true, 'timestart' => time(), 'timeend' => null, 'ignorehidden' => null);
         $events = core_calendar_external::get_calendar_events($eventparams, $options);
-        
+
         // Get site calendar setting for number of upcoming events.
         // If over 5, limit to 5 initially for usability.
         $limit = $CFG->calendar_maxevents;
         if ($limit > 5 || !is_number($limit)) {
             $limit = 5;
         }
-        
+
         // Get site calendar setting for days to look ahead.
         $lookahead = $CFG->calendar_lookahead;
         if (!is_number($lookahead)) {
             $lookahead = 21;
         }
         $lookahead = strtotime($lookahead . ' days');
-        
+
         $duedates = '';
         $count = 0;
-        foreach($events['events'] as $event) {
+        foreach ($events['events'] as $event) {
             if ($count <= $limit && $event['timestart'] < $lookahead) {
                 $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
             }
         }
-        
+
         if ($duedates == '') {
             $responses = array(
                     'Sorry, you have no upcoming events. Would you like anything else?',
                     'I apologize, but there are no upcoming events on your calendar. Do you need any other information?'
             );
-            
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
+
+            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -640,9 +645,10 @@ class local_alexaskill_external extends external_api {
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
                     '<speak>Okay. The next' . $count . ' important dates are: '
             );
-            
+
             self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)] . $duedates . ' Would you like anything else? </speak>';
+            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $duedates
+                . ' Would you like anything else? </speak>';
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -653,7 +659,7 @@ class local_alexaskill_external extends external_api {
             return self::$response;
         }
     }
-    
+
     /**
      * Function to parse a course name from a regular expression.
      * Allows user to customize how Alexa says course names.
@@ -670,40 +676,57 @@ class local_alexaskill_external extends external_api {
         }
         return strtolower($coursename);
     }
-    
-    private static function in_progress() {   
+
+    /**
+     * Function to handle in progress response.
+     *
+     * @return array response
+     */
+    private static function in_progress() {
         if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
             return self::say_good_bye();
         } else {
             return self::get_help();
         }
     }
-    
+
+    /**
+     * Function to return help response.
+     *
+     * @return array response
+     */
     private static function get_help() {
         self::initialize_response();
-        
+
         $responses = array(
-                '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
         self::$response['response']['outputSpeech']['type'] = 'SSML';
-        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, sizeof($responses) - 1)];
+        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)];
         self::$response['response']['shouldEndSession'] = false;
-        
+
         return self::$response;
     }
-    
+
+    /**
+     * Function to return good by response.
+     *
+     * @return array response
+     */
     private static function say_good_bye() {
         self::initialize_response();
-        
+
         $responses = array(
                 'Okay, have a nice day!',
                 'Great. Take care!',
                 'Thanks. Good bye!',
                 'Sure. Until next time!'
         );
-        self::$response['response']['outputSpeech']['text'] = $responses[rand(0, sizeof($responses) - 1)];
-        
+        self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
+
         return self::$response;
     }
 }

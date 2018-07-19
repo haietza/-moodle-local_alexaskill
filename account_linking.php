@@ -23,6 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+//@codingStandardsIgnoreLine
 require_once('../../config.php');
 require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
 
@@ -38,33 +39,40 @@ $PAGE->set_heading($site->fullname);
 
 $mform = new account_linking_form();
 
-// Form processing and displaying is done here
+// Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
-    //In this case you process validated data. $mform->get_data() returns data posted in form.
+    // In this case you process validated data. $mform->get_data() returns data posted in form.
     $ch = curl_init();
     $values = array(
             'username' => $fromform->username,
             'password' => $fromform->password,
             'service' => $fromform->service
     );
+
+    // Only use the root dir path if not on local server.
+    // CURL does not work on localhost.
+    $curlurl = 'https://alexa.haietza.com/login/token.php/';
+    if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+        $curlurl = $CFG->wwwroot . '/login/token.php/';
+    }
+
     $options = array(
-            //CURLOPT_URL => $CFG->wwwroot . '/login/token.php/',
-            CURLOPT_URL => 'https://alexa.haietza.com/login/token.php/',
+            CURLOPT_URL => $curlurl,
             CURLOPT_POSTFIELDS => $values,
             CURLOPT_RETURNTRANSFER => 1
     );
     curl_setopt_array($ch, $options);
     $data = curl_exec($ch);
     curl_close($ch);
-    
+
     $obj = json_decode($data, true);
     $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {
-    // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
+    // This branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
     // or on the first display of the form.
-    
-    // Set default data (if any)
+
+    // Set default data (if any).
     $toform = new stdClass();
     if ($mform->is_submitted()) {
         // Form was submitted but data did not validate and form needs to be redisplayed (have to get url params from HTTP_REFERER).
@@ -79,7 +87,7 @@ if ($fromform = $mform->get_data()) {
         $toform->service = $paramvalues['client_id'];
         $toform->response_type = $paramvalues['response_type'];
         $toform->redirect_uri = $paramvalues['redirect_uri'];
-        
+
         unset($urlquery);
         unset($params);
         unset($param);
@@ -92,9 +100,9 @@ if ($fromform = $mform->get_data()) {
         $toform->response_type = $_GET['response_type'];
         $toform->redirect_uri = $_GET['redirect_uri'];
     }
-    
+
     $mform->set_data($toform);
-    // Displays the form
+    // Displays the form.
     echo $OUTPUT->header();
     echo $OUTPUT->box_start('col-xl-6 push-xl-3 m-2-md col-sm-8 push-sm-2');
     echo $OUTPUT->box_start('card');
