@@ -342,24 +342,34 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
+        $subject = 'Test subject';
+        $message = 'Test message.';
         $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
                 'course' => 1,
                 'forum' => $forum->id,
-                'userid' => '2'));
+                'userid' => '2',
+                'name' => $subject,
+                'message' => $message
+        ));
 
-        $subject = 'Test subject';
-        $message = 'Test message.';
-        $post = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_post(array(
-                'discussion' => $discussion->id,
-                'userid' => 2,
-                'subject' => $subject,
-                'message' => $message));
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $contextid = context_module::instance($forum->cmid);
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
         $announcements = '<p>' . $subject . '. ' . $message . '</p> ';
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for the site: '
                 . $announcements . ' Would you like anything else?</speak>';
