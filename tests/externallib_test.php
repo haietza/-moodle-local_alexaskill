@@ -335,56 +335,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_site_announcements, 1 post.
+     * Test get_site_announcements, over course limit posts.
      */
-    public function test_get_site_announcements_valid_1() {
-        $this->resetAfterTest();
-        $getsiteannouncements = self::getMethod('get_site_announcements');
-
-        $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
-        $subject = 'Test subject';
-        $message = 'Test message.';
-        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
-                'course' => 1,
-                'forum' => $forum->id,
-                'userid' => '2',
-                'name' => $subject,
-                'message' => $message
-        ));
-
-        $user = $this->getDataGenerator()->create_user();
-        $this->setUser($user);
-        $contextid = context_module::instance($forum->cmid);
-        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
-
-        $actual = $getsiteannouncements->invokeArgs(null, array());
-
-        $announcements = '<p>' . $subject . '. ' . $message . '</p> ';
-
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
-                array(
-                        'type' => 'Dialog.ElicitSlot',
-                        'slotToElicit' => 'else'
-                )
-        );
-
-        $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for the site: '
-                . $announcements . ' Would you like anything else?</speak>';
-
-        $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for the site are: '
-                . $announcements . ' Would you like anything else?</speak>';
-
-        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
-    }
-
-    /**
-     * Test get_site_announcements, course limit posts.
-     */
-    public function test_get_site_announcements_valid_limit() {
+    public function test_get_site_announcements_valid_over_limit() {
         global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
