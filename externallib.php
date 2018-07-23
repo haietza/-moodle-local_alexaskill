@@ -457,11 +457,15 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_announcements($courseid, $coursename) {
         global $DB;
-
-        $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
         $forumposts = array();
-        foreach ($discussions as $discussion) {
-            $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+
+        try {
+            $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
+            foreach ($discussions as $discussion) {
+                $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
+            }
+        } catch (moodle_exception $e) {
+            // Exceptions for no permission to view discussion posts will just not return those posts.
         }
 
         // Get course setting for number of announcements.

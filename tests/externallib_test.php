@@ -341,7 +341,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
-                
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
@@ -443,7 +443,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
-    
+
     /**
      * Test get_site_announcements, invalid limit.
      */
@@ -451,11 +451,11 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
-        
+
         // For negative limit values, return 0 announcements.
         $limit = -1;
         $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
-        
+
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
         $subject = 'Test subject';
         $message = 'Test message.';
@@ -466,18 +466,18 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject,
                 'message' => $message
         ));
-        
+
         // Web service endpoint requires wstoken, by default we use Web Service user.
         // Anonymous users have mod/forum:viewdiscussion permission on course 1 announcements by default.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $contextid = context_module::instance($forum->cmid);
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
-        
+
         $actual = $getsiteannouncements->invokeArgs(null, array());
-        
+
         $announcements = '<p>' . $subject . '. ' . $message . '</p> ';
-        
+
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -485,13 +485,74 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'else'
                 )
         );
-        
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
-        
+
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
-        
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+
+    /**
+     * Test get_site_announcements, post not visible.
+     */
+    public function test_get_site_announcements_invalid_invisible() {
+        global $DB;
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
+
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
+        $subject1 = 'Test subject1';
+        $message1 = 'Test message1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1,
+                'timestart' => time() + 150
+        ));
+
+        $subject2 = 'Test subject2';
+        $message2 = 'Test message2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Web service endpoint requires wstoken, by default we use Web Service user.
+        // Anonymous users have mod/forum:viewdiscussion permission on course 1 announcements by default.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $contextid = context_module::instance($forum->cmid);
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+
+        $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for the site: '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for the site are: '
+                . $announcements . ' Would you like anything else?</speak>';
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
 }
