@@ -476,7 +476,7 @@ class local_alexaskill_external extends external_api {
         foreach ($forumposts as $forumpost) {
             foreach ($forumpost['posts'] as $post) {
                 // Only return $limit number of original posts (not replies).
-                if ($post->parent == 0 && $count <= $limit) {
+                if ($post->parent == 0 && $count < $limit) {
                     $message = strip_tags($post->message);
                     $announcements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
                     $count++;

@@ -382,6 +382,87 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_site_announcements, course limit posts.
+     */
+    public function test_get_site_announcements_valid_limit() {
+        global $DB;
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
+                
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
+
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        $subject3 = 'Test subject 3';
+        $message3 = 'Test message 3.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject3,
+                'message' => $message3
+        ));
+
+        $subject4 = 'Test subject 4';
+        $message4 = 'Test message 4.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject4,
+                'message' => $message4
+        ));
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $contextid = context_module::instance($forum->cmid);
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+
+        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for the site: '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for the site are: '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+
+    /**
      * Test get_site_announcements, invalid response to would you like anything else.
      */
     public function test_get_site_announcements_invalid_else() {
