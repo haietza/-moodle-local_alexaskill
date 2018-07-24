@@ -308,7 +308,7 @@ class local_alexaskill_external extends external_api {
      *
      * @param string $task
      */
-    private static function verify_account_linking($task) {
+    private static function verify_account_linking($task = 'access that information') {
         global $SITE;
         self::initialize_response();
 
@@ -346,7 +346,8 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && self::$json['request']['intent']['slots']['else']['value']) {
+        // Need to check for else slot value here because intent could be in progress getting course name.
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
             return self::in_progress();
         }
 
