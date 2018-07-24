@@ -595,4 +595,24 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test verify_account_linking, invalid token.
+     */
+    public function test_verify_account_linking_invalid() {
+        global $SITE;
+        $this->resetAfterTest();
+        $verifyaccountlinking = self::getMethod('verify_account_linking');
+
+        $task = 'test task';
+        $actual = $verifyaccountlinking->invokeArgs(null, array('task' => $task));
+
+        $this->response['response']['card']['type'] = 'LinkAccount';
+        $this->response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+
+        $expected = $this->response;
+
+        $this->assertTrue($expected == $actual);
+    }
 }
