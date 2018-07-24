@@ -555,4 +555,44 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_site_announcements, no capability.
+     * 
+     * $USER is not logged in.
+     */
+    public function test_get_site_announcements_invalid_no_capability() {
+        global $DB;
+        $this->resetAfterTest();
+        $getsiteannouncements = self::getMethod('get_site_announcements');
+
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
+        $subject = 'Test subject';
+        $message = 'Test message.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => 1,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject,
+                'message' => $message
+        ));
+
+        $actual = $getsiteannouncements->invokeArgs(null, array());
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
