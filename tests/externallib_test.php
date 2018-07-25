@@ -706,4 +706,88 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_course_announcements, over course limit posts.
+     */
+    public function test_get_course_announcements_valid_over_limit() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
+        $contextid = context_module::instance($forum->cmid);
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
+
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        $subject3 = 'Test subject 3';
+        $message3 = 'Test message 3.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject3,
+                'message' => $message3
+        ));
+
+        $subject4 = 'Test subject 4';
+        $message4 = 'Test message 4.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject4,
+                'message' => $message4
+        ));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for ' . $coursename . ': '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for ' . $coursename . ' are: '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
