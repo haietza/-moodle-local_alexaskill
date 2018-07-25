@@ -215,40 +215,19 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $launchrequest->invokeArgs(null, array());
 
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+
         $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['type'] = 'SSML';
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements '
                     . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                     . 'Which would you like?</speak>';
-        $expecteda['response']['shouldEndSession'] = false;
 
         $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['type'] = 'SSML';
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>Hello. I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expectedb['response']['shouldEndSession'] = false;
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
-
-        /**
-        // Set the required capabilities by the external function.
-        $contextid = context_XXXX::instance()->id;
-        $roleid = $this->assignUserCapability('moodle/CAPABILITYNAME', $contextid);
-
-        $params = array(PARAM1, PARAM2, ...);
-
-        $returnvalue = COMPONENT_external::FUNCTION_NAME($params);
-
-        // We need to execute the return values cleaning process to simulate the web service server.
-        $returnvalue = external_api::clean_returnvalue(COMPONENT_external::FUNCTION_NAME_returns(), $returnvalue);
-        // Some PHPUnit assert.
-        $this->assertEquals(EXPECTED_VALUE, RETURNED_VALUE);
-
-        // Call without required capability.
-        $this->unassignUserCapability('moodle/CAPABILITYNAME', $contextid, $roleid);
-        $this->setExpectedException('required_capability_exception');
-        $returnvalue = COMPONENT_external::FUNCTION_NAME($params);
-        */
     }
 
     /**
@@ -263,17 +242,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+
         $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['type'] = 'SSML';
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expecteda['response']['shouldEndSession'] = false;
 
         $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['type'] = 'SSML';
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expectedb['response']['shouldEndSession'] = false;
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
@@ -429,17 +407,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+
         $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['type'] = 'SSML';
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expecteda['response']['shouldEndSession'] = false;
 
         $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['type'] = 'SSML';
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expectedb['response']['shouldEndSession'] = false;
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
@@ -628,17 +605,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+
         $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['type'] = 'SSML';
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expecteda['response']['shouldEndSession'] = false;
 
         $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['type'] = 'SSML';
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-        $expectedb['response']['shouldEndSession'] = false;
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
@@ -671,5 +647,31 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 || $expectedb == $actual
                 || $expectedc == $actual
                 || $expectedd == $actual);
+    }
+
+    /**
+     * Test get_course_announcements, valid 0 courses.
+     */
+    public function test_get_course_announcements_valid_0_courses() {
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, you are not enrolled in any courses. Would you like anything else?';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but there are no active courses listed for you. Can I get you anything else?';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
 }
