@@ -1084,13 +1084,13 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no records for foo. Would you like anything else?';
-       
+
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['text'] = 'I apologize, but foo does not have any records. Can I get you any other information?';
-       
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
-    
+
     /**
      * Test get_course_announcements, post not visible.
      */
@@ -1098,7 +1098,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
-        
+
         // Create course 1 and forum posts.
         $coursename = 'test course';
         $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
@@ -1113,7 +1113,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'message' => $message1,
                 'timestart' => time() + 150
         ));
-        
+
         $subject2 = 'Test subject 2';
         $message2 = 'Test message 2.';
         $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
@@ -1123,20 +1123,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject2,
                 'message' => $message2
         ));
-        
+
         // Create and enrol user as student, set capabilities.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
         $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
-        
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
-        
+
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        
+
         $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
-        
+
         $this->response['response']['outputSpeech']['type'] = 'SSML';
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
@@ -1145,7 +1145,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'else'
                 )
         );
-        
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename . ': '
                 . $announcements . ' Would you like anything else?</speak>';
@@ -1153,10 +1153,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
-                
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
-    
+
     /**
      * Test get_course_announcements, no capability.
      */
@@ -1164,7 +1164,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $CFG, $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
-        
+
         $coursename = 'test course';
         $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
@@ -1177,19 +1177,19 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject,
                 'message' => $message
         ));
-        
+
         // Create and enrol user as student, remove capability.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
         $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
         $this->unassignUserCapability('mod/forum:viewdiscussion', 1, $role->id);
-        
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
-        
+
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        
+
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1197,39 +1197,67 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'else'
                 )
         );
-        
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
-        
+
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
-        
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
-    
+
     /**
      * Test get_grades, responding to would you like anything else with yes.
      */
     public function test_get_grades_valid_else_yes() {
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
-        
+
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
-        
+
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
-        
+
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
-        
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-                
+
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-                
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+
+    /**
+     * Test get_grades, responding to would you like anything else with no.
+     */
+    public function test_get_grades_valid_else_no() {
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+
+        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'Great. Take care!';
+
+        $expectedc = $this->response;
+        $expectedc['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
+
+        $expectedd = $this->response;
+        $expectedd['response']['outputSpeech']['text'] = 'Sure. Until next time!';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual
+                || $expectedc == $actual || $expectedd == $actual);
     }
 }
