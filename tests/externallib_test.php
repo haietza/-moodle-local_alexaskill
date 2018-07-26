@@ -1286,4 +1286,36 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_grades, 0 grades.
+     */
+    public function test_get_grades_valid_0() {
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+
+        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, you have no overall grades posted. Would you like anything else?';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }

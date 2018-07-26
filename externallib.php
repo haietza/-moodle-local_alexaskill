@@ -544,6 +544,9 @@ class local_alexaskill_external extends external_api {
         $coursenames = array();
         $grades = '';
         foreach ($gradereport['grades'] as $grade) {
+            if ($grade['grade'] == '-') {
+                continue;
+            }
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
             $coursename = self::get_preferred_course_name($course->fullname);
             $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p> ';
