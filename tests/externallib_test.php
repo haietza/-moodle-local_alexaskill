@@ -946,4 +946,73 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_course_announcements, multiple courses, course known invalid.
+     */
+    public function test_get_course_announcements_multiple_courses_known_invalid() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course 1 and forum post.
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion1 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        // Create course 2 and forum post.
+        $coursename2 = 'test course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Create and enrol user as student, set capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, $role->id);
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, $role->id);
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['course']['value'] = 'foo';
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no records for foo. Would you like anything else?';
+       
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but foo does not have any records. Can I get you any other information?';
+       
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
