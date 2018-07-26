@@ -1260,4 +1260,30 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertTrue($expecteda == $actual || $expectedb == $actual
                 || $expectedc == $actual || $expectedd == $actual);
     }
+
+    /**
+     * Test get_grades, invalid response to would you like anything else.
+     */
+    public function test_get_grades_invalid_else() {
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+
+        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
+                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
+                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
