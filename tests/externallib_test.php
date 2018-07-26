@@ -94,7 +94,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Tests for invalid, empty, null signature certificate URL.
+     * Tests for invalid signature certificate URL.
      */
     public function test_verify_signature_certificate_url_invalid() {
         $this->resetAfterTest();
@@ -146,7 +146,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Tests for invalid, empty, null timestamp.
+     * Tests for invalid timestamp.
      */
     public function test_verify_timestamp_invalid() {
         $this->resetAfterTest();
@@ -186,7 +186,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Tests for invalid, empty, null application ID.
+     * Tests for invalid application ID.
      */
     public function test_verify_application_id_invalid() {
         $this->resetAfterTest();
@@ -280,10 +280,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedd = $this->response;
         $expectedd['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
-        $this->assertTrue($expecteda == $actual
-                || $expectedb == $actual
-                || $expectedc == $actual
-                || $expectedd == $actual);
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual
+                || $expectedc == $actual || $expectedd == $actual);
     }
 
     /**
@@ -364,7 +362,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'message' => $message4
         ));
 
-        // Web service endpoint requires wstoken, by default we use Web Service user.
         // Anonymous users have mod/forum:viewdiscussion permission on course 1 announcements by default.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
@@ -444,7 +441,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'message' => $message
         ));
 
-        // Web service endpoint requires wstoken, by default we use Web Service user.
         // Anonymous users have mod/forum:viewdiscussion permission on course 1 announcements by default.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
@@ -502,7 +498,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'message' => $message2
         ));
 
-        // Web service endpoint requires wstoken, by default we use Web Service user.
         // Anonymous users have mod/forum:viewdiscussion permission on course 1 announcements by default.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
@@ -535,11 +530,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
     /**
      * Test get_site_announcements, no capability.
-     * 
-     * $USER is not logged in.
      */
     public function test_get_site_announcements_invalid_no_capability() {
-        global $DB;
+        global $CFG, $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
@@ -553,6 +546,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject,
                 'message' => $message
         ));
+
+        // Set user as frontpage role and remove capability.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $roleid = $CFG->defaultfrontpageroleid;
+        $this->unassignUserCapability('mod/forum:viewdiscussion', 1, $roleid);
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -643,14 +642,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expectedd = $this->response;
         $expectedd['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
-        $this->assertTrue($expecteda == $actual
-                || $expectedb == $actual
-                || $expectedc == $actual
-                || $expectedd == $actual);
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual
+                || $expectedc == $actual || $expectedd == $actual);
     }
 
     /**
-     * Test get_course_announcements, valid 0 courses.
+     * Test get_course_announcements, 0 courses.
      */
     public function test_get_course_announcements_valid_0_courses() {
         $this->resetAfterTest();
@@ -676,7 +673,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcemenets, valid 1 course 0 announcements.
+     * Test get_course_announcemenets, 1 course 0 announcements.
      */
     public function test_get_course_announcements_valid_1_course_0_announcements() {
         $this->resetAfterTest();
@@ -790,4 +787,150 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_course_announcements, 1+ courses prompt.
+     */
+    public function test_get_course_announcements_multiple_courses_prompt() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course 1 and forum post.
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        // Create course 2 and forum post.
+        $coursename2 = 'test course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Create and enrol user as student, set capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, $role->id);
+        $contextid1 = context_module::instance($forum1->cmid);
+        $roleid1 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid1, $role->id);
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, $role->id);
+        $contextid2 = context_module::instance($forum2->cmid);
+        $roleid2 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid2, $role->id);
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'STARTED';
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'course'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Thanks. You can get announcements for the following courses: '
+                . $coursename2 . '<break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Great. I can get announcements from the following courses for you: '
+                . $coursename2 . '<break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+
+    /**
+     * Test get_course_announcements, multiple courses known valid.
+     */
+    /**public function test_get_course_announcements_multiple_courses_known_valid() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course 1 and forum post.
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        // Create course 2 and forum post.
+        $coursename2 = 'course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Create and enrol user as student, set capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, $role->id);
+        $contextid1 = context_module::instance($forum1->cmid);
+        $roleid1 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid1, $role->id);
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, $role->id);
+        $contextid2 = context_module::instance($forum2->cmid);
+        $roleid2 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid2, $role->id);
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['course']['value'] = 'test';
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+        echo json_encode($actual);
+
+        $announcements = '<p>' . $subject1 . '. ' . $message1 . '</p> ';
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1 . ': '
+                . $announcements . ' Would you like anything else?</speak>';
+                
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
+                . $announcements . ' Would you like anything else?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }*/
 }

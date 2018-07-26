@@ -430,10 +430,7 @@ class local_alexaskill_external extends external_api {
                 }
             }
 
-            if ($courseid != -1) {
-                // We found a valid course.
-                return self::get_announcements($courseid, $coursename);
-            } else {
+            if ($courseid == -1) {
                 // We did not find course in list of user's courses.
                 $responses = array(
                         'Sorry, there are no records for ' . $coursevalue . '. Would you like anything else?',
@@ -449,6 +446,9 @@ class local_alexaskill_external extends external_api {
                         )
                 );
                 return self::$response;
+            } else {
+                // We found a valid course.
+                return self::get_announcements($courseid, $coursename);
             }
         }
     }
