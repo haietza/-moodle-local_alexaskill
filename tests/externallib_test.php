@@ -1389,4 +1389,32 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_due_dates, responding to would you like anything else with no.
+     */
+    public function test_get_due_dates_valid_else_no() {
+        $this->resetAfterTest();
+        $getduedates = self::getMethod('get_due_dates');
+
+        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+
+        $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'Great. Take care!';
+
+        $expectedc = $this->response;
+        $expectedc['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
+
+        $expectedd = $this->response;
+        $expectedd['response']['outputSpeech']['text'] = 'Sure. Until next time!';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual
+                || $expectedc == $actual || $expectedd == $actual);
+    }
 }
