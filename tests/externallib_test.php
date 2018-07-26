@@ -288,8 +288,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Test get_site_announcements, none.
      */
     public function test_get_site_announcements_valid_0() {
+        global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
+        
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -317,9 +321,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
-
-        $limit = 3;
-        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
         $subject1 = 'Test subject 1';
@@ -367,6 +368,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $contextid = context_module::instance($forum->cmid);
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -426,10 +430,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        // For negative limit values, return 0 announcements.
-        $limit = -1;
-        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
-
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => 1, 'type' => 'news'));
         $subject = 'Test subject';
         $message = 'Test message.';
@@ -446,6 +446,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $contextid = context_module::instance($forum->cmid);
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+
+        // For negative limit values, return 0 announcements.
+        $limit = -1;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -503,6 +507,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $contextid = context_module::instance($forum->cmid);
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
+        
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -552,6 +559,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $roleid = $CFG->defaultfrontpageroleid;
         $this->unassignUserCapability('mod/forum:viewdiscussion', 1, $roleid);
+        
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -676,6 +686,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Test get_course_announcemenets, 1 course 0 announcements.
      */
     public function test_get_course_announcements_valid_1_course_0_announcements() {
+        global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
@@ -684,6 +695,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
@@ -720,9 +734,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
         $contextid = context_module::instance($forum->cmid);
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid);
-
-        $limit = 3;
-        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
 
         $subject1 = 'Test subject 1';
         $message1 = 'Test message 1.';
@@ -763,6 +774,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject4,
                 'message' => $message4
         ));
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
@@ -860,9 +874,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcements, multiple courses known valid.
+     * Test get_course_announcements, multiple courses, course known valid.
      */
-    /**public function test_get_course_announcements_multiple_courses_known_valid() {
+    public function test_get_course_announcements_multiple_courses_known_valid() {
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
@@ -873,7 +887,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
         $subject1 = 'Test subject 1';
         $message1 = 'Test message 1.';
-        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+        $discussion1 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
                 'course' => $course1->id,
                 'forum' => $forum1->id,
                 'userid' => '2',
@@ -887,7 +901,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
         $subject2 = 'Test subject 2';
         $message2 = 'Test message 2.';
-        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+        $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
                 'course' => $course2->id,
                 'forum' => $forum2->id,
                 'userid' => '2',
@@ -900,17 +914,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, $role->id);
-        $contextid1 = context_module::instance($forum1->cmid);
-        $roleid1 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid1, $role->id);
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, $role->id);
-        $contextid2 = context_module::instance($forum2->cmid);
-        $roleid2 = $this->assignUserCapability('mod/forum:viewdiscussion', $contextid2, $role->id);
 
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['course']['value'] = 'test';
 
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
+
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        echo json_encode($actual);
 
         $announcements = '<p>' . $subject1 . '. ' . $message1 . '</p> ';
 
@@ -932,5 +945,5 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 . $announcements . ' Would you like anything else?</speak>';
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
-    }*/
+    }
 }
