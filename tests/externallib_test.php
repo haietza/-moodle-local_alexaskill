@@ -1318,4 +1318,49 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_grades, 1+ grades.
+     */
+    public function test_get_grades_valid_1() {
+        global $DB;
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $coursename2 = 'test course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id);
+
+        $gradeitem1 = $this->getDataGenerator()->create_grade_item(array('itemtype' => 'course', 'courseid' => $course1->id));
+        $DB->insert_record('grade_grades', array('itemid' => $gradeitem1->id, 'userid' => $user->id, 'finalgrade' => 98));
+        $gradeitem2 = $this->getDataGenerator()->create_grade_item(array('itemtype' => 'course', 'courseid' => $course2->id));
+        $DB->insert_record('grade_grades', array('itemid' => $gradeitem2->id, 'userid' => $user->id, 'finalgrade' => 99));
+
+        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
+
+        $grades = '<p>Your grade in ' . $coursename2 . ' is 99.00.</p> <p>Your grade in ' . $coursename1 . ' is 98.00.</p> ';
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are your overall course grades: ' . $grades . ' Would you like anything else?</speak>';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Okay. These are your course grades overall: ' . $grades . ' Would you like anything else?</speak>';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
