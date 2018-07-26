@@ -1443,4 +1443,38 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+
+    /**
+     * Test get_due_dates, valid 0 due dates.
+     */
+    public function test_get_due_dates_valid_0() {
+        $this->resetAfterTest();
+        $getduedates = self::getMethod('get_due_dates');
+
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        //$assignment1 = $this->getDataGenerator()->create_module('assignment', array('course' => $course->id, 'name' => 'assignment 1', 'duedate' => time() + 86400));
+        //$assignment2 = $this->getDataGenerator()->create_module('assignment', array('course' => $course->id, 'name' => 'assignment 2', 'duedate' => time() + 172800));
+
+        $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
