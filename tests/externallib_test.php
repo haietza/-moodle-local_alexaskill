@@ -1156,4 +1156,54 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
+    
+    /**
+     * Test get_course_announcements, no capability.
+     */
+    public function test_get_course_announcements_invalid_no_capability() {
+        global $CFG, $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+        
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
+        $subject = 'Test subject';
+        $message = 'Test message.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject,
+                'message' => $message
+        ));
+        
+        // Create and enrol user as student, remove capability.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
+        $this->unassignUserCapability('mod/forum:viewdiscussion', 1, $role->id);
+        
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
+        
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+        
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+        
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
+        
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
+        
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
 }
