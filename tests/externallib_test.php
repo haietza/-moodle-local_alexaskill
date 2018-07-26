@@ -453,8 +453,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $announcements = '<p>' . $subject . '. ' . $message . '</p> ';
-
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -946,30 +944,81 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
-    
+
     /**
      * Test get_course_announcements, invalid response to would you like anything else.
      */
     public function test_get_course_announcements_invalid_else() {
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
-        
+
         local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
-        
+
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        
+
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
-        
+
         $expecteda = $this->response;
         $expecteda['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-                
+
         $expectedb = $this->response;
         $expectedb['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-                
+
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+
+    /**
+     * Test get_course_announcements, invalid limit.
+     */
+    public function test_get_course_announcements_invalid_limit() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course and forum post.
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
+        $subject = 'Test subject';
+        $message = 'Test message.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject,
+                'message' => $message
+        ));
+
+        // Create and enrol user as student, set capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
+
+        // For negative limit values, return 0 announcements.
+        $limit = -1;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
+
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
+
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
 
