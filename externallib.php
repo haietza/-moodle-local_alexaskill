@@ -613,8 +613,12 @@ class local_alexaskill_external extends external_api {
 
         // Get site calendar setting for number of upcoming events.
         // If over 5, limit to 5 initially for usability.
-        $limit = $CFG->calendar_maxevents;
-        if ($limit > 5 || !is_number($limit)) {
+        if (isset($CFG->calendar_maxevents) && is_number($CFG->calendar_maxevents)) {
+            $limit = $CFG->calendar_maxevents;
+        } else {
+            $limit = 0;
+        }
+        if ($limit > 5) {
             $limit = 5;
         }
 
