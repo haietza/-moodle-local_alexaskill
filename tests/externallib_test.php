@@ -1541,13 +1541,66 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 5 upcoming events: '
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next ' . $limit . ' upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
 
         $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 5 important dates are: '
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Okay. The next ' . $limit . ' important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
 
+        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
+    }
+    
+    /**
+     * Test get_due_dates, valid over lookahead due dates.
+     */
+    public function test_get_due_dates_valid_over_lookahead() {
+        $this->resetAfterTest();
+        $getduedates = self::getMethod('get_due_dates');
+        
+        $this->setAdminUser();
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+        $eventname1 = 'assignment 1';
+        $eventdate1 = time() + 86400;
+        $assignment1 = $this->getDataGenerator()->create_module('assign',
+                array('course' => $course->id, 'name' => $eventname1, 'duedate' => $eventdate1));
+        $eventname2 = 'assignment 2';
+        $eventdate2 = time() + (30 * 86400);
+        $assignment2 = $this->getDataGenerator()->create_module('assign',
+                array('course' => $course->id, 'name' => $eventname2, 'duedate' => $eventdate2));
+        
+        $this->setUser(null);
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        
+        $limit = 5;
+        set_config('calendar_maxevents', $limit);
+        $lookahead = 21;
+        set_config('calendar_lookahead', $lookahead);
+        
+        $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
+        
+        $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
+                                        
+        $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+        
+        $expecteda = $this->response;
+        $expecteda['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: '
+                . $duedates . 'Would you like anything else? </speak>';
+                
+        $expectedb = $this->response;
+        $expectedb['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: '
+                . $duedates . 'Would you like anything else? </speak>';
+                
         $this->assertTrue($expecteda == $actual || $expectedb == $actual);
     }
 }
