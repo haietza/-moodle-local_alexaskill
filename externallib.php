@@ -623,8 +623,10 @@ class local_alexaskill_external extends external_api {
         }
 
         // Get site calendar setting for days to look ahead.
-        $lookahead = $CFG->calendar_lookahead;
-        if (!is_number($lookahead)) {
+        // If not set, use default of 3 weeks.
+        if (isset($CFG->calendar_lookahead) && is_number($CFG->calendar_lookahead)) {
+            $lookahead = $CFG->calendar_lookahead;
+        } else {
             $lookahead = 21;
         }
         $lookahead = strtotime($lookahead . ' days');

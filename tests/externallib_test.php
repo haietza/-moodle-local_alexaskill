@@ -1607,7 +1607,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     /**
      * Test get_due_dates, invalid limit null.
      */
-    public function test_get_due_dates_invalid_limit_null() {
+    public function test_get_due_dates_invalid_limit_lookahead_null() {
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
@@ -1630,7 +1630,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $limit = null;
         set_config('calendar_maxevents', $limit);
-        $lookahead = 21;
+        $lookahead = null;
         set_config('calendar_lookahead', $lookahead);
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
