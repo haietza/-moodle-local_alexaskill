@@ -628,8 +628,9 @@ class local_alexaskill_external extends external_api {
         $duedates = '';
         $count = 0;
         foreach ($events['events'] as $event) {
-            if ($count <= $limit && $event['timestart'] < $lookahead) {
+            if ($count < $limit && $event['timestart'] < $lookahead) {
                 $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
+                $count++;
             }
         }
 
@@ -651,12 +652,12 @@ class local_alexaskill_external extends external_api {
         } else {
             $responses = array(
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
-                    '<speak>Okay. The next' . $count . ' important dates are: '
+                    '<speak>Okay. The next ' . $count . ' important dates are: '
             );
 
             self::$response['response']['outputSpeech']['type'] = 'SSML';
             self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $duedates
-                . ' Would you like anything else? </speak>';
+                . 'Would you like anything else? </speak>';
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
