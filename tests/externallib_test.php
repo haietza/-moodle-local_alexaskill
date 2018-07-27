@@ -1605,7 +1605,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_due_dates, invalid limit null.
+     * Test get_due_dates, invalid limit and lookahead null.
      */
     public function test_get_due_dates_invalid_limit_lookahead_null() {
         $this->resetAfterTest();
@@ -1653,9 +1653,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_due_dates, invalid limit empty.
+     * Test get_due_dates, invalid limit and lookahead empty.
      */
-    public function test_get_due_dates_invalid_limit_empty() {
+    public function test_get_due_dates_invalid_limit_lookahead_empty() {
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
@@ -1678,7 +1678,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $limit = '';
         set_config('calendar_maxevents', $limit);
-        $lookahead = 21;
+        $lookahead = '';
         set_config('calendar_lookahead', $lookahead);
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
@@ -1701,9 +1701,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
     
     /**
-     * Test get_due_dates, invalid limit non-numeric.
+     * Test get_due_dates, invalid limit and lookahead non-numeric.
      */
-    public function test_get_due_dates_invalid_limit_nonnumeric() {
+    public function test_get_due_dates_invalid_limit_lookahead_nonnumeric() {
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
@@ -1726,7 +1726,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $limit = 'foo';
         set_config('calendar_maxevents', $limit);
-        $lookahead = 21;
+        $lookahead = 'foo';
         set_config('calendar_lookahead', $lookahead);
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
