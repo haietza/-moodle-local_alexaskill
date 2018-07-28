@@ -137,7 +137,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Test validate_signature, invalid.
      */
     public function test_validate_signature_invalid() {
-        
+        $this->resetAfterTest();
+        $validatesignature = self::getMethod('validate_signature');
+
+        $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
+        $signature = 'fooencrypted';
+        $request = 'foo';
+        $actual = $validatesignature->invokeArgs(null, array($certurl, $signature, $request));
+        $this->assertFalse($actual);
     }
 
     /**
@@ -1295,52 +1302,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_grades, invalid no capability.
-     */
-    public function test_get_grades_invalid_no_capability() {
-        global $DB;
-        $this->resetAfterTest();
-        $getgrades = self::getMethod('get_grades');
-
-        $coursename1 = 'test course 1';
-        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
-        $coursename2 = 'test course 2';
-        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
-
-        // Create and enrol user as student, remove capability.
-        $user = $this->getDataGenerator()->create_user();
-        $this->setUser($user);
-        $role = $DB->get_record('role', array('shortname' => 'student'), 'id');
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id, $role->id);
-        $this->getDataGenerator()->enrol_user($user->id, $course2->id, $role->id);
-        $this->unassignUserCapability('gradereport/user:view', 1, $role->id);
-
-        $gradeitem1 = $this->getDataGenerator()->create_grade_item(array('itemtype' => 'course', 'courseid' => $course1->id));
-        $DB->insert_record('grade_grades', array('itemid' => $gradeitem1->id, 'userid' => $user->id, 'finalgrade' => 98));
-        $gradeitem2 = $this->getDataGenerator()->create_grade_item(array('itemtype' => 'course', 'courseid' => $course2->id));
-        $DB->insert_record('grade_grades', array('itemid' => $gradeitem2->id, 'userid' => $user->id, 'finalgrade' => 99));
-
-        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
-        echo json_encode($actual);
-
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
-                array(
-                        'type' => 'Dialog.ElicitSlot',
-                        'slotToElicit' => 'else'
-                )
-        );
-
-        $expecteda = $this->response;
-        $expecteda['response']['outputSpeech']['text'] = 'Sorry, you have no overall grades posted. Would you like anything else?';
-
-        $expectedb = $this->response;
-        $expectedb['response']['outputSpeech']['text'] = 'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?';
-
-        $this->assertTrue($expecteda == $actual || $expectedb == $actual);
-    }
-
-    /**
      * Test get_grades, 0 grades.
      */
     public function test_get_grades_valid_0() {
@@ -2010,23 +1971,24 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test say_goodbye.
-     */
-    public function test_say_goodbye() {
-        
-    }
-
-    /**
-     * Test get_help.
-     */
-    public function test_get_help() {
-        
-    }
-
-    /**
      * Test get_preferred_course_name.
      */
     public function test_get_preferred_course_name() {
+        $this->resetAfterTest();
+        $getpreferredcoursename = self::getMethod('get_preferred_course_name');
         
+        $coursename1 = 'C S5998-101_THESIS PREPARATION (FIRST SUMMER 2018) full';
+        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename1));
+        
+        $expecteda = 'thesis preparation';
+        
+        $this->assertEquals($expecteda, $actual);
+        
+        $coursename2 = 'English I';
+        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename2));
+        
+        $expectedb = 'english i';
+        
+        $this->assertEquals($expectedb, $actual);
     }
 }

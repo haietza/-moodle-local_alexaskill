@@ -686,8 +686,7 @@ class local_alexaskill_external extends external_api {
         $coursename = $coursefullname;
         $pattern = get_config('local_alexaskill', 'alexaskill_coursenameregex');
         if (preg_match($pattern, $coursefullname, $coursenamearray)) {
-            // Strip course number off front of fullname and ' (TERM YEAR)' from end.
-            $coursename = substr($coursenamearray[1], 0, -1);
+            $coursename = $coursenamearray[1];
         }
         return strtolower($coursename);
     }
