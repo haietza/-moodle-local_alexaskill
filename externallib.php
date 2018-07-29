@@ -40,7 +40,8 @@ class local_alexaskill_external extends external_api {
     static $response;
 
     /**
-     * Returns description of method parameters
+     * Returns description of method parameters.
+     * 
      * @return external_function_parameters
      */
     public static function alexa_parameters() {
@@ -50,6 +51,13 @@ class local_alexaskill_external extends external_api {
         ));
     }
 
+    /**
+     * Main function to process web service request.
+     * 
+     * @param string $request
+     * @param string $token
+     * @return mixed|string|array|string[]|boolean[][]|string[][][]|array
+     */
     public static function alexa($request, $token = '') {
         self::$json = json_decode($request, true);
 
@@ -139,10 +147,10 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to verify signature certificate URL.
+     * Verify signature certificate URL.
      *
      * @param string $certurl
-     * @return true if valid
+     * @return boolean cert URL is avlid
      */
     private static function verify_signature_certificate_url($certurl) {
         // The protocol is equal to https (case insensitive).
@@ -158,14 +166,12 @@ class local_alexaskill_external extends external_api {
         $port = parse_url($certurl, PHP_URL_PORT);
 
         // Verify signature URL.
-        return $protocol == 'https'
-                && $hostname == 's3.amazonaws.com'
-                && $path == '/echo.api/'
-                && ($port == 443 || $port == null);
+        return $protocol == 'https' && $hostname == 's3.amazonaws.com'
+                && $path == '/echo.api/' && ($port == 443 || $port == null);
     }
 
     /**
-     * Function to validate the signature.
+     * Validate the signature.
      * Thanks to https://github.com/craigh411/alexa-request-validator
      *
      * @param string $certurl
@@ -241,7 +247,7 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to parse ISO 8601 formatted string to verify within 150 seconds.
+     * Parse ISO 8601 formatted string to verify within 150 seconds.
      *
      * @return boolean timestamp is valid
      */
@@ -250,16 +256,16 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to verify appliation ID.
+     * Verify appliation ID.
      *
-     * @return true if valid
+     * @return boolean application ID is valid
      */
     private static function verify_application_id() {
         return self::$json['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
 
     /**
-     * Function to initialize the JSON response.
+     * Initialize the JSON response.
      */
     private static function initialize_response() {
         self::$response = array(
@@ -274,9 +280,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get welcome message.
+     * Get welcome message.
      *
-     * @return string welcome
+     * @return array JSON response welcome
      */
     private static function launch_request() {
         global $SITE;
@@ -295,7 +301,7 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to log error for session ended request.
+     * Log error for session ended request.
      */
     private static function session_ended_request() {
         debugging('SessionEndedRequest reason: ' . self::$json['request']['reason'], NO_DEBUG_DISPLAY);
@@ -304,9 +310,10 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to return the LinkAccount card.
+     * Return a LinkAccount card for unlinked accounts.
      *
      * @param string $task
+     * @return array JSON response with LinkAccount card
      */
     private static function verify_account_linking($task = 'access that information') {
         global $SITE;
@@ -319,9 +326,7 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get front page site announcements.
-     *
-     * @return string site announcements
+     * Get front page site announcements.
      */
     private static function get_site_announcements() {
         // Handle dialog directive response to "Would you like anything else?"
@@ -334,7 +339,7 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get course announcements.
+     * Get course announcements.
      *
      * @param string $token
      */
@@ -347,7 +352,8 @@ class local_alexaskill_external extends external_api {
 
         // Handle dialog directive response to "Would you like anything else?"
         // Need to check for else slot value here because intent could be in progress getting course name.
-        if (self::$json['request']['dialogState'] == 'IN_PROGRESS' && isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS'
+                && isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
             return self::in_progress();
         }
 
@@ -418,8 +424,8 @@ class local_alexaskill_external extends external_api {
             $coursename = $coursevalue;
 
             foreach ($usercourses as $usercourse) {
-                // Check if they say the exact preferred name first.
                 if ($coursevalue == $usercourse->preferredname) {
+                    // Check if they say the exact preferred name first.
                     $courseid = $usercourse->id;
                     break;
                 } else if (stripos($usercourse->preferredname, $coursevalue) !== false) {
@@ -454,7 +460,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get announcements for the site or a course.
+     * Get announcements for the site or a course.
+     * 
+     * @return array JSON response with site or course announcements
      */
     private static function get_announcements($courseid, $coursename) {
         global $DB;
@@ -466,13 +474,20 @@ class local_alexaskill_external extends external_api {
                 $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
             }
         } catch (moodle_exception $e) {
-            // Exceptions for no permission to view discussion posts will just not return those posts.
+            // Exceptions may be thrown if user does not have capability to view forum.
+            // In this case, just don't return those posts (do nothing).
         }
 
         // Get course setting for number of announcements.
-        // If over 5, limit to 5 initially for usability.
+        // Field for newsitems has to be numeric in database.
+        // Only test for false from DB call (config not set).
         $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
-        if ($limit > 5 || $limit === false) {
+        if ($limit === false) {
+            $limit = 0;
+        }
+
+        // If over 5, limit to 5 initially for usability.
+        if ($limit > 5) {
             $limit = 5;
         }
 
@@ -525,7 +540,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get a user's grades.
+     * Get a user's grades.
+     * 
+     * @return array JSON response with grades
      */
     private static function get_grades($token) {
         global $DB, $USER;
@@ -588,7 +605,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to get a user's due dates.
+     * Get a user's due dates.
+     * 
+     * @return array JSON response with events
      */
     private static function get_due_dates($token) {
         global $DB, $CFG, $USER;
@@ -612,12 +631,13 @@ class local_alexaskill_external extends external_api {
         $events = core_calendar_external::get_calendar_events($eventparams, $options);
 
         // Get site calendar setting for number of upcoming events.
-        // If over 5, limit to 5 initially for usability.
         if (isset($CFG->calendar_maxevents) && is_number($CFG->calendar_maxevents)) {
             $limit = $CFG->calendar_maxevents;
         } else {
             $limit = 0;
         }
+
+        // If over 5, limit to 5 initially for usability.
         if ($limit > 5) {
             $limit = 5;
         }
@@ -676,7 +696,7 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to parse a course name from a regular expression.
+     * Parse course name from a regular expression.
      * Allows user to customize how Alexa says course names.
      *
      * @param string $coursefullname
@@ -692,9 +712,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to handle in progress response.
+     * Handle in progress response.
      *
-     * @return array response
+     * @return array JSON response
      */
     private static function in_progress() {
         if (self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
@@ -705,9 +725,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to return help response.
+     * Return help response.
      *
-     * @return array response
+     * @return array JSON response
      */
     private static function get_help() {
         self::initialize_response();
@@ -726,9 +746,9 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Function to return good by response.
+     * Return good-bye response.
      *
-     * @return array response
+     * @return array JSON response
      */
     private static function say_good_bye() {
         self::initialize_response();
