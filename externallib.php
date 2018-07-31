@@ -113,7 +113,7 @@ class local_alexaskill_external extends external_api {
                     return self::say_good_bye();
                     break;
                 case "AMAZON.HelpIntent":
-                case "FallbackIntent":
+                case "AMAZON.FallbackIntent":
                 default:
                     return self::get_help();
                     break;
