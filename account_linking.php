@@ -51,10 +51,10 @@ if ($fromform = $mform->get_data()) {
 
     // Only use the root dir path if not on local server.
     // CURL does not work on localhost.
-    $curlurl = 'https://alexa.haietza.com/login/token.php/';
-    if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-        $curlurl = $CFG->wwwroot . '/login/token.php/';
-    }
+    $curlurl = $CFG->wwwroot . '/login/token.php/';
+    //if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+        //$curlurl = 'https://alexa.haietza.com/login/token.php/';
+    //}
 
     $options = array(
             CURLOPT_URL => $curlurl,

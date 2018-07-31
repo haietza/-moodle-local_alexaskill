@@ -24,7 +24,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
-
+global $CFG;
 require_once("$CFG->libdir/formslib.php");
 
 class account_linking_form extends moodleform {
@@ -42,7 +42,9 @@ class account_linking_form extends moodleform {
         }
         $mform->addHelpButton('username', 'alexaskill_accountlinking_username', 'local_alexaskill');
 
-        $mform->addElement('password', 'password', get_string('alexaskill_accountlinking_password', 'local_alexaskill'), array('required' => true));
+        $mform->addElement('password', 'password',
+                get_string('alexaskill_accountlinking_password', 'local_alexaskill'),
+                array('required' => true));
         $mform->setType('password', PARAM_RAW);
         $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
 
@@ -62,6 +64,7 @@ class account_linking_form extends moodleform {
     }
 
     public function validation($data, $files) {
+        global $CFG;
         $errors = array();
         $ch = curl_init();
         $values = array(
@@ -70,23 +73,17 @@ class account_linking_form extends moodleform {
                 'service' => $data['service']
         );
 
-        // Only use the root dir path if not on local server.
-        // CURL does not work on localhost.
-        $curlurl = 'https://alexa.haietza.com/login/token.php/';
-        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-            $curlurl = $CFG->wwwroot . '/login/token.php/';
-        }
-
+        $curlurl = $CFG->wwwroot . '/login/token.php/';
         $options = array(
                 CURLOPT_URL => $curlurl,
                 CURLOPT_POSTFIELDS => $values,
                 CURLOPT_RETURNTRANSFER => 1
         );
         curl_setopt_array($ch, $options);
-        $data = curl_exec($ch);
+        $result = curl_exec($ch);
         curl_close($ch);
 
-        $obj = json_decode($data, true);
+        $obj = json_decode($result, true);
         if (!key_exists('token', $obj)) {
             switch ($obj['errorcode']) {
                 case 'enablewsdescription':
