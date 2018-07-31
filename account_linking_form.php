@@ -84,6 +84,8 @@ class account_linking_form extends moodleform {
         curl_close($ch);
 
         $obj = json_decode($result, true);
+        
+        // errors array displays errors on form field based on errorcode returned in JSON response.
         if (!key_exists('token', $obj)) {
             switch ($obj['errorcode']) {
                 case 'enablewsdescription':

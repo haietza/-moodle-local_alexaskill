@@ -49,12 +49,7 @@ if ($fromform = $mform->get_data()) {
             'service' => $fromform->service
     );
 
-    // Only use the root dir path if not on local server.
-    // CURL does not work on localhost.
     $curlurl = $CFG->wwwroot . '/login/token.php/';
-    //if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
-        //$curlurl = 'https://alexa.haietza.com/login/token.php/';
-    //}
 
     $options = array(
             CURLOPT_URL => $curlurl,

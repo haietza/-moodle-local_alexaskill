@@ -39,13 +39,16 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
     public function test_account_linking_valid() {
         global $CFG;
         $this->resetAfterTest();
-        
+
+        // Set wwwroot for phpu site to be same as site, so curl call in account linking will work.
         $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
         $service = 'alexa_skill_service';
         $state = 'abc123';
         $responsetype = 'token';
         $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
 
+        // Set phpu account username and password to valid test account with token permission for valid test.
+        // phpu created users cannot be verified in login/token.php.
         $accountlinkingdata = array(
                 'username' => LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME,
                 'password' => LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD
@@ -72,5 +75,39 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $actualfromform = $form->get_data();
 
         $this->assertEquals($expectedfromform, $actualfromform);
+    }
+
+    public function test_account_linking_invalid() {
+        global $CFG;
+        $this->resetAfterTest();
+
+        $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
+        $username = 'test';
+        $password = 'test';
+        $service = 'alexa_skill_service';
+        $state = 'abc123';
+        $responsetype = 'token';
+        $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
+
+        $accountlinkingdata = array(
+                'username' => $username,
+                'password' => $password
+        );
+
+        account_linking_form::mock_submit($accountlinkingdata);
+
+        $form = new account_linking_form();
+        $toform = new stdClass();
+        $toform->state = $state;
+        $toform->service = $service;
+        $toform->response_type = $responsetype;
+        $toform->redirect_uri = $redirecturi;
+        $form->set_data($toform);
+
+        $actualfromform = $form->get_data();
+
+        // Invalid users will display error on login form
+        // but return null from get_data because they cannot be validated.
+        $this->assertNull($actualfromform);
     }
 }
