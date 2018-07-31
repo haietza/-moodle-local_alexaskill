@@ -23,12 +23,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $SITE;
+global $SITE, $CFG;
 
 $string['pluginname'] = 'Alexa skill web service';
 $string['alexaskill_settings'] = 'Alexa skill settings';
 $string['alexaskill_applicationid_label'] = 'Alexa skill application ID';
 $string['alexaskill_applicationid_desc'] = 'Enter the application ID for the skill from the Alexa Skills Kit Developer Console';
+$string['alexaskill_development_label'] = 'Development server';
+$string['alexaskill_development_desc'] = 'Select if this is a development server (signature certificate will not be validated)';
 $string['alexaskill_coursenameregex_label'] = 'Course regular expression';
 $string['alexaskill_coursenameregex_desc'] = 'Enter a regular expression to parse the course fullname for how Alexa should say the course name. The plugin will use the first capturing group from the regular expression.';
 $string['alexaskill_courseslotvalues'] = 'Alexa skill course slot values';

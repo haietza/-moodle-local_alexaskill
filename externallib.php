@@ -63,24 +63,26 @@ class local_alexaskill_external extends external_api {
 
         // Only check the signature and timestamp if not on local server.
         // Cannot simulate signature since that is encrypted based on request.
-        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-            // Check the URL of the signature certificate.
-            if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
-                debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
-                return http_response_code(400);
-            }
-
+        
+        // Check the URL of the signature certificate.
+        if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
+            debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
+            return http_response_code(400);
+        }
+        
+        // Only perform signature validation on live, internet accessible server that can receive requests directly from Alexa.
+        if (!get_config('local_alexaskill', 'alexaskill_development')) {
             // Check the signature of the request.
             if (!self::validate_signature($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
                 debugging('Invalid signature', NO_DEBUG_DISPLAY);
                 return http_response_code(400);
             }
-
-            // Check the request timestamp.
-            if (!self::verify_timestamp()) {
-                debugging('Invalid timestamp', NO_DEBUG_DISPLAY);
-                return http_response_code(400);
-            }
+        }
+        
+        // Check the request timestamp.
+        if (!self::verify_timestamp()) {
+            debugging('Invalid timestamp', NO_DEBUG_DISPLAY);
+            return http_response_code(400);
         }
 
         // Verify request is intended for my service.

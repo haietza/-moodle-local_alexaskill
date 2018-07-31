@@ -30,6 +30,9 @@ global $DB;
 // Verify moodle/site:config capability for system context - user can configure site settings.
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_alexaskill', get_string('alexaskill_settings', 'local_alexaskill'));
+    $settings->add(new admin_setting_configcheckbox('local_alexaskill/alexaskill_development',
+            get_string('alexaskill_development_label', 'local_alexaskill'),
+            get_string('alexaskill_development_desc', 'local_alexaskill'), 0));
     $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid',
             get_string('alexaskill_applicationid_label', 'local_alexaskill'),
             get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
