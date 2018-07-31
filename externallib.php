@@ -137,6 +137,13 @@ class local_alexaskill_external extends external_api {
                                 'text' => new external_value(PARAM_TEXT, 'text string to speak', VALUE_OPTIONAL),
                                 'ssml' => new external_value(PARAM_RAW, 'the ssml string to speak', VALUE_OPTIONAL)
                         )),
+                        'reprompt' => new external_single_structure(array(
+                                'outputSpeech' => new external_single_structure(array(
+                                        'type' => new external_value(PARAM_TEXT, 'type of speech output'),
+                                        'text' => new external_value(PARAM_TEXT, 'text string to speak', VALUE_OPTIONAL),
+                                        'ssml' => new external_value(PARAM_RAW, 'the ssml string to speak', VALUE_OPTIONAL)
+                                ))
+                        ), 'reprompt', VALUE_OPTIONAL),
                         'shouldEndSession' => new external_value(PARAM_BOOL, 'true if responses ends session'),
                         'card' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of card')
@@ -299,6 +306,7 @@ class local_alexaskill_external extends external_api {
         );
         self::$response['response']['outputSpeech']['type'] = 'SSML';
         self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)];
+        self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
         self::$response['response']['shouldEndSession'] = false;
         return self::$response;
     }
@@ -579,6 +587,9 @@ class local_alexaskill_external extends external_api {
             );
 
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
+            //self::$response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+            //self::$response['response']['reprompt']['outputSpeech']['text'] = "I didn't catch that. Would you like anything else?";
+            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -746,6 +757,24 @@ class local_alexaskill_external extends external_api {
         self::$response['response']['shouldEndSession'] = false;
 
         return self::$response;
+    }
+    
+    private static function get_reprompt() {
+        $reprompt = array();
+        if (self::$response['response']['outputSpeech']['type'] == 'PlainText') {
+            $reprompt['type'] = 'PlainText';
+            $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";  
+        } else {
+            $reprompt['type'] = 'SSML';
+            if (stripos(self::$response['response']['outputSpeech']['ssml'], 'Which would you like?') !== false) {
+                // Response is to LaunchRequest.
+                $reprompt['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+            } else {
+                // Response is not to LaunchRequest.
+                $reprompt['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+            }
+        }
+        return $reprompt;
     }
 
     /**
