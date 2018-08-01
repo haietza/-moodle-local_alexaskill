@@ -231,6 +231,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements '
