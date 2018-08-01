@@ -93,7 +93,7 @@ class local_alexaskill_external extends external_api {
 
         // Process request.
         if (self::$json['request']['type'] == 'LaunchRequest') {
-            return self::launch_request();
+            return self::launch_request($token);
         } else if (self::$json['request']['type'] == 'IntentRequest') {
             switch(self::$json['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
@@ -294,14 +294,19 @@ class local_alexaskill_external extends external_api {
      *
      * @return array JSON response welcome
      */
-    private static function launch_request() {
-        global $SITE;
+    private static function launch_request($token) {
+        global $SITE, $USER;
         self::initialize_response();
+        
+        $name = '';
+        if ($token == 'valid') {
+            $name = $USER->firstname;
+        }
 
         $responses = array(
-                '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>'
+                '<speak>Welcome to ' . $SITE->fullname . ' ' . $name . '. You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                '<speak>Hello ' . $name . '. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
                 . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
         self::$response['response']['outputSpeech']['type'] = 'SSML';
