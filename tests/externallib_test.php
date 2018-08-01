@@ -227,7 +227,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $launchrequest = self::getMethod('launch_request');
 
-        $actual = $launchrequest->invokeArgs(null, array());
+        $actual = $launchrequest->invokeArgs(null, array('token' => ''));
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
         $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
@@ -235,12 +235,42 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements '
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' . You can get site announcements '
                     . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                     . 'Which would you like?</speak>';
 
         $expected2 = $this->response;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello. I can get you site announcements <break time = "350ms"/>'
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello . I can get you site announcements <break time = "350ms"/>'
+                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test launch_request, logged in user.
+     */
+    public function test_launch_request_user() {
+        global $SITE;
+        $this->resetAfterTest();
+        $launchrequest = self::getMethod('launch_request');
+
+        $user = $this->getDataGenerator()->create_user(array('firstname' => 'Jane'));
+        $this->setUser($user);
+
+        $actual = $launchrequest->invokeArgs(null, array('token' => 'valid'));
+
+        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
+
+        $expected1 = $this->response;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' Jane. You can get site announcements '
+                . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
+                        . 'Which would you like?</speak>';
+
+        $expected2 = $this->response;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello Jane. I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
