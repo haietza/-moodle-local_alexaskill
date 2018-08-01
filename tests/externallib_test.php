@@ -230,9 +230,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $launchrequest->invokeArgs(null, array());
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
         $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements '
@@ -259,6 +259,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
@@ -313,6 +315,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -392,6 +396,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -423,6 +429,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
 
@@ -468,6 +476,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -527,6 +537,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -577,6 +589,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -626,6 +640,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->response['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->response;
@@ -676,6 +692,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -713,6 +731,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -796,6 +816,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -862,6 +884,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -935,6 +959,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $announcements = '<p>' . $subject1 . '. ' . $message1 . '</p> ';
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -967,6 +993,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->response['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->response;
@@ -1014,6 +1042,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1082,6 +1112,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->response['response']['shouldEndSession'] = false;
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1144,6 +1176,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
 
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1196,6 +1230,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1225,8 +1261,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
@@ -1279,8 +1317,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
@@ -1308,6 +1348,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1352,8 +1394,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $grades = '<p>Your grade in ' . $coursename2 . ' is 99.00.</p> <p>Your grade in ' . $coursename1 . ' is 98.00.</p> ';
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1382,8 +1426,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
@@ -1436,8 +1482,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
 
         $expected1 = $this->response;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
@@ -1465,6 +1513,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1535,8 +1585,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 . $eventname4 . ' is due on ' . date('l F j Y g:i a', $eventdate4) . '.</p> <p>'
                 . $eventname5 . ' is due on ' . date('l F j Y g:i a', $eventdate5) . '.</p> ';
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1588,8 +1640,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
                              
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1641,8 +1695,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
         
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1692,6 +1748,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1740,6 +1798,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1788,6 +1848,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1836,6 +1898,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
         
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
@@ -1887,8 +1951,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
 
-        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
@@ -1943,6 +2009,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
+        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->response['response']['shouldEndSession'] = false;
         $this->response['response']['directives'] = array(
                 array(

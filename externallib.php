@@ -383,6 +383,7 @@ class local_alexaskill_external extends external_api {
             );
 
             self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
+            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -419,7 +420,7 @@ class local_alexaskill_external extends external_api {
 
             self::$response['response']['outputSpeech']['type'] = 'SSML';
             self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
-
+            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
             self::$response['response']['shouldEndSession'] = false;
             self::$response['response']['directives'] = array(
                     array(
@@ -455,6 +456,7 @@ class local_alexaskill_external extends external_api {
                 );
 
                 self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
+                self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
                 self::$response['response']['shouldEndSession'] = false;
                 self::$response['response']['directives'] = array(
                         array(
