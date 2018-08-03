@@ -26,6 +26,8 @@
 //@codingStandardsIgnoreLine
 require_once('../../config.php');
 require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
+require_once($CFG->dirroot . '/user/externallib.php');
+global $DB;
 
 $site = get_site();
 $loginsite = get_string('loginsite');
@@ -61,6 +63,25 @@ if ($fromform = $mform->get_data()) {
     curl_close($ch);
 
     $obj = json_decode($data, true);
+    
+    if (key_exists('token', $obj)) {
+        $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        
+        $userinfodata = new stdClass();
+        $userinfodata->userid = $userid->id;
+        $userinfodata->fieldid = $fieldid->id;
+        $userinfodata->data = $fromform->pin;
+        
+        if ($DB->record_exists('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id))) {
+            $userinfodataid = $DB->get_record('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id));
+            $userinfodata->id = $userinfodataid->id;
+            $DB->update_record('user_info_data', $userinfodata);
+        } else {
+            $DB->insert_record('user_info_data', $userinfodata);
+        }
+    }
+
     $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {

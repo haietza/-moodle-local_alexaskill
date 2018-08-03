@@ -33,20 +33,26 @@ class account_linking_form extends moodleform {
 
         $mform = $this->_form;
 
-        $mform->addElement('text', 'username',
-                get_string('alexaskill_accountlinking_username', 'local_alexaskill'),
-                array('required' => true));
+        $name = get_string('alexaskill_accountlinking_username', 'local_alexaskill');
+        $options = array('required' => true);
+        $mform->addElement('text', 'username', $name, $options);
         $mform->setType('username', PARAM_USERNAME);
         if (isloggedin()) {
             $mform->setDefault('username', $USER->username);
         }
         $mform->addHelpButton('username', 'alexaskill_accountlinking_username', 'local_alexaskill');
 
-        $mform->addElement('password', 'password',
-                get_string('alexaskill_accountlinking_password', 'local_alexaskill'),
-                array('required' => true));
+        $name = get_string('alexaskill_accountlinking_password', 'local_alexaskill');
+        $options = array('required' => true);
+        $mform->addElement('password', 'password', $name, $options);
         $mform->setType('password', PARAM_RAW);
         $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
+        
+        $name = get_string('alexaskill_accountlinking_pin', 'local_alexaskill');
+        $options = array('minlength' => 4, 'maxlength' => 4);
+        $mform->addElement('text', 'pin', $name, $options);
+        $mform->setType('pin', PARAM_INT);
+        $mform->addHelpButton('pin', 'alexaskill_accountlinking_pin', 'local_alexaskill');
 
         $mform->addElement('hidden', 'service');
         $mform->setType('service', PARAM_TEXT);
@@ -101,6 +107,10 @@ class account_linking_form extends moodleform {
                     $errors['password'] = $obj['error'];
                     break;
             }
+        }
+        
+        if (strlen($data['pin']) != 4) {
+            $errors['pin'] = 'PIN must be 4 digits.';
         }
         return $errors;
     }
