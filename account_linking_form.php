@@ -50,7 +50,7 @@ class account_linking_form extends moodleform {
         
         $name = get_string('alexaskill_accountlinking_pin', 'local_alexaskill');
         $options = array('minlength' => 4, 'maxlength' => 4);
-        $mform->addElement('text', 'pin', $name, $options);
+        $mform->addElement('password', 'pin', $name, $options);
         $mform->setType('pin', PARAM_INT);
         $mform->addHelpButton('pin', 'alexaskill_accountlinking_pin', 'local_alexaskill');
 

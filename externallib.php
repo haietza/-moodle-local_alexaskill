@@ -61,9 +61,6 @@ class local_alexaskill_external extends external_api {
     public static function alexa($request, $token = '') {
         self::$json = json_decode($request, true);
 
-        // Only check the signature and timestamp if not on local server.
-        // Cannot simulate signature since that is encrypted based on request.
-        
         // Check the URL of the signature certificate.
         if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
             debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
@@ -365,12 +362,41 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::verify_account_linking('get course announcements');
         }
-
-        // Handle dialog directive response to "Would you like anything else?"
-        // Need to check for else slot value here because intent could be in progress getting course name.
-        if (self::$json['request']['dialogState'] == 'IN_PROGRESS'
-                && isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
-            return self::in_progress();
+        
+        if ($token == 'valid') {
+            $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+            $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
+            if (strlen($pin) == 4) {
+                self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
+                self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
+                self::$response['response']['shouldEndSession'] = false;
+                self::$response['response']['directives'] = array(
+                        array(
+                                'type' => 'Dialog.ElicitSlot',
+                                'slotToElicit' => 'pin'
+                        )
+                );
+                return self::$response;
+            }
+        }
+        
+        if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
+            // Handle dialog directive response to "Please say your Amazon Alexa pin."
+            if (isset(self::$json['request']['intent']['slots']['pin']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
+                $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+                $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
+                if (strlen($pin) == 4) {
+                    if ($pin != self::$json['request']['intent']['slots']['pin']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name']) {
+                        self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
+                        return self::$response;
+                    }
+                }
+            }
+            
+            // Handle dialog directive response to "Would you like anything else?"
+            if (isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
+                return self::in_progress();
+            } 
         }
 
         self::initialize_response();
