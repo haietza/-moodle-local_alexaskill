@@ -270,6 +270,41 @@ class local_alexaskill_external extends external_api {
     private static function verify_application_id() {
         return self::$json['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
+    
+    private static function pin_exists() {
+        global $DB, $USER;
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        return strlen($pin->data) == 4;
+    }
+    
+    private static function request_pin() {
+        self::initialize_response();
+        self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
+        self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
+        self::$response['response']['shouldEndSession'] = false;
+        self::$response['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'pin'
+                )
+        );
+        return self::$response;
+    }
+    
+    private static function verify_pin() {
+        global $DB, $USER;
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        if ($pin->data != self::$json['request']['intent']['slots']['pin']['value']) {
+            // PIN is not valid.
+            return false;
+        } else {
+            // PIN is valid; set session attribute for future checks.
+            self::$response['sessionAttributes']['pin'] == 'valid';
+            return true;
+        }
+    }
 
     /**
      * Initialize the JSON response.
@@ -297,7 +332,7 @@ class local_alexaskill_external extends external_api {
         
         $name = '';
         if ($token == 'valid') {
-            $name = $USER->firstname;
+            $name = ', ' . $USER->firstname;
         }
 
         $responses = array(
@@ -359,46 +394,30 @@ class local_alexaskill_external extends external_api {
     private static function get_course_announcements($token) {
         global $DB;
 
+        // Access token is either invalid or for general web service user.
+        // Send account linking card.
         if ($token !== 'valid') {
             return self::verify_account_linking('get course announcements');
         }
         
-        if ($token == 'valid') {
-            $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-            $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
-            if (strlen($pin->data) == 4) {
-                self::initialize_response();
-                self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
-                self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-                self::$response['response']['shouldEndSession'] = false;
-                self::$response['response']['directives'] = array(
-                        array(
-                                'type' => 'Dialog.ElicitSlot',
-                                'slotToElicit' => 'pin'
-                        )
-                );
-                return self::$response;
-            }
-        }
-        
-        if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
-            // Handle dialog directive response to "Please say your Amazon Alexa pin."
+        // User has set PIN access, but it has not been verified in this session. 
+        if (self::pin_exists() && self::$json['session']['attributes']['pin'] != 'valid') {  
             if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
-                $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-                $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
-                if (strlen($pin) == 4) {
-                    if ($pin != self::$json['request']['intent']['slots']['pin']['value']) {
-                        self::initialize_response();
-                        self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
-                        return self::$response;
-                    }
+                // User has responded with PIN for verification. Verify PIN.
+                if (!self::verify_pin()) {
+                    self::initialize_response();
+                    self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
+                    return self::$response;
                 }
-            }
-            
-            // Handle dialog directive response to "Would you like anything else?"
-            if (isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
-                return self::in_progress();
-            } 
+            } else {
+                // Ask user for PIN.
+                return self::request_pin();
+            }    
+        }
+
+        // Handle dialog directive response to "Would you like anything else?"
+        if (isset(self::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
+            return self::in_progress();
         }
 
         self::initialize_response();
@@ -434,7 +453,7 @@ class local_alexaskill_external extends external_api {
             return self::get_announcements($usercourse->id, $coursename);
         }
 
-        if (self::$json['request']['dialogState'] == 'STARTED') {
+        if ((self::$json['request']['dialogState'] == 'STARTED' || self::$json['request']['dialogState'] == 'IN_PROGRESS') && !isset(self::$json['request']['intent']['slots']['course']['value'])) {
             // We don't know the course, prompt for it.
             $responses = array(
                     '<speak>Thanks. You can get announcements for the following courses: ',
