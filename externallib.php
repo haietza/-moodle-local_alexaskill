@@ -472,7 +472,11 @@ class local_alexaskill_external extends external_api {
         
         // User has set PIN access, but it has not been verified in this session. 
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {  
-            return self::process_pin();
+            self::process_pin();
+            if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
+                return self::$responsejson;
+            }
+            // PIN exists and is valid; continue with request.
         }
 
         // Handle dialog directive response to "Would you like anything else?"
@@ -635,7 +639,11 @@ class local_alexaskill_external extends external_api {
         
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
-            return self::process_pin();
+            self::process_pin();
+            if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
+                return self::$responsejson;
+            }
+            // PIN exists and is valid; continue with request.
         }
 
         // Handle dialog directive response to "Would you like anything else?"
@@ -688,7 +696,11 @@ class local_alexaskill_external extends external_api {
         
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
-            return self::process_pin();
+            self::process_pin();
+            if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
+                return self::$responsejson;
+            }
+            // PIN exists and is valid; continue with request.
         }
 
         // Handle dialog directive response to "Would you like anything else?"
