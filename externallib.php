@@ -576,7 +576,7 @@ class local_alexaskill_external extends external_api {
             );
             
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
-            self::complete_response($outputspeech, false, 'else');
+            return self::complete_response($outputspeech, false, 'else');
         }
     }
 
