@@ -80,6 +80,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $method->setAccessible(true);
         return $method;
     }
+    
+    public function test_initialize_response() {
+        $this->resetAfterTest();
+        $initializeresponse = self::getMethod('initialize_response');
+        
+        $initializeresponse->invokeArgs(null, array());
+        $this->assertTrue($this->response == local_alexaskill_external::$response);
+    }
 
     /**
      * Test for valid signature certificate URL.

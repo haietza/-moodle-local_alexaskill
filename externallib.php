@@ -275,6 +275,11 @@ class local_alexaskill_external extends external_api {
         return self::$json['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
     
+    /**
+     * Check if PIN has been set for user.
+     * 
+     * @return boolean
+     */
     private static function pin_exists() {
         global $DB, $USER;
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
@@ -282,11 +287,21 @@ class local_alexaskill_external extends external_api {
         return strlen($pin->data) == 4;
     }
     
+    /**
+     * Return response asking for PIN.
+     * 
+     * @return string[]|boolean[][]|string[][][]
+     */
     private static function request_pin() {
         $outputspeech = 'Please say your Amazon Alexa PIN.';
         return self::complete_response($outputspeech, false, 'pin');
     }
     
+    /**
+     * Verify PIN. Set session attribute if valid.
+     * 
+     * @return boolean
+     */
     private static function verify_pin() {
         global $DB, $USER;
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
@@ -317,6 +332,14 @@ class local_alexaskill_external extends external_api {
         );
     }
     
+    /**
+     * Complete and send JSON response.
+     * 
+     * @param string $outputspeech
+     * @param boolean $endsession
+     * @param string $slot
+     * @return string[]|boolean[][]|string[][][]
+     */
     private static function complete_response($outputspeech, $endsession = true, $slot = '') {
         if (stripos($outputspeech, '<speak') !== false) {
             self::$response['response']['outputSpeech']['type'] = 'SSML';
