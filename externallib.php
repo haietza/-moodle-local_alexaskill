@@ -277,6 +277,29 @@ class local_alexaskill_external extends external_api {
     }
     
     /**
+     * Ask for PIN or validate PIN.
+     * 
+     * @return void|string[]|boolean[][]|string[][][]|string[]|array|][[]
+     */
+    private static function process_pin() {
+        global $SITE;
+        
+        if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
+            // User has responded with PIN for verification. Verify PIN.
+            if (!self::pin_is_valid()) {
+                self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
+                return self::$responsejson;
+            }
+            
+            // PIN is valid; return and finish processing request.
+            return;
+        } else {
+            // Ask user for PIN.
+            return self::request_pin();
+        }
+    }
+    
+    /**
      * Check if PIN has been set for user.
      * 
      * @return boolean
@@ -409,15 +432,15 @@ class local_alexaskill_external extends external_api {
     /**
      * Return a LinkAccount card for unlinked accounts.
      *
-     * @param string $task
+     * @param string $intent
      * @return array JSON response with LinkAccount card
      */
-    private static function verify_account_linking($task = 'access that information') {
+    private static function request_account_linking($intent = 'access that information') {
         global $SITE;
 
         self::$responsejson['response']['card']['type'] = 'LinkAccount';
         self::$responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
-                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+                . $intent . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
         return self::$responsejson;
     }
 
@@ -426,8 +449,8 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_site_announcements() {
         // Handle dialog directive response to "Would you like anything else?"
-        if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') {
-            return self::in_progress();
+        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+            return self::anything_else();
         }
 
         return self::get_announcements(1, 'the site');
@@ -441,29 +464,20 @@ class local_alexaskill_external extends external_api {
     private static function get_course_announcements($token) {
         global $DB, $SITE;
 
-        // Access token is either invalid or for general web service user.
+        // Access token is either for general web service user or invalid.
         // Send account linking card.
         if ($token !== 'valid') {
-            return self::verify_account_linking('get course announcements');
+            return self::request_account_linking('get course announcements');
         }
         
         // User has set PIN access, but it has not been verified in this session. 
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {  
-            if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
-                // User has responded with PIN for verification. Verify PIN.
-                if (!self::pin_is_valid()) {
-                    self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
-                    return self::$responsejson;
-                }
-            } else {
-                // Ask user for PIN.
-                return self::request_pin();
-            }    
+            return self::process_pin();
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
-            return self::in_progress();
+        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+            return self::anything_else();
         }
 
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
@@ -490,7 +504,7 @@ class local_alexaskill_external extends external_api {
             return self::get_announcements($usercourse->id, $coursename);
         }
 
-        if ((self::$requestjson['request']['dialogState'] == 'STARTED' || self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') && !isset(self::$requestjson['request']['intent']['slots']['course']['value'])) {
+        if (!isset(self::$requestjson['request']['intent']['slots']['course']['value'])) {
             // We don't know the course, prompt for it.
             $responses = array(
                     '<speak>Thanks. You can get announcements for the following courses: ',
@@ -509,8 +523,7 @@ class local_alexaskill_external extends external_api {
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
             return self::complete_response($outputspeech, false, 'course');
-        } else if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS'
-                && ($coursevalue = self::$requestjson['request']['intent']['slots']['course']['value'])) {
+        } else if ($coursevalue = self::$requestjson['request']['intent']['slots']['course']['value']) {
             // User has requested announcements for a specific course.
             $courseid = -1;
             $coursename = $coursevalue;
@@ -617,26 +630,17 @@ class local_alexaskill_external extends external_api {
         global $DB, $USER;
 
         if ($token !== 'valid') {
-            return self::verify_account_linking('get grades');
+            return self::request_account_linking('get grades');
         }
         
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
-            if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
-                // User has responded with PIN for verification. Verify PIN.
-                if (!self::pin_is_valid()) {
-                    self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
-                    return self::$responsejson;
-                }
-            } else {
-                // Ask user for PIN.
-                return self::request_pin();
-            }
+            return self::process_pin();
         }
 
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') {
-            return self::in_progress();
+            return self::anything_else();
         }
 
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
@@ -679,26 +683,17 @@ class local_alexaskill_external extends external_api {
         global $DB, $CFG, $USER;
 
         if ($token !== 'valid') {
-            return self::verify_account_linking('get due dates');
+            return self::request_account_linking('get due dates');
         }
         
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
-            if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
-                // User has responded with PIN for verification. Verify PIN.
-                if (!self::pin_is_valid()) {
-                    self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
-                    return self::$responsejson;
-                }
-            } else {
-                // Ask user for PIN.
-                return self::request_pin();
-            }
+            return self::process_pin();
         }
 
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') {
-            return self::in_progress();
+            return self::anything_else();
         }
 
         $courses = enrol_get_my_courses('id');
@@ -779,7 +774,7 @@ class local_alexaskill_external extends external_api {
      *
      * @return array JSON response
      */
-    private static function in_progress() {
+    private static function anything_else() {
         if (self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
             return self::say_good_bye();
         } else {

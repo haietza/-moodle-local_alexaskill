@@ -49,6 +49,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         set_config('alexaskill_applicationid', LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID, 'local_alexaskill');
         set_config('alexaskill_coursenameregex', LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, 'local_alexaskill');
 
+        self::getMethod('initialize_response')->invokeArgs(null, array());
+
         $this->responsejson = array(
                 'version' => '1.0',
                 'response' => array (
@@ -85,9 +87,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_initialize_response() {
         $this->resetAfterTest();
-        $initializeresponse = self::getMethod('initialize_response');
-        
-        $initializeresponse->invokeArgs(null, array());
         $this->assertTrue($this->responsejson == local_alexaskill_external::$responsejson);
     }
 
@@ -286,7 +285,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      */
     public function test_request_pin() {
         $this->resetAfterTest();
-        self::getMethod('initialize_response')->invokeArgs(null, array());
         $requestpin = self::getMethod('request_pin');
         
         $expected = array(
@@ -776,15 +774,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test verify_account_linking, invalid token.
+     * Test request_account_linking, invalid token.
      */
-    public function test_verify_account_linking() {
+    public function test_request_account_linking() {
         global $SITE;
         $this->resetAfterTest();
-        $verifyaccountlinking = self::getMethod('verify_account_linking');
+        $requestaccountlinking = self::getMethod('request_account_linking');
 
         $task = 'test task';
-        $actual = $verifyaccountlinking->invokeArgs(null, array('task' => $task));
+        $actual = $requestaccountlinking->invokeArgs(null, array('task' => $task));
 
         $this->responsejson['response']['card']['type'] = 'LinkAccount';
         $this->responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -2216,5 +2214,59 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expected2 = 'english i';
         
         $this->assertEquals($expected2, $actual);
+    }
+    
+    /**
+     * Test anything_else, say good bye.
+     */
+    public function test_anything_else_say_good_bye() {
+        $this->resetAfterTest();
+        $anythingelse = self::getMethod('anything_else');
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        
+        $actual = $anythingelse->invokeArgs(null, array());
+        
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
+        
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
+        
+        $expected3 = $this->responsejson;
+        $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
+        
+        $expected4 = $this->responsejson;
+        $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
+        
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual || $expected3 == $actual || $expected4 == $actual);
+    }
+    
+    /**
+     * Test anything_else, get help.
+     */
+    public function test_anything_else_get_help() {
+        $this->resetAfterTest();
+        $anythingelse = self::getMethod('anything_else');
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        
+        $actual = $anythingelse->invokeArgs(null, array());
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements '
+                . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
+                . 'Which would you like?</speak>';
+                
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
+                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
+                
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
 }
