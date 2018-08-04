@@ -591,6 +591,20 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::verify_account_linking('get grades');
         }
+        
+        // User has set PIN access, but it has not been verified in this session.
+        if (self::pin_exists() && self::$json['session']['attributes']['pin'] != 'valid') {
+            if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
+                // User has responded with PIN for verification. Verify PIN.
+                if (!self::verify_pin()) {
+                    self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
+                    return self::$response;
+                }
+            } else {
+                // Ask user for PIN.
+                return self::request_pin();
+            }
+        }
 
         // Handle dialog directive response to "Would you like anything else?"
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
@@ -638,6 +652,20 @@ class local_alexaskill_external extends external_api {
 
         if ($token !== 'valid') {
             return self::verify_account_linking('get due dates');
+        }
+        
+        // User has set PIN access, but it has not been verified in this session.
+        if (self::pin_exists() && self::$json['session']['attributes']['pin'] != 'valid') {
+            if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
+                // User has responded with PIN for verification. Verify PIN.
+                if (!self::verify_pin()) {
+                    self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
+                    return self::$response;
+                }
+            } else {
+                // Ask user for PIN.
+                return self::request_pin();
+            }
         }
 
         // Handle dialog directive response to "Would you like anything else?"
