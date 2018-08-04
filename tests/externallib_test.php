@@ -230,6 +230,24 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
     
     /**
+     * Test pin_exists.
+     */
+    public function test_pin_exists() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinexists = self::getMethod('pin_exists');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
+        
+        $actual = $pinexists->invokeArgs(null, array());
+        
+        $this->assertTrue($actual);
+    }
+    
+    /**
      * Test pin_is_valid.
      */
     public function test_pin_is_valid() {
