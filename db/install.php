@@ -51,7 +51,7 @@ function xmldb_alexaskill_install() {
         $userinfofield->sortorder = 1;
         $userinfofield->required = 0;
         $userinfofield->locked = 0;
-        $userinfofield->visible = 0;
+        $userinfofield->visible = 1;
         $userinfofield->forceunique = 0;
         $userinfofield->signup = 0;
         $userinfofield->defaultdata = '';

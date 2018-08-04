@@ -63,8 +63,9 @@ if ($fromform = $mform->get_data()) {
     curl_close($ch);
 
     $obj = json_decode($data, true);
+    $pinlength = strlen($fromform->pin);
     
-    if (key_exists('token', $obj)) {
+    if (key_exists('token', $obj) && $pinlength == 4) {
         $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         
