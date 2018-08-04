@@ -128,6 +128,9 @@ class local_alexaskill_external extends external_api {
     public static function alexa_returns() {
         return new external_single_structure(array(
                 'version' => new external_value(PARAM_TEXT, 'version number'),
+                'sessionAttributes' => new external_single_structure(array(
+                        'pin' => new external_value(PARAM_TEXT, 'pin')
+                ), VALUE_OPTIONAL),
                 'response' => new external_single_structure(array(
                         'outputSpeech' => new external_single_structure(array(
                                 'type' => new external_value(PARAM_TEXT, 'type of speech output'),
