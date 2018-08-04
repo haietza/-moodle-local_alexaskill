@@ -283,17 +283,8 @@ class local_alexaskill_external extends external_api {
     }
     
     private static function request_pin() {
-        //self::initialize_response();
-        self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
-        self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-        self::$response['response']['shouldEndSession'] = false;
-        self::$response['response']['directives'] = array(
-                array(
-                        'type' => 'Dialog.ElicitSlot',
-                        'slotToElicit' => 'pin'
-                )
-        );
-        return self::$response;
+        $outputspeech = 'Please say your Amazon Alexa PIN.';
+        return self::complete_response($outputspeech, false, 'pin');
     }
     
     private static function verify_pin() {
@@ -325,6 +316,30 @@ class local_alexaskill_external extends external_api {
                 )
         );
     }
+    
+    private static function complete_response($outputspeech, $endsession = true, $slot = '') {
+        if (stripos($outputspeech, '<speak') !== false) {
+            self::$response['response']['outputSpeech']['type'] = 'SSML';
+            self::$response['response']['outputSpeech']['ssml'] = $outputspeech;
+        } else {
+            self::$response['response']['outputSpeech']['text'] = $outputspeech;
+        }
+        
+        if (!$endsession) {
+            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
+            self::$response['response']['shouldEndSession'] = false;
+        }
+        
+        if ($slot != '') {
+            self::$response['response']['directives'] = array(
+                    array(
+                            'type' => 'Dialog.ElicitSlot',
+                                    'slotToElicit' => $slot
+                            )
+                    );
+        }
+        return self::$response;   
+    }
 
     /**
      * Get welcome message.
@@ -333,24 +348,25 @@ class local_alexaskill_external extends external_api {
      */
     private static function launch_request($token) {
         global $SITE, $USER;
-        //self::initialize_response();
         
-        $name = '';
         if ($token == 'valid') {
-            $name = ', ' . $USER->firstname;
+            $responses = array(
+                    '<speak>Welcome to ' . $SITE->fullname . ', ' . $USER->firstname . '. You can get site announcements <break time = "350ms"/>'
+                    . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                    '<speak>Hello ' . $USER->firstname . '. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+            );
+        } else {
+            $responses = array(
+                    '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>'
+                    . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                    '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
+                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+            );
         }
 
-        $responses = array(
-                '<speak>Welcome to ' . $SITE->fullname . ' ' . $name . '. You can get site announcements <break time = "350ms"/>'
-                . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>Hello ' . $name . '. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
-                . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
-        );
-        self::$response['response']['outputSpeech']['type'] = 'SSML';
-        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)];
-        self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-        self::$response['response']['shouldEndSession'] = false;
-        return self::$response;
+        $outputspeech = $responses[rand(0, count($responses) - 1)];
+        return self::complete_response($outputspeech, false);
     }
 
     /**
@@ -370,7 +386,6 @@ class local_alexaskill_external extends external_api {
      */
     private static function verify_account_linking($task = 'access that information') {
         global $SITE;
-        //self::initialize_response();
 
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -387,7 +402,6 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        //self::initialize_response();
         return self::get_announcements(1, 'the site');
     }
 
@@ -410,7 +424,6 @@ class local_alexaskill_external extends external_api {
             if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
                 // User has responded with PIN for verification. Verify PIN.
                 if (!self::verify_pin()) {
-                    //self::initialize_response();
                     self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
                     return self::$response;
                 }
@@ -425,7 +438,6 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        //self::initialize_response();
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
@@ -439,16 +451,8 @@ class local_alexaskill_external extends external_api {
                     'I apologize, but there are no active courses listed for you. Can I get you anything else?'
             );
 
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            $outputspeech = $responses[rand(0, count($responses) - 1)];
+            return self::complete_response($outputspeech, false, 'else');
         }
 
         // User only has one course, no need to prompt.
@@ -475,17 +479,8 @@ class local_alexaskill_external extends external_api {
             }
             $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
 
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'course'
-                    )
-            );
-            return self::$response;
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
+            return self::complete_response($outputspeech, false, 'course');
         } else if (self::$json['request']['dialogState'] == 'IN_PROGRESS'
                 && ($coursevalue = self::$json['request']['intent']['slots']['course']['value'])) {
             // User has requested announcements for a specific course.
@@ -512,16 +507,8 @@ class local_alexaskill_external extends external_api {
                         'I apologize, but ' . $coursevalue . ' does not have any records. Can I get you any other information?'
                 );
 
-                self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
-                self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-                self::$response['response']['shouldEndSession'] = false;
-                self::$response['response']['directives'] = array(
-                        array(
-                                'type' => 'Dialog.ElicitSlot',
-                                'slotToElicit' => 'else'
-                        )
-                );
-                return self::$response;
+                $outputspeech = $responses[rand(0, count($responses) - 1)];
+                return self::complete_response($outputspeech, false, 'else');
             } else {
                 // We found a valid course.
                 return self::get_announcements($courseid, $coursename);
@@ -579,35 +566,17 @@ class local_alexaskill_external extends external_api {
                     'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
                     'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
             );
-
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            
+            $outputspeech = $responses[rand(0, count($responses) - 1)];
+            return self::complete_response($outputspeech, false, 'else');
         } else {
             $responses = array(
                     '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
                     '<speak>Sure. The ' . $count . ' latest announcements for ' . $coursename . ' are: '
             );
-
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $announcements
-                . ' Would you like anything else?</speak>';
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
+            self::complete_response($outputspeech, false, 'else');
         }
     }
 
@@ -628,7 +597,6 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        //self::initialize_response();
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
         $grades = '';
@@ -647,34 +615,16 @@ class local_alexaskill_external extends external_api {
                     'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?'
             );
 
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            $outputspeech = $responses[rand(0, count($responses) - 1)];
+            return self::complete_response($outputspeech, false, 'else');
         } else {
             $responses = array(
                     '<speak>Got it. Here are your overall course grades: ',
                     '<speak>Okay. These are your course grades overall: '
             );
 
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $grades
-                . ' Would you like anything else?</speak>';
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $grades . ' Would you like anything else?</speak>';
+            return self::complete_response($outputspeech, false, 'else');
         }
     }
 
@@ -695,7 +645,6 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        //self::initialize_response();
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
         $groups = groups_get_my_groups();
@@ -740,34 +689,16 @@ class local_alexaskill_external extends external_api {
                     'I apologize, but there are no upcoming events on your calendar. Do you need any other information?'
             );
 
-            self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            $outputspeech = $responses[rand(0, count($responses) - 1)];
+            return self::complete_response($outputspeech, false, 'else');
         } else {
             $responses = array(
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
                     '<speak>Okay. The next ' . $count . ' important dates are: '
             );
-
-            self::$response['response']['outputSpeech']['type'] = 'SSML';
-            self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)] . $duedates
-                . 'Would you like anything else? </speak>';
-            self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-            self::$response['response']['shouldEndSession'] = false;
-            self::$response['response']['directives'] = array(
-                    array(
-                            'type' => 'Dialog.ElicitSlot',
-                            'slotToElicit' => 'else'
-                    )
-            );
-            return self::$response;
+            
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . 'Would you like anything else? </speak>';
+            return self::complete_response($outputspeech, false, 'else');
         }
     }
 
@@ -806,20 +737,15 @@ class local_alexaskill_external extends external_api {
      * @return array JSON response
      */
     private static function get_help() {
-        //self::initialize_response();
-
         $responses = array(
                 '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
                     . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
                 '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
                     . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
-        self::$response['response']['outputSpeech']['type'] = 'SSML';
-        self::$response['response']['outputSpeech']['ssml'] = $responses[rand(0, count($responses) - 1)];
-        self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
-        self::$response['response']['shouldEndSession'] = false;
 
-        return self::$response;
+        $outputspeech = $responses[rand(0, count($responses) - 1)];
+        return self::complete_response($outputspeech, false);
     }
 
     /**
@@ -851,16 +777,14 @@ class local_alexaskill_external extends external_api {
      * @return array JSON response
      */
     private static function say_good_bye() {
-        //self::initialize_response();
-
         $responses = array(
                 'Okay, have a nice day!',
                 'Great. Take care!',
                 'Thanks. Good bye!',
                 'Sure. Until next time!'
         );
-        self::$response['response']['outputSpeech']['text'] = $responses[rand(0, count($responses) - 1)];
 
-        return self::$response;
+        $outputspeech = $responses[rand(0, count($responses) - 1)];
+        return self::complete_response($outputspeech);
     }
 }
