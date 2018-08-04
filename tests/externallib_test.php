@@ -282,6 +282,43 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
     
     /**
+     * Test reqeust pin.
+     */
+    public function test_request_pin() {
+        $this->resetAfterTest();
+        self::getMethod('initialize_response')->invokeArgs(null, array());
+        $requestpin = self::getMethod('request_pin');
+        
+        $expected = array(
+                'version' => '1.0',
+                'response' => array (
+                        'outputSpeech' => array(
+                                'type' => 'PlainText',
+                                'text' => 'Please say your Amazon Alexa PIN.'
+                        ),
+                        'shouldEndSession' => false,
+                        'reprompt' => array(
+                                'outputSpeech' => array(
+                                        'type' => 'PlainText',
+                                        'text' => "I didn't quite catch that. Please say your PIN."
+                                )
+                        ),                        
+                        'directives' => array(
+                                array(
+                                        'type' => 'Dialog.ElicitSlot',
+                                        'slotToElicit' => 'pin'
+                                )
+                                
+                        )
+                )
+        );
+        
+        $actual = $requestpin->invokeArgs(null, array());
+        
+        $this->assertTrue($expected == $actual);
+    }
+    
+    /**
      * Test pin_is_valid.
      */
     public function test_pin_is_valid() {

@@ -813,14 +813,18 @@ class local_alexaskill_external extends external_api {
         $reprompt = array();
         if (self::$responsejson['response']['outputSpeech']['type'] == 'PlainText') {
             $reprompt['type'] = 'PlainText';
-            $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";  
+            if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
+                // Response is with PIN request.
+                $reprompt['text'] = "I didn't quite catch that. Please say your PIN.";
+            } else {
+                $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";
+            }
         } else {
             $reprompt['type'] = 'SSML';
             if (stripos(self::$responsejson['response']['outputSpeech']['ssml'], 'Which would you like?') !== false) {
                 // Response is to LaunchRequest.
                 $reprompt['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
             } else {
-                // Response is not to LaunchRequest.
                 $reprompt['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
             }
         }
