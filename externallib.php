@@ -60,6 +60,7 @@ class local_alexaskill_external extends external_api {
      */
     public static function alexa($request, $token = '') {
         self::$json = json_decode($request, true);
+        self::initialize_response();
 
         // Check the URL of the signature certificate.
         if (!self::verify_signature_certificate_url($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
@@ -282,7 +283,7 @@ class local_alexaskill_external extends external_api {
     }
     
     private static function request_pin() {
-        self::initialize_response();
+        //self::initialize_response();
         self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
         self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
         self::$response['response']['shouldEndSession'] = false;
@@ -304,7 +305,8 @@ class local_alexaskill_external extends external_api {
             return false;
         } else {
             // PIN is valid; set session attribute for future checks.
-            self::$response['sessionAttributes']['pin'] == 'valid';
+            //self::initialize_response();
+            self::$response['sessionAttributes']['pin'] = 'valid';
             return true;
         }
     }
@@ -331,7 +333,7 @@ class local_alexaskill_external extends external_api {
      */
     private static function launch_request($token) {
         global $SITE, $USER;
-        self::initialize_response();
+        //self::initialize_response();
         
         $name = '';
         if ($token == 'valid') {
@@ -368,7 +370,7 @@ class local_alexaskill_external extends external_api {
      */
     private static function verify_account_linking($task = 'access that information') {
         global $SITE;
-        self::initialize_response();
+        //self::initialize_response();
 
         self::$response['response']['card']['type'] = 'LinkAccount';
         self::$response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
@@ -385,7 +387,7 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        self::initialize_response();
+        //self::initialize_response();
         return self::get_announcements(1, 'the site');
     }
 
@@ -408,7 +410,7 @@ class local_alexaskill_external extends external_api {
             if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
                 // User has responded with PIN for verification. Verify PIN.
                 if (!self::verify_pin()) {
-                    self::initialize_response();
+                    //self::initialize_response();
                     self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
                     return self::$response;
                 }
@@ -423,7 +425,7 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        self::initialize_response();
+        //self::initialize_response();
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
@@ -626,7 +628,7 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        self::initialize_response();
+        //self::initialize_response();
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
         $grades = '';
@@ -693,7 +695,7 @@ class local_alexaskill_external extends external_api {
             return self::in_progress();
         }
 
-        self::initialize_response();
+        //self::initialize_response();
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
         $groups = groups_get_my_groups();
@@ -804,7 +806,7 @@ class local_alexaskill_external extends external_api {
      * @return array JSON response
      */
     private static function get_help() {
-        self::initialize_response();
+        //self::initialize_response();
 
         $responses = array(
                 '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
@@ -849,7 +851,7 @@ class local_alexaskill_external extends external_api {
      * @return array JSON response
      */
     private static function say_good_bye() {
-        self::initialize_response();
+        //self::initialize_response();
 
         $responses = array(
                 'Okay, have a nice day!',
