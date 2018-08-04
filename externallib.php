@@ -383,11 +383,11 @@ class local_alexaskill_external extends external_api {
         
         if (self::$json['request']['dialogState'] == 'IN_PROGRESS') {
             // Handle dialog directive response to "Please say your Amazon Alexa pin."
-            if (isset(self::$json['request']['intent']['slots']['pin']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])) {
+            if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
                 $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
                 $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
                 if (strlen($pin) == 4) {
-                    if ($pin != self::$json['request']['intent']['slots']['pin']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name']) {
+                    if ($pin != self::$json['request']['intent']['slots']['pin']['value']) {
                         self::initialize_response();
                         self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
                         return self::$response;
