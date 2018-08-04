@@ -285,7 +285,11 @@ class local_alexaskill_external extends external_api {
         global $DB, $USER;
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
-        return strlen($pin->data) == 4;
+        if ($pin) {
+            return strlen($pin->data) == 4;
+        } else {
+            return false;
+        } 
     }
     
     /**
