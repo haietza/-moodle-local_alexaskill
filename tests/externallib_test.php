@@ -49,7 +49,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         set_config('alexaskill_applicationid', LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID, 'local_alexaskill');
         set_config('alexaskill_coursenameregex', LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, 'local_alexaskill');
 
-        $this->response = array(
+        $this->responsejson = array(
                 'version' => '1.0',
                 'response' => array (
                         'outputSpeech' => array(
@@ -64,8 +64,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
      * Tests tear down.
      */
     protected function tearDown() {
-        unset($this->response);
-        local_alexaskill_external::$json = null;
+        unset($this->responsejson);
+        local_alexaskill_external::$requestjson = null;
     }
 
     /**
@@ -80,151 +80,172 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $method->setAccessible(true);
         return $method;
     }
-    
+    /**
+     * Test for response initialization.
+     */
     public function test_initialize_response() {
         $this->resetAfterTest();
         $initializeresponse = self::getMethod('initialize_response');
         
         $initializeresponse->invokeArgs(null, array());
-        $this->assertTrue($this->response == local_alexaskill_external::$response);
+        $this->assertTrue($this->responsejson == local_alexaskill_external::$responsejson);
     }
 
     /**
      * Test for valid signature certificate URL.
      */
-    public function test_verify_signature_certificate_url_valid() {
+    public function test_signature_certificate_url_is_valid() {
         $this->resetAfterTest();
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $signaturecertificateurlisvalid = self::getMethod('signature_certificate_url_is_valid');
 
         $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertTrue($actual);
     }
 
     /**
      * Tests for invalid signature certificate URL.
      */
-    public function test_verify_signature_certificate_url_invalid() {
+    public function test_signature_certificate_url_is_valid_invalid() {
         $this->resetAfterTest();
-        $verifysignaturecertificateurl = self::getMethod('verify_signature_certificate_url');
+        $signaturecertificateurlisvalid = self::getMethod('signature_certificate_url_is_valid');
 
         $certurl = '';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = null;
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = false;
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = 'foo';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = 'http://s3.amazonaws.com/echo.api/echo-api-cert.pem';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = 'https://amazonaws.com/echo.api/echo-api-cert.pem';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = 'https://s3.amazonaws.com/amazon.api/echo-api-cert.pem';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
 
         $certurl = 'https://s3.amazonaws.com:22/echo.api/echo-api-cert.pem';
-        $actual = $verifysignaturecertificateurl->invokeArgs(null, array('certurl' => $certurl));
+        $actual = $signaturecertificateurlisvalid->invokeArgs(null, array('certurl' => $certurl));
         $this->assertFalse($actual);
     }
 
     /**
      * Test for invalid signature.
      */
-    public function test_validate_signature_invalid() {
+    public function test_signature_is_valid_invalid() {
         $this->resetAfterTest();
-        $validatesignature = self::getMethod('validate_signature');
+        $signatureisvalid = self::getMethod('signature_is_valid');
 
         $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
         $signature = 'fooencrypted';
         $request = 'foo';
-        $actual = $validatesignature->invokeArgs(null, array($certurl, $signature, $request));
+        $actual = $signatureisvalid->invokeArgs(null, array($certurl, $signature, $request));
         $this->assertFalse($actual);
     }
 
     /**
      * Test for valid timestamp.
      */
-    public function test_verify_timestamp_valid() {
+    public function test_timestamp_is_valid() {
         $this->resetAfterTest();
-        $verifytimestamp = self::getMethod('verify_timestamp');
+        $timestampisvalid = self::getMethod('timestamp_is_valid');
 
-        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time());
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertTrue($actual);
     }
 
     /**
      * Tests for invalid timestamp.
      */
-    public function test_verify_timestamp_invalid() {
+    public function test_timestamp_is_valid_invalid() {
         $this->resetAfterTest();
-        $verifytimestamp = self::getMethod('verify_timestamp');
+        $timestampisvalid = self::getMethod('timestamp_is_valid');
 
-        local_alexaskill_external::$json['request']['timestamp'] = '';
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = '';
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['request']['timestamp'] = null;
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = null;
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['request']['timestamp'] = false;
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = false;
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['request']['timestamp'] = 'foo';
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = 'foo';
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1000);
-        $actual = $verifytimestamp->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['request']['timestamp'] = gmdate('Y-m-d\TH:i:s\Z', time() - 1000);
+        $actual = $timestampisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
 
     /**
      * Test for valid application ID.
      */
-    public function test_verify_application_id_valid() {
+    public function test_applicationid_is_valid_valid() {
         $this->resetAfterTest();
-        $verifyapplicationid = self::getMethod('verify_application_id');
+        $applicationidisvalid = self::getMethod('applicationid_is_valid');
 
-        local_alexaskill_external::$json['session']['application']['applicationId'] = LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID;
-        $actual = $verifyapplicationid->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['session']['application']['applicationId'] = LOCAL_ALEXASKILL_TEST_CONFIG_APPLICATIONID;
+        $actual = $applicationidisvalid->invokeArgs(null, array());
         $this->assertTrue($actual);
     }
 
     /**
      * Tests for invalid application ID.
      */
-    public function test_verify_application_id_invalid() {
+    public function test_applicationid_is_valid_invalid() {
         $this->resetAfterTest();
-        $verifyapplicationid = self::getMethod('verify_application_id');
+        $applicationidisvalid = self::getMethod('applicationid_is_valid');
 
-        local_alexaskill_external::$json['session']['application']['applicationId'] = '';
-        $actual = $verifyapplicationid->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['session']['application']['applicationId'] = '';
+        $actual = $applicationidisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['session']['application']['applicationId'] = null;
-        $actual = $verifyapplicationid->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['session']['application']['applicationId'] = null;
+        $actual = $applicationidisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
 
-        local_alexaskill_external::$json['session']['application']['applicationId'] = 'foo';
-        $actual = $verifyapplicationid->invokeArgs(null, array());
+        local_alexaskill_external::$requestjson['session']['application']['applicationId'] = 'foo';
+        $actual = $applicationidisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
+    }
+    
+    /**
+     * Test pin_is_valid.
+     */
+    public function test_pin_is_valid() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinisvalid = self::getMethod('pin_is_valid');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, $fieldid => $fieldid->id, 'data' => '1234'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        
+        $actual = $pinisvalid->invokeArgs(null, array());
+        
+        $this->assertTrue($actual);
+        $this->assertTrue(local_alexaskill_external::$responsejson['sessionAttributes']['pin'] == 'valid');
     }
 
     /**
@@ -237,17 +258,17 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $launchrequest->invokeArgs(null, array('token' => ''));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' . You can get site announcements '
                     . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                     . 'Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello . I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -267,17 +288,17 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $launchrequest->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' Jane. You can get site announcements '
                 . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                         . 'Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello Jane. I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -291,21 +312,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -319,21 +340,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
 
-        $expected3 = $this->response;
+        $expected3 = $this->responsejson;
         $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
 
-        $expected4 = $this->response;
+        $expected4 = $this->responsejson;
         $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual
@@ -353,20 +374,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -433,22 +454,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for the site: '
                 . $announcements . ' Would you like anything else?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for the site are: '
                 . $announcements . ' Would you like anything else?</speak>';
 
@@ -462,21 +483,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -513,20 +534,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -574,22 +595,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for the site: '
                 . $announcements . ' Would you like anything else?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for the site are: '
                 . $announcements . ' Would you like anything else?</speak>';
 
@@ -626,20 +647,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for the site. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but the site does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -656,11 +677,11 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $task = 'test task';
         $actual = $verifyaccountlinking->invokeArgs(null, array('task' => $task));
 
-        $this->response['response']['card']['type'] = 'LinkAccount';
-        $this->response['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+        $this->responsejson['response']['card']['type'] = 'LinkAccount';
+        $this->responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
                 . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
 
-        $expected = $this->response;
+        $expected = $this->responsejson;
 
         $this->assertTrue($expected == $actual);
     }
@@ -672,21 +693,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -700,21 +721,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
 
-        $expected3 = $this->response;
+        $expected3 = $this->responsejson;
         $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
 
-        $expected4 = $this->response;
+        $expected4 = $this->responsejson;
         $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual
@@ -730,20 +751,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you are not enrolled in any courses. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no active courses listed for you. Can I get you anything else?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -768,20 +789,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -852,22 +873,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for ' . $coursename . ': '
                 . $announcements . ' Would you like anything else?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for ' . $coursename . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
 
@@ -917,26 +938,26 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', 1);
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'STARTED';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'STARTED';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'course'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Thanks. You can get announcements for the following courses: '
                 . $coursename2 . '<break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Great. I can get announcements from the following courses for you: '
                 . $coursename2 . '<break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
 
@@ -985,8 +1006,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['course']['value'] = 'test';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test';
 
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
@@ -996,22 +1017,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $announcements = '<p>' . $subject1 . '. ' . $message1 . '</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1 . ': '
                 . $announcements . ' Would you like anything else?</speak>';
                 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
 
@@ -1025,21 +1046,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -1079,20 +1100,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1140,8 +1161,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['course']['value'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'foo';
 
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
@@ -1149,20 +1170,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no records for foo. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but foo does not have any records. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1213,22 +1234,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $announcements = '<p>' . $subject2 . '. ' . $message2 . '</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename . ': '
                 . $announcements . ' Would you like anything else?</speak>';
                 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
 
@@ -1268,20 +1289,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1294,21 +1315,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -1322,21 +1343,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
 
-        $expected3 = $this->response;
+        $expected3 = $this->responsejson;
         $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
 
-        $expected4 = $this->response;
+        $expected4 = $this->responsejson;
         $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual
@@ -1350,21 +1371,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -1386,20 +1407,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no overall grades posted. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1432,21 +1453,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $grades = '<p>Your grade in ' . $coursename2 . ' is 99.00.</p> <p>Your grade in ' . $coursename1 . ' is 98.00.</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are your overall course grades: ' . $grades . ' Would you like anything else?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. These are your course grades overall: ' . $grades . ' Would you like anything else?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1459,21 +1480,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -1487,21 +1508,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
 
-        $expected3 = $this->response;
+        $expected3 = $this->responsejson;
         $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
 
-        $expected4 = $this->response;
+        $expected4 = $this->responsejson;
         $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual
@@ -1515,21 +1536,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$json['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$json['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
@@ -1551,20 +1572,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1623,22 +1644,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 . $eventname4 . ' is due on ' . date('l F j Y g:i a', $eventdate4) . '.</p> <p>'
                 . $eventname5 . ' is due on ' . date('l F j Y g:i a', $eventdate5) . '.</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next ' . $limit . ' upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next ' . $limit . ' important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
 
@@ -1678,22 +1699,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
                              
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
 
@@ -1733,22 +1754,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
         
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
         
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
                 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
                 
@@ -1786,20 +1807,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1836,20 +1857,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1886,20 +1907,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1936,20 +1957,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
         
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -1989,22 +2010,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
 
-        $this->response['response']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->response['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
 
@@ -2047,20 +2068,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
-        $this->response['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
-        $this->response['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
-        $this->response['response']['shouldEndSession'] = false;
-        $this->response['response']['directives'] = array(
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
                 array(
                         'type' => 'Dialog.ElicitSlot',
                         'slotToElicit' => 'else'
                 )
         );
 
-        $expected1 = $this->response;
+        $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events. Would you like anything else?';
 
-        $expected2 = $this->response;
+        $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar. Do you need any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
