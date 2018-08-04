@@ -647,7 +647,7 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') {
+        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
             return self::anything_else();
         }
 
@@ -704,7 +704,7 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (self::$requestjson['request']['dialogState'] == 'IN_PROGRESS') {
+        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
             return self::anything_else();
         }
 
