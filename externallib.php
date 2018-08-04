@@ -366,7 +366,8 @@ class local_alexaskill_external extends external_api {
         if ($token == 'valid') {
             $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
             $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
-            if (strlen($pin) == 4) {
+            if (strlen($pin->data) == 4) {
+                self::initialize_response();
                 self::$response['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
                 self::$response['response']['reprompt']['outputSpeech'] = self::get_reprompt();
                 self::$response['response']['shouldEndSession'] = false;
@@ -387,6 +388,7 @@ class local_alexaskill_external extends external_api {
                 $pin = $DB->get_record('user_info_data', array('fieldid' => $fieldid->id), 'data');
                 if (strlen($pin) == 4) {
                     if ($pin != self::$json['request']['intent']['slots']['pin']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name']) {
+                        self::initialize_response();
                         self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
                         return self::$response;
                     }
