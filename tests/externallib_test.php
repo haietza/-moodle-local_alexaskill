@@ -238,14 +238,34 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $pinisvalid = self::getMethod('pin_is_valid');
         
         $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, $fieldid => $fieldid->id, 'data' => '1234'));
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
         
         $actual = $pinisvalid->invokeArgs(null, array());
         
         $this->assertTrue($actual);
         $this->assertTrue(local_alexaskill_external::$responsejson['sessionAttributes']['pin'] == 'valid');
+    }
+    
+    /**
+     * Test pin_is_valid, invalid.
+     */
+    public function test_pin_is_valid_invalid() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinisvalid = self::getMethod('pin_is_valid');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '4321'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        
+        $actual = $pinisvalid->invokeArgs(null, array());
+        
+        $this->assertFalse($actual);
     }
 
     /**
