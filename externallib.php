@@ -411,7 +411,7 @@ class local_alexaskill_external extends external_api {
      * @param string $token
      */
     private static function get_course_announcements($token) {
-        global $DB;
+        global $DB, $SITE;
 
         // Access token is either invalid or for general web service user.
         // Send account linking card.
@@ -424,7 +424,7 @@ class local_alexaskill_external extends external_api {
             if (isset(self::$json['request']['intent']['slots']['pin']['value'])) {
                 // User has responded with PIN for verification. Verify PIN.
                 if (!self::verify_pin()) {
-                    self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid.";
+                    self::$response['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
                     return self::$response;
                 }
             } else {
