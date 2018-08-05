@@ -61,9 +61,9 @@ if ($fromform = $mform->get_data()) {
     curl_close($ch);
 
     $obj = json_decode($data, true);
-    $pinlength = strlen($fromform->pin);
 
-    if (key_exists('token', $obj) && $pinlength == 4) {
+    // User has web service token and submitted PIN is either valid or empty.
+    if (key_exists('token', $obj) && (strlen($fromform->pin) == 4 || $fromform->pin == 0)) {
         $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
 
@@ -76,7 +76,14 @@ if ($fromform = $mform->get_data()) {
             if ($DB->record_exists('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id))) {
                 $userinfodataid = $DB->get_record('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id));
                 $userinfodata->id = $userinfodataid->id;
-                $DB->update_record('user_info_data', $userinfodata);
+
+                if ($fromform->pin == 0) {
+                    // User has submitted empty PIN; remove previous user preference.
+                    $DB->delete_records('user_info_data', array('id' => $userinfodataid->id));
+                } else {
+                    // User has submitted new, valid PIN; update user preference.
+                    $DB->update_record('user_info_data', $userinfodata);
+                }
             } else {
                 $DB->insert_record('user_info_data', $userinfodata);
             }
