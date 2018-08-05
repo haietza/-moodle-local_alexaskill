@@ -787,7 +787,8 @@ class local_alexaskill_external extends external_api {
      * @return array JSON response
      */
     private static function anything_else() {
-        if (self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+        if (isset(self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])
+                && self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
             return self::say_good_bye();
         } else {
             return self::get_help();

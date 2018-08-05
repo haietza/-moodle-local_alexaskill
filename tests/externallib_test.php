@@ -40,7 +40,7 @@ require_once($CFG->dirroot . '/local/alexaskill/externallib.php');
  */
 class local_alexaskill_externallib_testcase extends externallib_advanced_testcase {
     // Web service test response.
-    private $response;
+    private $responsejson;
 
     /**
      * Tests set up.
@@ -371,12 +371,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['shouldEndSession'] = false;
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' . You can get site announcements '
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements '
                     . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                     . 'Which would you like?</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello . I can get you site announcements <break time = "350ms"/>'
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Hello. I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
@@ -401,7 +401,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['shouldEndSession'] = false;
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ' Jane. You can get site announcements '
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Welcome to ' . $SITE->fullname . ', Jane. You can get site announcements '
                 . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                         . 'Which would you like?</speak>';
 
@@ -419,7 +419,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'yes please';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
@@ -447,7 +447,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'no thanks';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
@@ -590,8 +590,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'foo';
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
@@ -800,7 +799,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'yes please';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
@@ -828,7 +827,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'no thanks';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
@@ -1153,8 +1152,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'foo';
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
@@ -1422,7 +1420,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'yes please';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
@@ -1450,7 +1448,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'no thanks';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
@@ -1478,8 +1476,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getgrades = self::getMethod('get_grades');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'foo';
 
         $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
 
@@ -1587,7 +1584,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'yes please';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'yes';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
@@ -1615,7 +1612,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'no thanks';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
@@ -1643,8 +1640,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
-        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['value'] = 'foo';
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
