@@ -307,12 +307,14 @@ class local_alexaskill_external extends external_api {
     private static function pin_exists() {
         global $DB, $USER;
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
-        if ($pin) {
-            return strlen($pin->data) == 4;
-        } else {
+        if (!$fieldid) {
             return false;
-        } 
+        }
+        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        if (!$pin) {
+            return false;
+        }
+        return strlen($pin->data) == 4;
     }
     
     /**
@@ -332,16 +334,25 @@ class local_alexaskill_external extends external_api {
      */
     private static function pin_is_valid() {
         global $DB, $USER;
+        
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        if (!$fieldid) {
+            return false;
+        }
+        
         $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        if (!$pin) {
+            return false;
+        }
+        
         if ($pin->data != self::$requestjson['request']['intent']['slots']['pin']['value']) {
             // PIN is not valid.
             return false;
-        } else {
-            // PIN is valid; set session attribute for future checks.
-            self::$responsejson['sessionAttributes']['pin'] = 'valid';
-            return true;
         }
+        
+        // PIN is valid; set session attribute for future checks.
+        self::$responsejson['sessionAttributes']['pin'] = 'valid';
+        return true;
     }
 
     /**

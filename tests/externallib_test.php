@@ -280,6 +280,25 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertFalse($actual);
     }
     
+    /**
+     * Test pin_exists, invalid no user preferences field.
+     */
+    public function test_pin_exists_invalid_no_field() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinexists = self::getMethod('pin_exists');
+        
+        $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
+                
+        $actual = $pinexists->invokeArgs(null, array());
+        
+        $this->assertFalse($actual);
+    }
+    
+    /**
+     * Test process_pin, invalid.
+     * No test needed for valid - function just returns to continue processing request.
+     */
     public function test_process_pin_invalid() {
         global $DB, $SITE;
         $this->resetAfterTest();
@@ -301,6 +320,57 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertTrue($expected == $actual);
     }
     
+    /**
+     * Test process_pin, invalid text.
+     */
+    public function test_process_pin_invalid_text() {
+        global $DB, $SITE;
+        $this->resetAfterTest();
+        $processpin = self::getMethod('process_pin');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => 'foo'));
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
+        
+        $actual = $processpin->invokeArgs(null, array());
+        
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
+        
+        $expected = $this->responsejson;
+        
+        $this->assertTrue($expected == $actual);
+    }
+    
+    /**
+     * Test process_pin, invalid negative value.
+     */
+    public function test_process_pin_invalid_negative() {
+        global $DB, $SITE;
+        $this->resetAfterTest();
+        $processpin = self::getMethod('process_pin');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '-1'));
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
+        
+        $actual = $processpin->invokeArgs(null, array());
+        
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
+        
+        $expected = $this->responsejson;
+        
+        $this->assertTrue($expected == $actual);
+    }
+    
+    /**
+     * Test process_pin, return request for PIN.
+     */
     public function test_process_pin_request() {
         global $DB, $SITE;
         $this->resetAfterTest();
@@ -382,6 +452,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '4321'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        
+        $actual = $pinisvalid->invokeArgs(null, array());
+        
+        $this->assertFalse($actual);
+    }
+    
+    /**
+     * Test pin_is_valid, invalid no field.
+     */
+    public function test_pin_is_valid_invalid_no_field() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinisvalid = self::getMethod('pin_is_valid');
+        
+        $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
         
         $actual = $pinisvalid->invokeArgs(null, array());
         
