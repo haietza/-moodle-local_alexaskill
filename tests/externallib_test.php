@@ -280,6 +280,50 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->assertFalse($actual);
     }
     
+    public function test_process_pin_invalid() {
+        global $DB, $SITE;
+        $this->resetAfterTest();
+        $processpin = self::getMethod('process_pin');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '9999'));
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
+        
+        $actual = $processpin->invokeArgs(null, array());
+        
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
+        
+        $expected = $this->responsejson;
+        
+        $this->assertTrue($expected == $actual);
+    }
+    
+    public function test_process_pin_request() {
+        global $DB, $SITE;
+        $this->resetAfterTest();
+        $processpin = self::getMethod('process_pin');        
+        
+        $actual = $processpin->invokeArgs(null, array());
+        
+        $this->responsejson['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Please say your PIN.";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'pin'
+                )
+        );
+        
+        $expected = $this->responsejson;
+        
+        $this->assertTrue($expected == $actual);
+    }
+    
     /**
      * Test reqeust pin.
      */
@@ -287,29 +331,18 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $requestpin = self::getMethod('request_pin');
         
-        $expected = array(
-                'version' => '1.0',
-                'response' => array (
-                        'outputSpeech' => array(
-                                'type' => 'PlainText',
-                                'text' => 'Please say your Amazon Alexa PIN.'
-                        ),
-                        'shouldEndSession' => false,
-                        'reprompt' => array(
-                                'outputSpeech' => array(
-                                        'type' => 'PlainText',
-                                        'text' => "I didn't quite catch that. Please say your PIN."
-                                )
-                        ),                        
-                        'directives' => array(
-                                array(
-                                        'type' => 'Dialog.ElicitSlot',
-                                        'slotToElicit' => 'pin'
-                                )
-                                
-                        )
+        $this->responsejson['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
+        $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Please say your PIN.";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'pin'
                 )
         );
+        
+        $expected = $this->responsejson;
         
         $actual = $requestpin->invokeArgs(null, array());
         
