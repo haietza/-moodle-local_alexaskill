@@ -65,10 +65,10 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
-        $expectedfromform->redirect_uri = $redirecturi;  
+        $expectedfromform->redirect_uri = $redirecturi;
 
         account_linking_form::mock_submit($accountlinkingdata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->state = $state;
@@ -81,21 +81,21 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
 
         $this->assertEquals($expectedfromform, $actualfromform);
     }
-    
+
     /**
      * Test account linking form, valid with PIN.
      */
     public function test_account_linking_valid_login_pin() {
         global $CFG;
         $this->resetAfterTest();
-        
+
         // Set wwwroot for phpu site to be same as site, so curl call in account linking will work.
         $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
         $service = 'alexa_skill_service';
         $state = 'abc123';
         $responsetype = 'token';
         $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
-        
+
         // Set phpu account username and password to valid test account with token permission for valid test.
         // phpu created users cannot be verified in login/token.php.
         $accountlinkingdata = array(
@@ -103,7 +103,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
                 'password' => LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD,
                 'pin' => '1111'
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->username = LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME;
         $expectedfromform->password = LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD;
@@ -112,9 +112,9 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($accountlinkingdata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->state = $state;
@@ -122,9 +122,9 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertEquals($expectedfromform, $actualfromform);
     }
 
@@ -165,11 +165,11 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         // but return null from get_data because they cannot be validated.
         $this->assertNull($actualfromform);
     }
-    
+
     public function test_account_linking_invalid_login_pin() {
         global $CFG;
         $this->resetAfterTest();
-        
+
         $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
         $username = 'test';
         $password = 'test';
@@ -177,15 +177,15 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $state = 'abc123';
         $responsetype = 'token';
         $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
-        
+
         $accountlinkingdata = array(
                 'username' => $username,
                 'password' => $password,
                 'pin' => 12
         );
-        
+
         account_linking_form::mock_submit($accountlinkingdata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->state = $state;
@@ -193,28 +193,28 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         // Invalid users will display error on login form
         // but return null from get_data because they cannot be validated.
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, valid login with invalid PIN.
      */
     public function test_account_linking_valid_login_invalid_pin() {
         global $CFG;
         $this->resetAfterTest();
-        
+
         // Set wwwroot for phpu site to be same as site, so curl call in account linking will work.
         $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
         $service = 'alexa_skill_service';
         $state = 'abc123';
         $responsetype = 'token';
         $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
-        
+
         // Set phpu account username and password to valid test account with token permission for valid test.
         // phpu created users cannot be verified in login/token.php.
         $accountlinkingdata = array(
@@ -222,7 +222,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
                 'password' => LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD,
                 'pin' => '111122'
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->username = LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME;
         $expectedfromform->password = LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD;
@@ -231,9 +231,9 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($accountlinkingdata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->state = $state;
@@ -241,9 +241,9 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         // Invalid PIN will display error on login form
         // but return null from get_data because form data cannot be validated.
         $this->assertNull($actualfromform);

@@ -27,7 +27,7 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
 require_once($CFG->dirroot . '/user/externallib.php');
-global $DB;
+global $DB, $PAGE, $OUTPUT;
 
 $site = get_site();
 $loginsite = get_string('loginsite');
@@ -43,16 +43,14 @@ $mform = new account_linking_form();
 
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
-    // In this case you process validated data. $mform->get_data() returns data posted in form.
+    // In this case you process validated data; $mform->get_data() returns data posted in form.
     $ch = curl_init();
     $values = array(
             'username' => $fromform->username,
             'password' => $fromform->password,
             'service' => $fromform->service
     );
-
     $curlurl = $CFG->wwwroot . '/login/token.php/';
-
     $options = array(
             CURLOPT_URL => $curlurl,
             CURLOPT_POSTFIELDS => $values,
@@ -64,30 +62,32 @@ if ($fromform = $mform->get_data()) {
 
     $obj = json_decode($data, true);
     $pinlength = strlen($fromform->pin);
-    
+
     if (key_exists('token', $obj) && $pinlength == 4) {
         $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        
-        $userinfodata = new stdClass();
-        $userinfodata->userid = $userid->id;
-        $userinfodata->fieldid = $fieldid->id;
-        $userinfodata->data = $fromform->pin;
-        
-        if ($DB->record_exists('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id))) {
-            $userinfodataid = $DB->get_record('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id));
-            $userinfodata->id = $userinfodataid->id;
-            $DB->update_record('user_info_data', $userinfodata);
-        } else {
-            $DB->insert_record('user_info_data', $userinfodata);
+
+        if ($userid && $fieldid) {
+            $userinfodata = new stdClass();
+            $userinfodata->userid = $userid->id;
+            $userinfodata->fieldid = $fieldid->id;
+            $userinfodata->data = $fromform->pin;
+
+            if ($DB->record_exists('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id))) {
+                $userinfodataid = $DB->get_record('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id));
+                $userinfodata->id = $userinfodataid->id;
+                $DB->update_record('user_info_data', $userinfodata);
+            } else {
+                $DB->insert_record('user_info_data', $userinfodata);
+            }
         }
     }
 
     $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {
-    // This branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
-    // or on the first display of the form.
+    // This branch is executed if the form is submitted but the data doesn't validate
+    // and the form should be redisplayed or on the first display of the form.
 
     // Set default data (if any).
     $toform = new stdClass();
@@ -100,6 +100,7 @@ if ($fromform = $mform->get_data()) {
             $keyvalue = explode('=', $param);
             $paramvalues[$keyvalue[0]] = $keyvalue[1];
         }
+
         $toform->state = $paramvalues['state'];
         $toform->service = $paramvalues['client_id'];
         $toform->response_type = $paramvalues['response_type'];
@@ -119,7 +120,6 @@ if ($fromform = $mform->get_data()) {
     }
 
     $mform->set_data($toform);
-    // Displays the form.
     echo $OUTPUT->header();
     echo $OUTPUT->box_start('col-xl-6 push-xl-3 m-2-md col-sm-8 push-sm-2');
     echo $OUTPUT->box_start('card');

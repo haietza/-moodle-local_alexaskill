@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External web service template.
+ * External web service settings.
  *
  * @package   local_alexaskill
  * @author    Michelle Melton <meltonml@appstate.edu>

@@ -24,6 +24,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+global $CFG;
 
 require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/forum/externallib.php');
@@ -41,7 +42,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Returns description of method parameters.
-     * 
+     *
      * @return external_function_parameters
      */
     public static function alexa_parameters() {
@@ -53,7 +54,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Main function to process web service request.
-     * 
+     *
      * @param string $request
      * @param string $token
      * @return mixed|string|array|string[]|boolean[][]|string[][][]|array
@@ -67,7 +68,7 @@ class local_alexaskill_external extends external_api {
             debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
             return http_response_code(400);
         }
-        
+
         // Only perform signature validation on live, internet accessible server that can receive requests directly from Alexa.
         // Signature is encrypted version of request, no way to simulate.
         if (!get_config('local_alexaskill', 'alexaskill_development')) {
@@ -77,7 +78,7 @@ class local_alexaskill_external extends external_api {
                 return http_response_code(400);
             }
         }
-        
+
         // Check the request timestamp.
         if (!self::timestamp_is_valid()) {
             debugging('Invalid timestamp', NO_DEBUG_DISPLAY);
@@ -275,22 +276,23 @@ class local_alexaskill_external extends external_api {
     private static function applicationid_is_valid() {
         return self::$requestjson['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
     }
-    
+
     /**
      * Ask for PIN or validate PIN.
-     * 
+     *
      * @return void|string[]|boolean[][]|string[][][]|string[]|array|][[]
      */
     private static function process_pin() {
         global $SITE;
-        
+
         if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
             // User has responded with PIN for verification. Verify PIN.
             if (!self::pin_is_valid()) {
-                self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
+                self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                        . $SITE->fullname . " profile.";
                 return self::$responsejson;
             }
-            
+
             // PIN is valid; return and finish processing request.
             return;
         } else {
@@ -298,10 +300,10 @@ class local_alexaskill_external extends external_api {
             return self::request_pin();
         }
     }
-    
+
     /**
      * Check if PIN has been set for user.
-     * 
+     *
      * @return boolean
      */
     private static function pin_exists() {
@@ -310,46 +312,48 @@ class local_alexaskill_external extends external_api {
         if (!$fieldid) {
             return false;
         }
+
         $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
         if (!$pin) {
             return false;
         }
+
         return strlen($pin->data) == 4;
     }
-    
+
     /**
      * Return response asking for PIN.
-     * 
+     *
      * @return string[]|boolean[][]|string[][][]
      */
     private static function request_pin() {
         $outputspeech = 'Please say your Amazon Alexa PIN.';
         return self::complete_response($outputspeech, false, 'pin');
     }
-    
+
     /**
-     * Verify PIN. Set session attribute if valid.
-     * 
+     * Verify PIN; set session attribute if valid.
+     *
      * @return boolean
      */
     private static function pin_is_valid() {
         global $DB, $USER;
-        
+
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         if (!$fieldid) {
             return false;
         }
-        
+
         $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
         if (!$pin) {
             return false;
         }
-        
+
         if ($pin->data != self::$requestjson['request']['intent']['slots']['pin']['value']) {
             // PIN is not valid.
             return false;
         }
-        
+
         // PIN is valid; set session attribute for future checks.
         self::$responsejson['sessionAttributes']['pin'] = 'valid';
         return true;
@@ -369,10 +373,10 @@ class local_alexaskill_external extends external_api {
                 )
         );
     }
-    
+
     /**
      * Complete and send JSON response.
-     * 
+     *
      * @param string $outputspeech
      * @param boolean $endsession
      * @param string $slot
@@ -385,12 +389,12 @@ class local_alexaskill_external extends external_api {
         } else {
             self::$responsejson['response']['outputSpeech']['text'] = $outputspeech;
         }
-        
+
         if (!$endsession) {
             self::$responsejson['response']['reprompt']['outputSpeech'] = self::get_reprompt();
             self::$responsejson['response']['shouldEndSession'] = false;
         }
-        
+
         if ($slot != '') {
             self::$responsejson['response']['directives'] = array(
                     array(
@@ -399,7 +403,8 @@ class local_alexaskill_external extends external_api {
                             )
                     );
         }
-        return self::$responsejson;   
+
+        return self::$responsejson;
     }
 
     /**
@@ -409,7 +414,7 @@ class local_alexaskill_external extends external_api {
      */
     private static function launch_request($token) {
         global $SITE, $USER;
-        
+
         if ($token == 'valid') {
             // User account is linked, include first name in welcome response.
             $responses = array(
@@ -480,9 +485,9 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::request_account_linking('get course announcements');
         }
-        
-        // User has set PIN access, but it has not been verified in this session. 
-        if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {  
+
+        // User has set PIN access, but it has not been verified in this session.
+        if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
             self::process_pin();
             if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
                 return self::$responsejson;
@@ -574,7 +579,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Get announcements for the site or a course.
-     * 
+     *
      * @return array JSON response with site or course announcements
      */
     private static function get_announcements($courseid, $coursename) {
@@ -622,7 +627,7 @@ class local_alexaskill_external extends external_api {
                     'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
                     'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
             );
-            
+
             $outputspeech = $responses[rand(0, count($responses) - 1)];
             return self::complete_response($outputspeech, false, 'else');
         } else {
@@ -630,7 +635,7 @@ class local_alexaskill_external extends external_api {
                     '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
                     '<speak>Sure. The ' . $count . ' latest announcements for ' . $coursename . ' are: '
             );
-            
+
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
             return self::complete_response($outputspeech, false, 'else');
         }
@@ -638,7 +643,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Get a user's grades.
-     * 
+     *
      * @return array JSON response with grades
      */
     private static function get_grades($token) {
@@ -647,7 +652,7 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::request_account_linking('get grades');
         }
-        
+
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
             self::process_pin();
@@ -695,7 +700,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Get a user's due dates.
-     * 
+     *
      * @return array JSON response with events
      */
     private static function get_due_dates($token) {
@@ -704,7 +709,7 @@ class local_alexaskill_external extends external_api {
         if ($token !== 'valid') {
             return self::request_account_linking('get due dates');
         }
-        
+
         // User has set PIN access, but it has not been verified in this session.
         if (self::pin_exists() && self::$requestjson['session']['attributes']['pin'] != 'valid') {
             self::process_pin();
@@ -770,7 +775,7 @@ class local_alexaskill_external extends external_api {
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
                     '<speak>Okay. The next ' . $count . ' important dates are: '
             );
-            
+
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . 'Would you like anything else? </speak>';
             return self::complete_response($outputspeech, false, 'else');
         }
@@ -825,7 +830,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Return reprompt.
-     * 
+     *
      * @return array reprompt object
      */
     private static function get_reprompt() {

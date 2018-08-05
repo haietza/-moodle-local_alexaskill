@@ -23,11 +23,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die;
+
 function xmldb_local_alexaskill_install() {
     global $DB;
 
     $categoryname = 'Amazon Alexa skill';
-    
+
     // Add user info category.
     if (!$DB->record_exists('user_info_category', array('name' => $categoryname))) {
         $userinfocategory = new stdClass();
@@ -39,8 +41,8 @@ function xmldb_local_alexaskill_install() {
         $userinfocategoryid = $record->id;
     }
 
-    $userinfofieldname = 'amazonalexaskillpin';
     // Add user info field.
+    $userinfofieldname = 'amazonalexaskillpin';
     if (!$DB->record_exists('user_info_field', array('shortname' => $userinfofieldname))) {
         $userinfofield = new stdClass();
         $userinfofield->shortname = $userinfofieldname;

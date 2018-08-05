@@ -26,7 +26,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-
 require_once($CFG->dirroot . '/local/alexaskill/externallib.php');
 
 /**
@@ -82,6 +81,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $method->setAccessible(true);
         return $method;
     }
+
     /**
      * Test for response initialization.
      */
@@ -227,7 +227,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $applicationidisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test pin_exists.
      */
@@ -235,17 +235,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinexists = self::getMethod('pin_exists');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
-        
+
         $actual = $pinexists->invokeArgs(null, array());
-        
         $this->assertTrue($actual);
     }
-    
+
     /**
      * Test pin_exists, invalid.
      */
@@ -253,15 +252,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinexists = self::getMethod('pin_exists');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        
+
         $actual = $pinexists->invokeArgs(null, array());
-        
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test pin_exists, invalid empty.
      */
@@ -269,17 +267,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinexists = self::getMethod('pin_exists');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => ''));
-        
+
         $actual = $pinexists->invokeArgs(null, array());
-        
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test pin_exists, invalid no user preferences field.
      */
@@ -287,14 +284,13 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinexists = self::getMethod('pin_exists');
-        
+
         $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
-                
+
         $actual = $pinexists->invokeArgs(null, array());
-        
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test process_pin, invalid.
      * No test needed for valid - function just returns to continue processing request.
@@ -303,23 +299,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB, $SITE;
         $this->resetAfterTest();
         $processpin = self::getMethod('process_pin');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '9999'));
-        
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
-        
+
         $actual = $processpin->invokeArgs(null, array());
-        
-        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
-        
+
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                . $SITE->fullname . " profile.";
         $expected = $this->responsejson;
-        
+
         $this->assertTrue($expected == $actual);
     }
-    
+
     /**
      * Test process_pin, invalid text.
      */
@@ -327,23 +322,22 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB, $SITE;
         $this->resetAfterTest();
         $processpin = self::getMethod('process_pin');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => 'foo'));
-        
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
-        
+
         $actual = $processpin->invokeArgs(null, array());
-        
-        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
-        
+
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                . $SITE->fullname . " profile.";
         $expected = $this->responsejson;
-        
+
         $this->assertTrue($expected == $actual);
     }
-    
+
     /**
      * Test process_pin, invalid negative value.
      */
@@ -351,33 +345,31 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB, $SITE;
         $this->resetAfterTest();
         $processpin = self::getMethod('process_pin');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '-1'));
-        
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
-        
+
         $actual = $processpin->invokeArgs(null, array());
-        
+
         $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your " . $SITE->fullname . " profile.";
-        
         $expected = $this->responsejson;
-        
+
         $this->assertTrue($expected == $actual);
     }
-    
+
     /**
      * Test process_pin, return request for PIN.
      */
     public function test_process_pin_request() {
         global $DB, $SITE;
         $this->resetAfterTest();
-        $processpin = self::getMethod('process_pin');        
-        
+        $processpin = self::getMethod('process_pin');
+
         $actual = $processpin->invokeArgs(null, array());
-        
+
         $this->responsejson['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
         $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Please say your PIN.";
@@ -388,19 +380,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'pin'
                 )
         );
-        
         $expected = $this->responsejson;
-        
+
         $this->assertTrue($expected == $actual);
     }
-    
+
     /**
      * Test reqeust pin.
      */
     public function test_request_pin() {
         $this->resetAfterTest();
         $requestpin = self::getMethod('request_pin');
-        
+
+        $actual = $requestpin->invokeArgs(null, array());
+
         $this->responsejson['response']['outputSpeech']['text'] = 'Please say your Amazon Alexa PIN.';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
         $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Please say your PIN.";
@@ -411,14 +404,11 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'pin'
                 )
         );
-        
         $expected = $this->responsejson;
-        
-        $actual = $requestpin->invokeArgs(null, array());
-        
+
         $this->assertTrue($expected == $actual);
     }
-    
+
     /**
      * Test pin_is_valid.
      */
@@ -426,19 +416,19 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinisvalid = self::getMethod('pin_is_valid');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
-        
+
         $actual = $pinisvalid->invokeArgs(null, array());
-        
+
         $this->assertTrue($actual);
         $this->assertTrue(local_alexaskill_external::$responsejson['sessionAttributes']['pin'] == 'valid');
     }
-    
+
     /**
      * Test pin_is_valid, invalid.
      */
@@ -446,18 +436,17 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinisvalid = self::getMethod('pin_is_valid');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '4321'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
-        
+
         $actual = $pinisvalid->invokeArgs(null, array());
-        
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test pin_is_valid, invalid no field.
      */
@@ -465,11 +454,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinisvalid = self::getMethod('pin_is_valid');
-        
+
         $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
-        
+
         $actual = $pinisvalid->invokeArgs(null, array());
-        
         $this->assertFalse($actual);
     }
 
@@ -593,7 +581,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getsiteannouncements = self::getMethod('get_site_announcements');
-        
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
@@ -677,7 +665,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array());
 
-        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
+        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. '
+                . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
@@ -865,7 +854,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->setUser($user);
         $roleid = $CFG->defaultfrontpageroleid;
         $this->unassignUserCapability('mod/forum:viewdiscussion', 1, $roleid);
-        
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => 1));
 
@@ -1024,10 +1013,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for '
+                . $coursename . '. Would you like anything else?';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename
+            . ' does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1095,7 +1086,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
+        $announcements = '<p>' . $subject4 . '. ' . $message4 . '</p> <p>' . $subject3 . '. '
+                . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['shouldEndSession'] = false;
@@ -1109,12 +1101,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for ' . $coursename . ': '
-                . $announcements . ' Would you like anything else?</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the ' . $limit . ' most recent announcements for '
+                . $coursename . ': ' . $announcements . ' Would you like anything else?</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for ' . $coursename . ' are: '
-                . $announcements . ' Would you like anything else?</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The ' . $limit . ' latest announcements for ' . $coursename
+            . ' are: ' . $announcements . ' Would you like anything else?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1253,9 +1245,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1 . ': '
-                . $announcements . ' Would you like anything else?</speak>';
-                
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1
+            . ': ' . $announcements . ' Would you like anything else?</speak>';
+
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
@@ -1334,10 +1326,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no announcements for ' . $coursename
+            . '. Would you like anything else?';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but ' . $coursename
+            . ' does not have any announcements. Can I get you any other information?';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1469,9 +1463,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename . ': '
-                . $announcements . ' Would you like anything else?</speak>';
-                
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename
+            . ': ' . $announcements . ' Would you like anything else?</speak>';
+
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
@@ -1687,10 +1681,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         );
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are your overall course grades: ' . $grades . ' Would you like anything else?</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are your overall course grades: ' . $grades
+            . ' Would you like anything else?</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. These are your course grades overall: ' . $grades . ' Would you like anything else?</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. These are your course grades overall: ' . $grades
+            . ' Would you like anything else?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1919,7 +1915,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
-                             
+
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
@@ -1941,14 +1937,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
-    
+
     /**
-     * Test get_due_dates,   before now.
+     * Test get_due_dates, before now.
      */
     public function test_get_due_dates_before_now() {
         $this->resetAfterTest();
         $getduedates = self::getMethod('get_due_dates');
-        
+
         $this->setAdminUser();
         $coursename = 'test course';
         $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
@@ -1960,21 +1956,21 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $eventdate2 = time() - (2 * 86400);
         $assignment2 = $this->getDataGenerator()->create_module('assign',
                 array('course' => $course->id, 'name' => $eventname2, 'duedate' => $eventdate2));
-        
+
         $this->setUser(null);
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
-        
+
         $limit = 5;
         set_config('calendar_maxevents', $limit);
         $lookahead = 21;
         set_config('calendar_lookahead', $lookahead);
-        
+
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
-        
+
         $duedates = '<p>' . $eventname1 . ' is due on ' . date('l F j Y g:i a', $eventdate1) . '.</p> ';
-        
+
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
@@ -1985,15 +1981,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                         'slotToElicit' => 'else'
                 )
         );
-        
+
         $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: '
                 . $duedates . 'Would you like anything else? </speak>';
-                
+
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: '
                 . $duedates . 'Would you like anything else? </speak>';
-                
+
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
 
@@ -2177,7 +2173,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         set_config('calendar_lookahead', $lookahead);
 
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
-        
+
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'PlainText';
         $this->responsejson['response']['reprompt']['outputSpeech']['text'] = "I didn't quite catch that. Would you like anything else?";
         $this->responsejson['response']['shouldEndSession'] = false;
@@ -2314,73 +2310,73 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     public function test_get_preferred_course_name() {
         $this->resetAfterTest();
         $getpreferredcoursename = self::getMethod('get_preferred_course_name');
-        
+
         $coursename1 = 'C S5998-101_THESIS PREPARATION (FIRST SUMMER 2018) full';
         $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename1));
-        
+
         $expected1 = 'thesis preparation';
-        
+
         $this->assertEquals($expected1, $actual);
-        
+
         $coursename2 = 'English I';
         $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename2));
-        
+
         $expected2 = 'english i';
-        
+
         $this->assertEquals($expected2, $actual);
     }
-    
+
     /**
      * Test anything_else, say good bye.
      */
     public function test_anything_else_say_good_bye() {
         $this->resetAfterTest();
         $anythingelse = self::getMethod('anything_else');
-        
+
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'no';
-        
+
         $actual = $anythingelse->invokeArgs(null, array());
-        
+
         $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
-        
+
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
-        
+
         $expected3 = $this->responsejson;
         $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
-        
+
         $expected4 = $this->responsejson;
         $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
-        
+
         $this->assertTrue($expected1 == $actual || $expected2 == $actual || $expected3 == $actual || $expected4 == $actual);
     }
-    
+
     /**
      * Test anything_else, get help.
      */
     public function test_anything_else_get_help() {
         $this->resetAfterTest();
         $anythingelse = self::getMethod('anything_else');
-        
+
         local_alexaskill_external::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'foo';
-        
+
         $actual = $anythingelse->invokeArgs(null, array());
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
         $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
         $this->responsejson['response']['shouldEndSession'] = false;
-        
+
         $expected1 = $this->responsejson;
         $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements '
                 . '<break time = "350ms"/>course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. '
                 . 'Which would you like?</speak>';
-                
+
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements <break time = "350ms"/>'
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
-                
+
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
 }

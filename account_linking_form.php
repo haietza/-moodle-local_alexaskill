@@ -47,7 +47,7 @@ class account_linking_form extends moodleform {
         $mform->addElement('password', 'password', $name, $options);
         $mform->setType('password', PARAM_RAW);
         $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
-        
+
         $name = get_string('alexaskill_accountlinking_pin', 'local_alexaskill');
         $options = array('maxlength' => 4);
         $mform->addElement('password', 'pin', $name, $options);
@@ -78,7 +78,6 @@ class account_linking_form extends moodleform {
                 'password' => $data['password'],
                 'service' => $data['service']
         );
-
         $curlurl = $CFG->wwwroot . '/login/token.php/';
         $options = array(
                 CURLOPT_URL => $curlurl,
@@ -90,8 +89,8 @@ class account_linking_form extends moodleform {
         curl_close($ch);
 
         $obj = json_decode($result, true);
-        
-        // errors array displays errors on form field based on errorcode returned in JSON response.
+
+        // Errors array displays errors on form field based on errorcode returned in JSON response.
         if (!key_exists('token', $obj)) {
             switch ($obj['errorcode']) {
                 case 'enablewsdescription':
@@ -108,7 +107,7 @@ class account_linking_form extends moodleform {
                     break;
             }
         }
-        
+
         $pinlength = strlen($data['pin']);
         if (($data['pin'] != 0 && $pinlength < 4) || $pinlength > 4) {
             $errors['pin'] = 'PIN must be 4 digits.';
