@@ -85,6 +85,8 @@ if ($fromform = $mform->get_data()) {
     }
 
     $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $token->token . '&token_type=Bearer';
+    // Log the user out of Moodle.
+    require_logout();
     header ("Location: $redirect");
 } else {
     // This branch is executed if the form is submitted but the data doesn't validate
