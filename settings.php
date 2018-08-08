@@ -36,6 +36,9 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_applicationid',
             get_string('alexaskill_applicationid_label', 'local_alexaskill'),
             get_string('alexaskill_applicationid_desc', 'local_alexaskill'), ''));
+    $settings->add(new admin_setting_configtextarea('local_alexaskill/alexaskill_redirecturis',
+            get_string('alexaskill_redirecturis_label', 'local_alexaskill'),
+            get_string('alexaskill_redirecturis_desc', 'local_alexaskill'), ''));
     $settings->add(new admin_setting_configtext('local_alexaskill/alexaskill_coursenameregex',
             get_string('alexaskill_coursenameregex_label', 'local_alexaskill'),
             get_string('alexaskill_coursenameregex_desc', 'local_alexaskill'), '/(.*)/'));

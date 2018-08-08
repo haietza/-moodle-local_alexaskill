@@ -28,7 +28,6 @@ require_once('../../config.php');
 require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
 require_once($CFG->dirroot . '/user/externallib.php');
 require_login();
-global $DB, $PAGE, $OUTPUT;
 
 $site = get_site();
 $loginsite = get_string('loginsite');
@@ -45,47 +44,42 @@ $mform = new account_linking_form();
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
     // In this case you process validated data; $mform->get_data() returns data posted in form.
-    global $CFG, $USER, $DB;
+    global $USER, $DB;
     $serviceshortname = $fromform->service;
     
-    // Copied from login/token.php/
-    // Service already checked in validation.
+    // Copied from login/token.php
     $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
     
-    // Get an existing token or create a new one (already checked in validation).
+    // Get an existing token or create a new one.
     $token = external_generate_token_for_current_user($service);
     external_log_token_request($token);
 
-    // User has web service token and submitted PIN is either valid or empty.
-    if (isset($token->token) && (strlen($fromform->pin) == 4 || $fromform->pin == 0)) {
-        $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-
-        if ($userid && $fieldid) {
-            $userinfodata = new stdClass();
-            $userinfodata->userid = $userid->id;
-            $userinfodata->fieldid = $fieldid->id;
-            $userinfodata->data = $fromform->pin;
-
-            if ($DB->record_exists('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id))) {
-                $userinfodataid = $DB->get_record('user_info_data', array('userid' => $userid->id, 'fieldid' => $fieldid->id));
-                $userinfodata->id = $userinfodataid->id;
-
-                if ($fromform->pin == 0) {
-                    // User has submitted empty PIN; remove previous user preference.
-                    $DB->delete_records('user_info_data', array('id' => $userinfodataid->id));
-                } else {
-                    // User has submitted new, valid PIN; update user preference.
-                    $DB->update_record('user_info_data', $userinfodata);
-                }
-            } else {
-                $DB->insert_record('user_info_data', $userinfodata);
-            }
+    $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+    
+    $userinfodata = new stdClass();
+    $userinfodata->userid = $USER->id;
+    $userinfodata->fieldid = $fieldid->id;
+    $userinfodata->data = $fromform->pin;
+    
+    if ($fromform->pin != 0) {
+        // User has submitted PIN.
+        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id))) {
+            // User has submitted changed PIN.
+            $userpinfieldid = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'id');
+            $userinfodata->id = $userpinfieldid->id;
+            $DB->update_record('user_info_data', $userinfodata);
+        } else {
+            // User has submitted new PIN.
+            $DB->insert_record('user_info_data', $userinfodata);
+        }
+    } else {
+        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id))) {
+            // User has removed PIN.
+            $DB->delete_records('user_info_data', array('id' => $userpinfieldid->id));
         }
     }
 
     $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $token->token . '&token_type=Bearer';
-    // Log the user out of Moodle.
     require_logout();
     header ("Location: $redirect");
 } else {

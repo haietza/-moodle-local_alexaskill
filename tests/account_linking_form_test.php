@@ -40,27 +40,30 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
      * Test account linking form, valid with no PIN.
      */
     public function test_account_linking_valid_login_no_pin() {
-        global $CFG;
+        global $CFG, $DB;
         $this->resetAfterTest();
 
         // Set wwwroot for phpu site to be same as site, so curl call in account linking will work.
-        $CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
+        //$CFG->wwwroot = LOCAL_ALEXASKILL_TEST_CONFIG_WWWROOT;
         $service = 'alexa_skill_service';
         $state = 'abc123';
         $responsetype = 'token';
         $redirecturi = 'https://pitangui.amazon.com/spa/skill/account-linking-status.html?vendorId=M1J0ZE9ZFRM0ST';
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->role_assign($roleid, $user->id);
+        
 
         // Set phpu account username and password to valid test account with token permission for valid test.
         // phpu created users cannot be verified in login/token.php.
         $accountlinkingdata = array(
-                'username' => LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME,
-                'password' => LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD,
                 'pin' => ''
         );
 
         $expectedfromform = new stdClass();
-        $expectedfromform->username = LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME;
-        $expectedfromform->password = LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD;
+        //$expectedfromform->username = LOCAL_ALEXASKILL_TEST_CONFIG_USERNAME;
+        //$expectedfromform->password = LOCAL_ALEXASKILL_TEST_CONFIG_PASSWORD;
         $expectedfromform->pin = 0;
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;

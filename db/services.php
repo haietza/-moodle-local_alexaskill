@@ -31,7 +31,7 @@ $functions = array(
                 'classname'   => 'local_alexaskill_external',
                 'methodname'  => 'alexa',
                 'classpath'   => 'local/alexaskill/externallib.php',
-                'description' => 'Get type',
+                'description' => 'Web service endpoint for Amazon Alexa custom skill for Moodle',
                 'type'        => 'read',
         )
 );
