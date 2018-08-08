@@ -26,27 +26,13 @@
 defined('MOODLE_INTERNAL') || die;
 global $CFG;
 require_once("$CFG->libdir/formslib.php");
+//require_login();
 
 class account_linking_form extends moodleform {
     public function definition() {
         global $USER;
 
         $mform = $this->_form;
-
-        $name = get_string('alexaskill_accountlinking_username', 'local_alexaskill');
-        $options = array('required' => true);
-        $mform->addElement('text', 'username', $name, $options);
-        $mform->setType('username', PARAM_USERNAME);
-        if (isloggedin()) {
-            $mform->setDefault('username', $USER->username);
-        }
-        $mform->addHelpButton('username', 'alexaskill_accountlinking_username', 'local_alexaskill');
-
-        $name = get_string('alexaskill_accountlinking_password', 'local_alexaskill');
-        $options = array('required' => true);
-        $mform->addElement('password', 'password', $name, $options);
-        $mform->setType('password', PARAM_RAW);
-        $mform->addHelpButton('password', 'alexaskill_accountlinking_password', 'local_alexaskill');
 
         $name = get_string('alexaskill_accountlinking_pin', 'local_alexaskill');
         $options = array('maxlength' => 4);
@@ -70,42 +56,25 @@ class account_linking_form extends moodleform {
     }
 
     public function validation($data, $files) {
-        global $CFG;
+        global $CFG, $USER, $DB;
         $errors = array();
-        $ch = curl_init();
-        $values = array(
-                'username' => $data['username'],
-                'password' => $data['password'],
-                'service' => $data['service']
-        );
-        $curlurl = $CFG->wwwroot . '/login/token.php/';
-        $options = array(
-                CURLOPT_URL => $curlurl,
-                CURLOPT_POSTFIELDS => $values,
-                CURLOPT_RETURNTRANSFER => 1
-        );
-        curl_setopt_array($ch, $options);
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        $obj = json_decode($result, true);
-
-        // Errors array displays errors on form field based on errorcode returned in JSON response.
-        if (!key_exists('token', $obj)) {
-            switch ($obj['errorcode']) {
-                case 'enablewsdescription':
-                case 'servicenotavailable':
-                case 'sitemaintenance':
-                case 'noguest':
-                case 'usernotconfirmed':
-                case 'invalidlogin':
-                    $errors['username'] = $obj['error'];
-                    break;
-                case 'restoredaccountresetpassword':
-                case 'passwordisexpired':
-                    $errors['password'] = $obj['error'];
-                    break;
-            }
+        $serviceshortname = $data['service'];
+        
+        // Copied from login/token.php/
+        // Check if the service exists and is enabled.
+        $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
+        if (empty($service)) {
+            // Will throw exception if no token found.
+            //throw new moodle_exception('servicenotavailable', 'webservice');
+            $errors['pin'] = 'Service not available.';
+        }
+        
+        // Get an existing token or create a new one.
+        try {
+            $token = external_generate_token_for_current_user($service);
+            external_log_token_request($token);
+        } catch (moodle_exception $e) {
+            // If exception is thrown, log in $errors.
         }
 
         $pinlength = strlen($data['pin']);

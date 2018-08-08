@@ -27,6 +27,7 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
 require_once($CFG->dirroot . '/user/externallib.php');
+require_login();
 global $DB, $PAGE, $OUTPUT;
 
 $site = get_site();
@@ -44,23 +45,18 @@ $mform = new account_linking_form();
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
     // In this case you process validated data; $mform->get_data() returns data posted in form.
-    $ch = curl_init();
-    $values = array(
-            'username' => $fromform->username,
-            'password' => $fromform->password,
-            'service' => $fromform->service
-    );
-    $curlurl = $CFG->wwwroot . '/login/token.php/';
-    $options = array(
-            CURLOPT_URL => $curlurl,
-            CURLOPT_POSTFIELDS => $values,
-            CURLOPT_RETURNTRANSFER => 1
-    );
-    curl_setopt_array($ch, $options);
-    $data = curl_exec($ch);
-    curl_close($ch);
-
-    $obj = json_decode($data, true);
+    global $CFG, $USER, $DB;
+    $serviceshortname = $fromform->service;
+    
+    // Copied from login/token.php/
+    // Service already checked in validation.
+    $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
+    
+    // Get an existing token or create a new one (already checked in validation).
+    $token = external_generate_token_for_current_user($service);
+    external_log_token_request($token);
+        
+    $obj = json_encode($token);
 
     // User has web service token and submitted PIN is either valid or empty.
     if (key_exists('token', $obj) && (strlen($fromform->pin) == 4 || $fromform->pin == 0)) {

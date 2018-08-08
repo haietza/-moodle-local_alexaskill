@@ -38,6 +38,6 @@ $string['alexaskill_accountlinking_username'] = 'Username';
 $string['alexaskill_accountlinking_username_help'] = 'Enter your ' . $SITE->fullname . ' username.';
 $string['alexaskill_accountlinking_password'] = 'Password';
 $string['alexaskill_accountlinking_password_help'] = 'Enter your ' . $SITE->fullname . ' password. <a href="' . $CFG->wwwroot . '/login/forgot_password.php">Forgotten your username or password?</a>';
-$string['alexaskill_accountlinking_pin'] = 'Amazon Alexa skill 4-digit PIN';
-$string['alexaskill_accountlinking_pin_help'] = 'Enter a 4-digit PIN if you want to secure your Amazon Alexa access.';
+$string['alexaskill_accountlinking_pin'] = 'Create PIN (optional)';
+$string['alexaskill_accountlinking_pin_help'] = 'Create an optional 4-digit PIN if you want to secure your Amazon Alexa access.';
 $string['alexaskill_accountlinking_submit'] = 'Link account';
