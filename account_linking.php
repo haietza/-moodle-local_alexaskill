@@ -55,11 +55,9 @@ if ($fromform = $mform->get_data()) {
     // Get an existing token or create a new one (already checked in validation).
     $token = external_generate_token_for_current_user($service);
     external_log_token_request($token);
-        
-    $obj = json_encode($token);
 
     // User has web service token and submitted PIN is either valid or empty.
-    if (key_exists('token', $obj) && (strlen($fromform->pin) == 4 || $fromform->pin == 0)) {
+    if (isset($token->token) && (strlen($fromform->pin) == 4 || $fromform->pin == 0)) {
         $userid = $DB->get_record('user', array('username' => $fromform->username), 'id');
         $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
 
@@ -86,7 +84,7 @@ if ($fromform = $mform->get_data()) {
         }
     }
 
-    $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $obj['token'] . '&token_type=Bearer';
+    $redirect = $fromform->redirect_uri . '#state=' . $fromform->state . '&access_token=' . $token->token . '&token_type=Bearer';
     header ("Location: $redirect");
 } else {
     // This branch is executed if the form is submitted but the data doesn't validate
