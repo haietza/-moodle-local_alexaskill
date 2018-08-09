@@ -191,6 +191,61 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
     }
     
     /**
+     * Test account linking form, valid with deleted PIN.
+     */
+    public function test_account_linking_valid_deleted_pin() {
+        global $DB, $CFG;
+        
+        $this->resetAfterTest();
+        
+        // Alexa Skill external service has already been created.
+        $service = 'alexa_skill_service';
+        
+        // Set valid form values.
+        $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
+        $responsetype = 'token';
+        $state = 'abc123';
+        
+        // Create and login valid user, add webservice role.
+        // Create existing PIN for user.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
+        $this->getDataGenerator()->role_assign($role->id, $user->id);
+        $userinfofield = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $userinfodata = new stdClass();
+        $userinfodata->userid = $user->id;
+        $userinfodata->fieldid = $userinfofield->id;
+        $userinfodata->data = '1234';
+        $DB->insert_record('user_info_data', $userinfodata);
+        
+        $submitteddata = array(
+                'pin' => ''
+        );
+        
+        $expectedfromform = new stdClass();
+        $expectedfromform->pin = 0;
+        $expectedfromform->service = $service;
+        $expectedfromform->state = $state;
+        $expectedfromform->response_type = $responsetype;
+        $expectedfromform->redirect_uri = $redirecturi;
+        
+        account_linking_form::mock_submit($submitteddata);
+        
+        $form = new account_linking_form();
+        $toform = new stdClass();
+        $toform->service = $service;
+        $toform->state = $state;
+        $toform->response_type = $responsetype;
+        $toform->redirect_uri = $redirecturi;
+        $form->set_data($toform);
+        
+        $actualfromform = $form->get_data();
+        
+        $this->assertEquals($expectedfromform, $actualfromform);
+    }
+    
+    /**
      * Test account linking form, valid with no PIN.
      */
     public function test_account_linking_valid_login_no_pin() {
