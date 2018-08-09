@@ -27,7 +27,7 @@ use Symfony\Component\DomCrawler\Form;
 
 defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->libdir/formslib.php");
-require_login();
+//require_login();
 
 class account_linking_form extends moodleform {
     /**
