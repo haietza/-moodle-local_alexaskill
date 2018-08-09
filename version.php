@@ -23,7 +23,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2018080201;
+$plugin->version   = 2018080900;
 $plugin->requires  = 2017111304;
 $plugin->component = 'local_alexaskill';
 $plugin->maturity  = MATURITY_STABLE;

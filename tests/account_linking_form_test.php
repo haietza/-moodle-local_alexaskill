@@ -58,8 +58,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        // Have to insert record here!
-        //$role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
+        $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
         
         $submitteddata = array(

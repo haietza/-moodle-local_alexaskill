@@ -59,7 +59,7 @@ function xmldb_local_alexaskill_install() {
         $DB->insert_record('role_capabilities', $tokencapability);
     }
     
-    if (!$DB->record_exists('role_capabilities', array('roleid' => $roleid, 'capability' => 'moodle/webservice:createtoken'))) {
+    if (!$DB->record_exists('role_capabilities', array('roleid' => $roleid, 'capability' => 'webservice/restalexa:use'))) {
         $restalexacapability = new stdClass();
         $restalexacapability->contextid = 1;
         $restalexacapability->roleid = $roleid;
@@ -76,7 +76,7 @@ function xmldb_local_alexaskill_install() {
         $webserviceuser->username = 'webservice';
         $webserviceuser->firstname = 'Web';
         $webserviceuser->lastname = 'Service';
-        $host = parse_url($CFG->wwwroot, PHP_URL_PATH);
+        $host = parse_url($CFG->wwwroot, PHP_URL_HOST);
         $webserviceuser->email = 'noreply@' . $host;
         $userid = $DB->insert_record('user', $webserviceuser, true);
     } else {
@@ -88,21 +88,23 @@ function xmldb_local_alexaskill_install() {
     if (!$DB->record_exists('role_assignments', array('userid' => $userid, 'roleid' => $roleid))) {
         $webserviceroleassign = new stdClass();
         $webserviceroleassign->roleid = $roleid;
-        $webserviceroleassign->contextid = context_system::instance()->id;;
+        $webserviceroleassign->contextid = context_system::instance()->id;
+        $webserviceroleassign->userid = $userid;
         $DB->insert_record('role_assignments', $webserviceroleassign);
     }
     
     // Create token for webservice user.
-    $externalservice = $DB->get_record('external_services', array('shortname' => 'alexa_skill_service'), 'id');
-    if (!$DB->record_exists('external_tokens', array('userid' => $userid, 'externalserviceid' => $externalservice->id))) {
-        $externaltoken = new stdClass();
-        $externaltoken->token = md5(uniqid(rand(), 1));
-        $externaltoken->tokentype = EXTERNAL_TOKEN_PERMANENT;
-        $externaltoken->userid = $userid;
-        $externaltoken->externalserviceid = $externalservice->id;
-        $externaltoken->contextid = context_system::instance()->id;
-        $DB->insert_record('external_tokens', $externaltoken);
-    }
+    //$externalservice = $DB->get_record('external_services', array('shortname' => 'alexa_skill_service'), 'id');
+    //if (!$DB->record_exists('external_tokens', array('userid' => $userid, 'externalserviceid' => $externalservice->id))) {
+    //    $externaltoken = new stdClass();
+    //    $externaltoken->token = md5(uniqid(rand(), 1));
+    //    $externaltoken->tokentype = EXTERNAL_TOKEN_PERMANENT;
+    //    $externaltoken->userid = $userid;
+    //    $externaltoken->externalserviceid = $externalservice->id;
+    //    $externaltoken->contextid = context_system::instance()->id;
+    //    $externaltoken->timecreated = time();
+    //    $DB->insert_record('external_tokens', $externaltoken);
+    //}
     
     // Enable web services.
     $enablewebservices = new stdClass();
@@ -111,20 +113,26 @@ function xmldb_local_alexaskill_install() {
     if (!$DB->record_exists('config', array('name' => 'enablewebservices'))) {
         $DB->insert_record('config', $enablewebservices);
     } else {
+        $config = $DB->get_record('config', array('name' => 'enablewebservices'), 'id');
+        $enablewebservices->id = $config->id;
         $DB->update_record('config', $enablewebservices);
     }
     
     // Enable RESTALEXA protocol.
-    $enabledprotocols = $DB->get_record('config', array('name' => 'webserviceprotocols'), 'value');
-    if (stripos($enabledprotocols->value, 'restalexa') === false) {
-        $enabledprotocolsupdate = new stdClass();
-        $enabledprotocolsupdate->name = 'webserviceprotocols';
-        if ($enabledprotocols->value == '') {
-            $enabledprotocolsupdate->value = $enabledprotocols->value . 'restalexa';
-        } else {
-            $enabledprotocolsupdate->value = $enabledprotocols->value . ',restalexa';
+    $enablerestalexa = new stdClass();
+    $enablerestalexa->name = 'webserviceprotocols';
+    $enablerestalexa->value = 'restalexa';
+    if (!$DB->record_exists('config', array('name' => 'webserviceprotocols'))) {
+        $DB->insert_record('config', $enablerestalexa);
+    } else {
+        $webserviceprotocols = $DB->get_record('config', array('name' => 'webserviceprotocols'), 'id, value');
+        if (stripos($webserviceprotocols->value, 'restalexa') === false) {
+            $enablerestalexa->id = $webserviceprotocols->id;
+            if ($webserviceprotocols->value != '') {
+                $enablerestalexa->value = $webserviceprotocols->value . ', restalexa';
+            }
+            $DB->update_record('config', $enablerestalexa);
         }
-        $DB->update_record('config', $enabledprotocolsupdate);
     }
 
     // Add category and field to default user profile fields.
