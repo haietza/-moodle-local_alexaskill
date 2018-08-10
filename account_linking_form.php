@@ -78,6 +78,7 @@ class account_linking_form extends moodleform {
         if (empty($service)) {
             // No external service found, display error message on form. 
             $errors['pin'] = get_string('servicenotavailable', 'webservice');
+            // Have to return $errors here to stop running of validation, $service is used in token retrieval.
             return $errors;
         }
         
@@ -106,23 +107,20 @@ class account_linking_form extends moodleform {
         $pinlength = strlen($data['pin']);
         if ($data['pin'] != '' && ($pinlength < 4 || $pinlength > 4 || !is_numeric($data['pin']))) {
             $errors['pin'] = get_string('alexaskill_accountlinking_pin_error', 'local_alexaskill');
-            //return $errors;
         }
         
         // Make sure user profile field exists.
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        if (empty($fieldid)) {
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        if (empty($field)) {
             // PIN field has not been configured, display error message and log.
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
-            debugging('Amazon Alexa skill PIN user profiled field has not been configured. See local/alexaskill/db/install.php.', NO_DEBUG_DISPLAY);
-            //return $errors;
+            debugging('Amazon Alexa skill PIN user profile field has not been configured. See local/alexaskill/db/install.php.', NO_DEBUG_DISPLAY);
         }
         
         // Make sure state, reponse_type and redirect_uri were included as query strings.
         if (empty($data['state']) || empty($data['response_type']) || empty($data['redirect_uri'])) {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('Account linking request missing required argument.', NO_DEBUG_DISPLAY);
-            //return $errors;
         }
         
         return $errors;
