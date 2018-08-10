@@ -83,7 +83,7 @@ class account_linking_form extends moodleform {
         }
         
         // Redirect URI is not valid, display error message and log.
-        if (stripos(get_config('local_alexaskill', 'alexaskill_redirecturis'), $data['redirect_uri']) === false) {
+        if (isset($data['redirect_uri']) && stripos(get_config('local_alexaskill', 'alexaskill_redirecturis'), $data['redirect_uri']) === false) {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('Amazon Alexa skill redirect URI does not match configured settings.', NO_DEBUG_DISPLAY);
         }
