@@ -41,7 +41,7 @@ class account_linking_form extends moodleform {
         $name = get_string('alexaskill_accountlinking_pin', 'local_alexaskill');
         $options = array('maxlength' => 4);
         $mform->addElement('password', 'pin', $name, $options);
-        $mform->setType('pin', PARAM_INT);
+        $mform->setType('pin', PARAM_TEXT);
         $mform->addHelpButton('pin', 'alexaskill_accountlinking_pin', 'local_alexaskill');
 
         $mform->addElement('hidden', 'service');
@@ -102,9 +102,9 @@ class account_linking_form extends moodleform {
             $errors['pin'] = get_string($e->errorcode, $e->module);
         }
         
-        // If user enters PIN (!= 0), make sure it is 4-digits in length.
+        // If user enters PIN, make sure it is 4-digits in length.
         $pinlength = strlen($data['pin']);
-        if ($data['pin'] != 0 && ($pinlength < 4 || $pinlength > 4 || !is_numeric($data['pin']))) {
+        if ($data['pin'] != '' && ($pinlength < 4 || $pinlength > 4 || !is_numeric($data['pin']))) {
             $errors['pin'] = get_string('alexaskill_accountlinking_pin_error', 'local_alexaskill');
             //return $errors;
         }

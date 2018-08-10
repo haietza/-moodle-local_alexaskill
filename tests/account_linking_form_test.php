@@ -122,7 +122,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         );
         
         $expectedfromform = new stdClass();
-        $expectedfromform->pin = 0;
+        $expectedfromform->pin = '';
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
@@ -232,7 +232,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         );
         
         $expectedfromform = new stdClass();
-        $expectedfromform->pin = 0;
+        $expectedfromform->pin = '';
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
@@ -479,6 +479,48 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 123456;
+        
+        // Create and login valid user, add webservice role.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
+        $this->getDataGenerator()->role_assign($role->id, $user->id);
+        
+        $submitteddata = array(
+                'pin' => $pin
+        );
+        
+        account_linking_form::mock_submit($submitteddata);
+        
+        $form = new account_linking_form();
+        $toform = new stdClass();
+        $toform->service = $service;
+        $toform->state = $state;
+        $toform->response_type = $responsetype;
+        $toform->redirect_uri = $redirecturi;
+        $form->set_data($toform);
+        
+        $actualfromform = $form->get_data();
+        
+        $this->assertNull($actualfromform);
+    }
+    
+    /**
+     * Test account linking form, invalid PIN not a number.
+     */
+    public function test_account_linking_invalid_text_pin() {
+        global $DB;
+        
+        $this->resetAfterTest();
+        
+        // Alexa Skill external service has already been created.
+        $service = 'alexa_skill_service';
+        
+        // Set valid form values.
+        $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
+        $responsetype = 'token';
+        $state = 'abc123';
+        $pin = 'abcd';
         
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
