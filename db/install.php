@@ -93,19 +93,6 @@ function xmldb_local_alexaskill_install() {
         $DB->insert_record('role_assignments', $webserviceroleassign);
     }
     
-    // Create token for webservice user.
-    //$externalservice = $DB->get_record('external_services', array('shortname' => 'alexa_skill_service'), 'id');
-    //if (!$DB->record_exists('external_tokens', array('userid' => $userid, 'externalserviceid' => $externalservice->id))) {
-    //    $externaltoken = new stdClass();
-    //    $externaltoken->token = md5(uniqid(rand(), 1));
-    //    $externaltoken->tokentype = EXTERNAL_TOKEN_PERMANENT;
-    //    $externaltoken->userid = $userid;
-    //    $externaltoken->externalserviceid = $externalservice->id;
-    //    $externaltoken->contextid = context_system::instance()->id;
-    //    $externaltoken->timecreated = time();
-    //    $DB->insert_record('external_tokens', $externaltoken);
-    //}
-    
     // Enable web services.
     $enablewebservices = new stdClass();
     $enablewebservices->name = 'enablewebservices';

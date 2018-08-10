@@ -36,14 +36,14 @@ require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
  * @group      local_alexaskill_account_linking
  */
 class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
-    
+
     /**
      * Tests set up.
      */
     protected function setUp() {
         set_config('alexaskill_redirecturis', LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURIS, 'local_alexaskill');
     }
-    
+
     /**
      * Test account linking form, valid with PIN.
      * 
@@ -51,37 +51,37 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
      */
     public function test_account_linking_valid_new_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->pin = $pin;
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -89,47 +89,47 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertEquals($expectedfromform, $actualfromform);
     }
-    
+
     /**
      * Test account linking form, valid with no PIN.
      */
     public function test_account_linking_valid_new_no_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => ''
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->pin = '';
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -137,28 +137,28 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertEquals($expectedfromform, $actualfromform);
     }
-    
+
     /**
      * Test account linking form, valid with changed PIN.
      */
     public function test_account_linking_valid_change_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
-        
+
         // Create and login valid user, add webservice role.
         // Create existing PIN for user.
         $user = $this->getDataGenerator()->create_user();
@@ -171,20 +171,20 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $userinfodata->fieldid = $userinfofield->id;
         $userinfodata->data = '1234';
         $DB->insert_record('user_info_data', $userinfodata);
-        
+
         $submitteddata = array(
                 'pin' => '4321'
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->pin = '4321';
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -192,28 +192,28 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertEquals($expectedfromform, $actualfromform);
     }
-    
+
     /**
      * Test account linking form, valid with deleted PIN.
      */
     public function test_account_linking_valid_deleted_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
-        
+
         // Create and login valid user, add webservice role.
         // Create existing PIN for user.
         $user = $this->getDataGenerator()->create_user();
@@ -226,20 +226,20 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $userinfodata->fieldid = $userinfofield->id;
         $userinfodata->data = '1234';
         $DB->insert_record('user_info_data', $userinfodata);
-        
+
         $submitteddata = array(
                 'pin' => ''
         );
-        
+
         $expectedfromform = new stdClass();
         $expectedfromform->pin = '';
         $expectedfromform->service = $service;
         $expectedfromform->state = $state;
         $expectedfromform->response_type = $responsetype;
         $expectedfromform->redirect_uri = $redirecturi;
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -247,42 +247,42 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertEquals($expectedfromform, $actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no external service.
      */
     public function test_account_linking_invalid_no_external_service() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
         $DB->delete_records('external_services', array('shortname' => $service));
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -290,41 +290,41 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid redirect URI.
      */
     public function test_account_linking_invalid_redirect_uri() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-                
+
         // Set form values.
         $redirecturi = 'https://www.google.com';
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -332,42 +332,42 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid response_type.
      */
     public function test_account_linking_invalid_response_type() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-                
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'foo';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -375,39 +375,39 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no token capability.
      */
     public function test_account_linking_invalid_no_capability() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Login as guest user with no createtoken capability.
         $this->setGuestUser();
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -415,41 +415,41 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid PIN < 4-digits.
      */
     public function test_account_linking_invalid_short_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 11;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -457,41 +457,41 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid PIN > 4-digits.
      */
     public function test_account_linking_invalid_long_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 123456;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -499,41 +499,41 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid PIN not a number.
      */
     public function test_account_linking_invalid_text_pin() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 'abcd';
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -541,44 +541,44 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no PIN field.
      */
     public function test_account_linking_invalid_no_pin_field() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-        
+
         // Delete PIN user profile field.
         $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
-        
+
         // Set valid form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
@@ -586,132 +586,132 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no state argument.
      */
     public function test_account_linking_invalid_no_state() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-                
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $responsetype = 'token';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
         $toform->response_type = $responsetype;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no response type.
      */
     public function test_account_linking_invalid_no_response_type() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-                
+
         // Set form values.
         $redirecturi = LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI;
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
         $toform->state = $state;
         $toform->redirect_uri = $redirecturi;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
-    
+
     /**
      * Test account linking form, invalid, no redirect URI.
      */
     public function test_account_linking_invalid_no_redirect_uri() {
         global $DB;
-        
+
         $this->resetAfterTest();
-        
+
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-                
+  
         // Set form values.
         $responsetype = 'token';
         $state = 'abc123';
         $pin = 1111;
-        
+
         // Create and login valid user, add webservice role.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $this->getDataGenerator()->role_assign($role->id, $user->id);
-        
+
         $submitteddata = array(
                 'pin' => $pin
         );
-        
+
         account_linking_form::mock_submit($submitteddata);
-        
+
         $form = new account_linking_form();
         $toform = new stdClass();
         $toform->service = $service;
         $toform->state = $state;
         $toform->response_type = $responsetype;
         $form->set_data($toform);
-        
+
         $actualfromform = $form->get_data();
-        
+
         $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }

@@ -46,26 +46,26 @@ if ($fromform = $mform->get_data()) {
     // In this case you process validated data; $mform->get_data() returns data posted in form.
     global $USER, $DB;
     $serviceshortname = $fromform->service;
-    
+
     // Copied from login/token.php
     $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
-    
+
     // Get an existing token or create a new one.
     $token = external_generate_token_for_current_user($service);
     external_log_token_request($token);
 
-    $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-    
+    $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+
     $userinfodata = new stdClass();
     $userinfodata->userid = $USER->id;
-    $userinfodata->fieldid = $fieldid->id;
+    $userinfodata->fieldid = $field->id;
     $userinfodata->data = $fromform->pin;
-    
-    if ($fromform->pin != 0) {
+
+    if ($fromform->pin != '') {
         // User has submitted PIN.
-        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id))) {
+        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $field->id))) {
             // User has submitted changed PIN.
-            $userpinfieldid = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'id');
+            $userpinfieldid = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $field->id), 'id');
             $userinfodata->id = $userpinfieldid->id;
             $DB->update_record('user_info_data', $userinfodata);
         } else {
