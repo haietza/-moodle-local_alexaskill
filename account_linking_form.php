@@ -85,14 +85,12 @@ class account_linking_form extends moodleform {
         if (stripos(get_config('local_alexaskill', 'alexaskill_redirecturis'), $data['redirect_uri']) === false) {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('Amazon Alexa skill redirect URI does not match configured settings.', NO_DEBUG_DISPLAY);
-            return $errors;
         }
         
         // Response type is not valid, display error message and log.
         if ($data['response_type'] != 'token') {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('The response_type argument should always be token for implicit grant.', NO_DEBUG_DISPLAY);
-            return $errors;
         }
        
         // Make sure token exists or a new one can be created.
@@ -102,14 +100,14 @@ class account_linking_form extends moodleform {
         } catch (moodle_exception $e) {
             // If exception is thrown, display error message on form.
             $errors['pin'] = get_string($e->errorcode, $e->module);
-            return $errors;
+            //return $errors;
         }
         
         // If user enters PIN (!= 0), make sure it is 4-digits in length.
         $pinlength = strlen($data['pin']);
         if ($data['pin'] != 0 && ($pinlength < 4 || $pinlength > 4 || !is_numeric($data['pin']))) {
             $errors['pin'] = get_string('alexaskill_accountlinking_pin_error', 'local_alexaskill');
-            return $errors;
+            //return $errors;
         }
         
         // Make sure user profile field exists.
@@ -118,13 +116,14 @@ class account_linking_form extends moodleform {
             // PIN field has not been configured, display error message and log.
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('Amazon Alexa skill PIN user profiled field has not been configured. See local/alexaskill/db/install.php.', NO_DEBUG_DISPLAY);
-            return $errors;
+            //return $errors;
         }
         
         // Make sure state, reponse_type and redirect_uri were included as query strings.
         if (empty($data['state']) || empty($data['response_type']) || empty($data['redirect_uri'])) {
-            $errors['pin'] = '';
-            return $errors;
+            $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
+            debugging('Account linking request missing required argument.', NO_DEBUG_DISPLAY);
+            //return $errors;
         }
         
         return $errors;

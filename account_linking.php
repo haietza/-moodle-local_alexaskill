@@ -97,7 +97,9 @@ if ($fromform = $mform->get_data()) {
             $keyvalue = explode('=', $param);
             $paramvalues[$keyvalue[0]] = $keyvalue[1];
         }
-        $paramvalues['redirect_uri'] = $paramvalues['redirect_uri'] . '=' . $keyvalue[2];
+        if (isset($keyvalue[2])) {
+            $paramvalues['redirect_uri'] = $paramvalues['redirect_uri'] . '=' . $keyvalue[2];
+        }
 
         $toform->state = $paramvalues['state'];
         $toform->service = $paramvalues['client_id'];
