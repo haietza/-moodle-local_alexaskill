@@ -100,7 +100,6 @@ class account_linking_form extends moodleform {
         } catch (moodle_exception $e) {
             // If exception is thrown, display error message on form.
             $errors['pin'] = get_string($e->errorcode, $e->module);
-            //return $errors;
         }
         
         // If user enters PIN (!= 0), make sure it is 4-digits in length.
