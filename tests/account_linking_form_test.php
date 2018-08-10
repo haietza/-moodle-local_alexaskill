@@ -264,7 +264,6 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         $pin = 1111;
         
         // Create and login valid user, add webservice role.
-        // Create existing PIN for user.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
@@ -286,6 +285,52 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
         
         $actualfromform = $form->get_data();
         
+        $this->assertNull($actualfromform);
+    }
+    
+    /**
+     * Test account linking form, invalid redirect URI.
+     */
+    public function test_account_linking_invalid_redirect_uri() {
+        global $DB;
+        
+        $this->resetAfterTest();
+        
+        // Alexa Skill external service has already been created.
+        $service = 'alexa_skill_service';
+        
+        // Set plugin config.
+        set_config('alexaskill_redirecturis', LOCAL_ALEXASKILL_TEST_CONFIG_REDIRECTURI, 'local_alexaskill');
+        
+        // Set valid form values.
+        $redirecturi = 'https://www.google.com';
+        $responsetype = 'token';
+        $state = 'abc123';
+        $pin = 1111;
+        
+        // Create and login valid user, add webservice role.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
+        $this->getDataGenerator()->role_assign($role->id, $user->id);
+        
+        $submitteddata = array(
+                'pin' => $pin
+        );
+        
+        account_linking_form::mock_submit($submitteddata);
+        
+        $form = new account_linking_form();
+        $toform = new stdClass();
+        $toform->service = $service;
+        $toform->state = $state;
+        $toform->response_type = $responsetype;
+        $toform->redirect_uri = $redirecturi;
+        $form->set_data($toform);
+        
+        $actualfromform = $form->get_data();
+        
+        $this->assertDebuggingCalled();
         $this->assertNull($actualfromform);
     }
     
