@@ -89,7 +89,7 @@ class account_linking_form extends moodleform {
         }
         
         // Response type is not valid, display error message and log.
-        if ($data['response_type'] != 'token') {
+        if (isset($data['response_type']) && $data['response_type'] != 'token') {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('The response_type argument should always be token for implicit grant.', NO_DEBUG_DISPLAY);
         }
