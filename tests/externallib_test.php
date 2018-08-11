@@ -1010,6 +1010,28 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected == $actual);
     }
+    
+    public function test_get_course_announcements_invalid_pin() {
+        global $SITE, $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '4321'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        local_alexaskill_external::$requestjson['session']['attributes']['pin'] = '';
+        
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+        
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                . $SITE->fullname . " profile.";
+        
+        $expected = $this->responsejson;
+        
+        $this->assertEquals($expected, $actual);
+    }
 
     /**
      * Test get_course_announcements, responding to would you like anything else with yes.
