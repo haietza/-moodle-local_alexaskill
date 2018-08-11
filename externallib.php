@@ -603,15 +603,13 @@ class local_alexaskill_external extends external_api {
         } catch (moodle_exception $e) {
             // Exceptions may be thrown if user does not have capability to view forum.
             // In this case, just don't return those posts (do nothing).
+            unset($e);
         }
 
         // Get course setting for number of announcements.
         // Field for newsitems has to be numeric in database.
         // Only test for false from DB call (config not set).
         $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
-        if ($limit === false) {
-            $limit = 0;
-        }
 
         // If over 5, limit to 5 initially for usability.
         if ($limit > 5) {

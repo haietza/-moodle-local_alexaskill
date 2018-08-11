@@ -1246,6 +1246,115 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_course_announcements, course limit > 5.
+     */
+    public function test_get_course_announcements_high_limit() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+
+        $forum = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', 1);
+
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        $subject3 = 'Test subject 3';
+        $message3 = 'Test message 3.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject3,
+                'message' => $message3
+        ));
+
+        $subject4 = 'Test subject 4';
+        $message4 = 'Test message 4.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject4,
+                'message' => $message4
+        ));
+
+        $subject5 = 'Test subject 5';
+        $message5 = 'Test message 5.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject5,
+                'message' => $message5
+        ));
+
+        $subject6 = 'Test subject 6';
+        $message6 = 'Test message 6.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum->id,
+                'userid' => '2',
+                'name' => $subject6,
+                'message' => $message6
+        ));
+
+        $limit = 6;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+        
+        $announcements = '<p>' . $subject6 . '. ' . $message6 . '</p> <p>'
+                . $subject5 . '. ' . $message5 . '</p> <p>' . $subject4 . '. ' . $message4 . '</p> <p>'
+                . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 5 most recent announcements for '
+                . $coursename . ': ' . $announcements . ' Would you like anything else?</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 5 latest announcements for ' . $coursename
+        . ' are: ' . $announcements . ' Would you like anything else?</speak>';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
      * Test get_course_announcements, 1+ courses prompt.
      */
     public function test_get_course_announcements_multiple_courses_prompt() {
