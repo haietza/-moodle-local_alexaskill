@@ -25,7 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->libdir/formslib.php");
-//use Symfony\Component\DomCrawler\Form;
 
 class account_linking_form extends moodleform {
 

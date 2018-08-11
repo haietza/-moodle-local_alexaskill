@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/local/alexaskill/account_linking_form.php');
  * @package    local_alexaskill
  * @copyright  2018, Michelle Melton
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @group      local_alexaskill_account_linking
+ * @group      local_alexaskill
  */
 class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
 

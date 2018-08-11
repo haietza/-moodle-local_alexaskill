@@ -65,29 +65,29 @@ class local_alexaskill_external extends external_api {
 
         // Check the URL of the signature certificate.
         if (!self::signature_certificate_url_is_valid($_SERVER['HTTP_SIGNATURECERTCHAINURL'])) {
-            debugging('Invalid signature certificate URL', NO_DEBUG_DISPLAY);
+            debugging('Invalid signature certificate URL', DEBUG_DEVELOPER);
             return http_response_code(400);
         }
 
         // Only perform signature validation on live, internet accessible server that can receive requests directly from Alexa.
         // Signature is encrypted version of request, no way to simulate.
-        if (!get_config('local_alexaskill', 'alexaskill_development')) {
+        if (self::is_development_site()) {
             // Check the signature of the request.
             if (!self::signature_is_valid($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
-                debugging('Invalid signature', NO_DEBUG_DISPLAY);
+                debugging('Invalid signature', DEBUG_DEVELOPER);
                 return http_response_code(400);
             }
         }
 
         // Check the request timestamp.
         if (!self::timestamp_is_valid()) {
-            debugging('Invalid timestamp', NO_DEBUG_DISPLAY);
+            debugging('Invalid timestamp', DEBUG_DEVELOPER);
             return http_response_code(400);
         }
 
         // Verify request is intended for my service.
         if (!self::applicationid_is_valid()) {
-            debugging('Invalid application id', NO_DEBUG_DISPLAY);
+            debugging('Invalid application id', DEBUG_DEVELOPER);
             return http_response_code(400);
         }
 
@@ -181,6 +181,15 @@ class local_alexaskill_external extends external_api {
         // Verify signature URL.
         return $protocol == 'https' && $hostname == 's3.amazonaws.com'
                 && $path == '/echo.api/' && ($port == 443 || $port == null);
+    }
+
+    /**
+     * Determine if Moodle instance is non-internet accessible development site.
+     * 
+     * @return mixed|string|boolean|unknown|StdClass|NULL
+     */
+    private static function is_development_site() {
+        return get_config('local_alexaskill', 'alexaskill_development');
     }
 
     /**
@@ -308,17 +317,17 @@ class local_alexaskill_external extends external_api {
      */
     private static function pin_exists() {
         global $DB, $USER;
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        if (!$fieldid) {
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        if (!$field) {
             return false;
         }
 
-        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $field->id), 'data');
         if (!$pin) {
             return false;
         }
 
-        return strlen($pin->data) == 4;
+        return strlen($pin->data) == 4 && is_numeric($pin->data);
     }
 
     /**
@@ -339,12 +348,12 @@ class local_alexaskill_external extends external_api {
     private static function pin_is_valid() {
         global $DB, $USER;
 
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        if (!$fieldid) {
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        if (!$field) {
             return false;
         }
 
-        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id), 'data');
+        $pin = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => $field->id), 'data');
         if (!$pin) {
             return false;
         }
@@ -440,9 +449,9 @@ class local_alexaskill_external extends external_api {
      * Log error for session ended request.
      */
     private static function session_ended_request() {
-        debugging('SessionEndedRequest reason: ' . self::$requestjson['request']['reason'], NO_DEBUG_DISPLAY);
-        debugging('SessionEndedRequest error type: ' . self::$requestjson['request']['error']['type'], NO_DEBUG_DISPLAY);
-        debugging('SessionEndedRequest error message: ' . self::$requestjson['request']['error']['message'], NO_DEBUG_DISPLAY);
+        debugging('SessionEndedRequest reason: ' . self::$requestjson['request']['reason'], DEBUG_DEVELOPER);
+        debugging('SessionEndedRequest error type: ' . self::$requestjson['request']['error']['type'], DEBUG_DEVELOPER);
+        debugging('SessionEndedRequest error message: ' . self::$requestjson['request']['error']['message'], DEBUG_DEVELOPER);
     }
 
     /**

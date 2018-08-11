@@ -143,6 +143,43 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test for development configuration, true.
+     */
+    public function test_is_development_site_true() {
+        $this->resetAfterTest();
+        $isdevelopmentsite = self::getMethod('is_development_site');
+
+        set_config('alexaskill_development', 1, 'local_alexaskill');
+        $actual = $isdevelopmentsite->invokeArgs(null, array());
+        $this->assertTrue($actual == 1);
+    }
+
+    /**
+     * Test for development configuration, false.
+     */
+    public function test_is_development_site_false() {
+        $this->resetAfterTest();
+        $isdevelopmentsite = self::getMethod('is_development_site');
+
+        set_config('alexaskill_development', 0, 'local_alexaskill');
+        $actual = $isdevelopmentsite->invokeArgs(null, array());
+        $this->assertTrue($actual == 0);
+    }
+
+    /**
+     * Test for development configuration, none.
+     */
+    public function test_is_development_site_none() {
+        global $DB;
+        $this->resetAfterTest();
+        $isdevelopmentsite = self::getMethod('is_development_site');
+
+        $DB->delete_records('config_plugins', array('plugin' => 'local_alexaskill', 'name' => 'alexaskill_development'));
+        $actual = $isdevelopmentsite->invokeArgs(null, array());
+        $this->assertTrue($actual == 0);
+    }
+
+    /**
      * Test for invalid signature.
      */
     public function test_signature_is_valid_invalid() {
