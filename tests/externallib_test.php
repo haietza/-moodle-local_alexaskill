@@ -194,6 +194,27 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test signature_is_valid with unwriteable cert directory.
+     */
+    public function test_signature_is_valid_certdir_no_write() {
+        global $CFG;
+        $this->resetAfterTest();
+        $signatureisvalid = self::getMethod('signature_is_valid');
+
+        $certurl = 'https://s3.amazonaws.com/echo.api/echo-api-cert.pem';
+        $signature = 'fooencrypted';
+        $request = 'foo';
+        $certdir = $CFG->dataroot . '/local_alexaskill';
+        if (!file_exists($certdir)) {
+            mkdir($certdir);
+        }
+        chmod($certdir, 0444);
+
+        $actual = $signatureisvalid->invokeArgs(null, array($certurl, $signature, $request));
+        $this->assertFalse($actual);
+    }
+
+    /**
      * Test for valid timestamp.
      */
     public function test_timestamp_is_valid() {
@@ -2416,14 +2437,14 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
-    
+
     /**
      * Test session_ended_request.
      */
     public function test_session_ended_request() {
         $this->resetAfterTest();
         $sessionendedrequest = self::getMethod('session_ended_request');
-        
+
         $actual = $sessionendedrequest->invokeArgs(null, array());
         $this->assertDebuggingCalledCount(3);
     }
