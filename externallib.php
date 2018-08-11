@@ -71,7 +71,7 @@ class local_alexaskill_external extends external_api {
 
         // Only perform signature validation on live, internet accessible server that can receive requests directly from Alexa.
         // Signature is encrypted version of request, no way to simulate.
-        if (self::is) {
+        if (self::is_development_site()) {
             // Check the signature of the request.
             if (!self::signature_is_valid($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
                 debugging('Invalid signature', DEBUG_DEVELOPER);
