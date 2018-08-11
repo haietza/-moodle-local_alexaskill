@@ -1010,26 +1010,29 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected == $actual);
     }
-    
+
+    /**
+     * Test get_course_announcements, invalid pin.
+     */
     public function test_get_course_announcements_invalid_pin() {
         global $SITE, $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '4321'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
         local_alexaskill_external::$requestjson['session']['attributes']['pin'] = '';
-        
+
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        
+
         $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
                 . $SITE->fullname . " profile.";
-        
+
         $expected = $this->responsejson;
-        
+
         $this->assertEquals($expected, $actual);
     }
 
@@ -1924,6 +1927,51 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test get_grades, no/invalid token.
+     */
+    public function test_get_grades_invalid_token() {
+        global $SITE;
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        $actual = $getgrades->invokeArgs(null, array('token' => ''));
+
+        $task = 'get grades';
+        $this->responsejson['response']['card']['type'] = 'LinkAccount';
+        $this->responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+
+        $expected = $this->responsejson;
+
+        $this->assertTrue($expected == $actual);
+    }
+
+    /**
+     * Test get_grades, invalid pin.
+     */
+    public function test_get_grades_invalid_pin() {
+        global $SITE, $DB;
+        $this->resetAfterTest();
+        $getgrades = self::getMethod('get_grades');
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '4321'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        local_alexaskill_external::$requestjson['session']['attributes']['pin'] = '';
+
+        $actual = $getgrades->invokeArgs(null, array('token' => 'valid'));
+
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                . $SITE->fullname . " profile.";
+
+        $expected = $this->responsejson;
+
+        $this->assertEquals($expected, $actual);
     }
 
     /**
