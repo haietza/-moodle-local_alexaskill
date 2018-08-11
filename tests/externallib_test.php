@@ -992,6 +992,26 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_course_announcements, no/invalid token.
+     */
+    public function test_get_course_announcements_invalid_token() {
+        global $SITE;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => ''));
+
+        $task = 'get course announcements';
+        $this->responsejson['response']['card']['type'] = 'LinkAccount';
+        $this->responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+
+        $expected = $this->responsejson;
+
+        $this->assertTrue($expected == $actual);
+    }
+
+    /**
      * Test get_course_announcements, responding to would you like anything else with yes.
      */
     public function test_get_course_announcements_else_yes() {
