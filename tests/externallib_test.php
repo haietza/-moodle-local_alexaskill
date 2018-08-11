@@ -1315,9 +1315,84 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcements, multiple courses, course known valid.
+     * Test get_course_announcements, multiple courses, course known valid, not exact name in response.
      */
-    public function test_get_course_announcements_multiple_courses_known_valid() {
+    public function test_get_course_announcements_multiple_courses_known_valid_exact() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course 1 and forum post.
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion1 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        // Create course 2 and forum post.
+        $coursename2 = 'course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Create and enrol user as student with capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
+
+        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test course 1';
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $announcements = '<p>' . $subject1 . '. ' . $message1 . '</p> ';
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'else'
+                )
+        );
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1
+        . ': ' . $announcements . ' Would you like anything else?</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
+                . $announcements . ' Would you like anything else?</speak>';
+                
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test get_course_announcements, multiple courses, course known valid, not exact name in response.
+     */
+    public function test_get_course_announcements_multiple_courses_known_valid_not_exact() {
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
