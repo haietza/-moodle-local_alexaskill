@@ -608,7 +608,7 @@ class local_alexaskill_external extends external_api {
 
         // Get course setting for number of announcements.
         // Field for newsitems has to be numeric in database.
-        // Only test for false from DB call (config not set).
+        // Won't return false because course record has to exist to get to this point.
         $limit = $DB->get_field('course', 'newsitems', array('id' => $courseid));
 
         // If over 5, limit to 5 initially for usability.

@@ -39,8 +39,8 @@ $PAGE->set_title($site->fullname);
 $PAGE->set_heading($site->fullname);
 
 $courses = $DB->get_records('course', array(), '', 'id, fullname');
-$coursepreferrednames = '<p>Copy the list of course names below, formatted according to the course regular expression above, '
-        . 'and paste into the Alexa developer console COURSE slot configuration:</p><p>';
+$coursepreferrednames = get_string('alexaskill_courseslotvalues_desc', 'local_alexaskill');
+$coursepreferrednames . '<p>';
 
 foreach ($courses as $course) {
     $coursename = $course->fullname;

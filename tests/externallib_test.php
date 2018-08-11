@@ -296,8 +296,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '1234'));
 
         $actual = $pinexists->invokeArgs(null, array());
         $this->assertTrue($actual);
@@ -328,8 +328,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => ''));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => ''));
 
         $actual = $pinexists->invokeArgs(null, array());
         $this->assertFalse($actual);
@@ -377,8 +377,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '9999'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '9999'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
 
         $actual = $processpin->invokeArgs(null, array());
@@ -400,8 +400,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => 'foo'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => 'foo'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
 
         $actual = $processpin->invokeArgs(null, array());
@@ -423,8 +423,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '-1'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '-1'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
 
         $actual = $processpin->invokeArgs(null, array());
@@ -494,8 +494,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '1234'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '1234'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
 
         $actual = $pinisvalid->invokeArgs(null, array());
@@ -2722,19 +2722,20 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->resetAfterTest();
         $getpreferredcoursename = self::getMethod('get_preferred_course_name');
 
-        $coursename1 = 'C S5998-101_THESIS PREPARATION (FIRST SUMMER 2018) full';
-        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename1));
+        $coursename = LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEXMATCH;
+        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename));
 
-        $expected1 = 'thesis preparation';
+        preg_match(LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, $coursename, $matches);
+        $expected = strtolower($matches[1]);
+        
+        $this->assertEquals($expected, $actual);
 
-        $this->assertEquals($expected1, $actual);
+        $coursename = LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEXNOMATCH;
+        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename));
 
-        $coursename2 = 'English I';
-        $actual = $getpreferredcoursename->invokeArgs(null, array('coursefullname' => $coursename2));
+        $expected = strtolower($coursename);
 
-        $expected2 = 'english i';
-
-        $this->assertEquals($expected2, $actual);
+        $this->assertEquals($expected, $actual);
     }
 
     /**

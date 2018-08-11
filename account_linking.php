@@ -73,7 +73,7 @@ if ($fromform = $mform->get_data()) {
             $DB->insert_record('user_info_data', $userinfodata);
         }
     } else {
-        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $fieldid->id))) {
+        if ($DB->record_exists('user_info_data', array('userid' => $USER->id, 'fieldid' => $field->id))) {
             // User has removed PIN.
             $DB->delete_records('user_info_data', array('id' => $userpinfieldid->id));
         }
