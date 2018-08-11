@@ -350,8 +350,25 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test process_pin, valid.
+     */
+    public function test_process_pin_valid() {
+        global $DB, $SITE;
+        $this->resetAfterTest();
+        $processpin = self::getMethod('process_pin');
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '1111'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1111';
+
+        $actual = $processpin->invokeArgs(null, array());
+        $this->assertNull($actual);
+    }
+
+    /**
      * Test process_pin, invalid.
-     * No test needed for valid - function just returns to continue processing request.
      */
     public function test_process_pin_invalid() {
         global $DB, $SITE;
