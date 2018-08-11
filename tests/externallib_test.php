@@ -2416,4 +2416,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
+    
+    /**
+     * Test session_ended_request.
+     */
+    public function test_session_ended_request() {
+        $this->resetAfterTest();
+        $sessionendedrequest = self::getMethod('session_ended_request');
+        
+        $actual = $sessionendedrequest->invokeArgs(null, array());
+        $this->assertDebuggingCalledCount(3);
+    }
 }
