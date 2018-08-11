@@ -2141,6 +2141,51 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_due_dates, no/invalid token.
+     */
+    public function test_get_due_dates_invalid_token() {
+        global $SITE;
+        $this->resetAfterTest();
+        $getduedates = self::getMethod('get_due_dates');
+
+        $actual = $getduedates->invokeArgs(null, array('token' => ''));
+
+        $task = 'get due dates';
+        $this->responsejson['response']['card']['type'] = 'LinkAccount';
+        $this->responsejson['response']['outputSpeech']['text'] = 'You must have an account on ' . $SITE->fullname . ' to '
+                . $task . '. Please use the Alexa app to link your Amazon account with your ' . $SITE->fullname . ' account.';
+
+        $expected = $this->responsejson;
+
+        $this->assertTrue($expected == $actual);
+    }
+
+    /**
+     * Test get_due_dates, invalid pin.
+     */
+    public function test_get_due_dates_invalid_pin() {
+        global $SITE, $DB;
+        $this->resetAfterTest();
+        $getduedates = self::getMethod('get_due_dates');
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '4321'));
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
+        local_alexaskill_external::$requestjson['session']['attributes']['pin'] = '';
+
+        $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
+
+        $this->responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
+                . $SITE->fullname . " profile.";
+
+        $expected = $this->responsejson;
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
      * Test get_due_dates, valid 0 due dates.
      */
     public function test_get_due_dates_0() {
