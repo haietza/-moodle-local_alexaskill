@@ -535,7 +535,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $pinisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
-    
+
     /**
      * Test pin_is_valid, invalid no pin record.
      */
@@ -543,12 +543,12 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $pinisvalid = self::getMethod('pin_is_valid');
-        
+
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
         $DB->delete_records('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id));
-        
+
         $actual = $pinisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
@@ -1330,7 +1330,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
-        
+
         $announcements = '<p>' . $subject6 . '. ' . $message6 . '</p> <p>'
                 . $subject5 . '. ' . $message5 . '</p> <p>' . $subject4 . '. ' . $message4 . '</p> <p>'
                 . $subject3 . '. ' . $message3 . '</p> <p>' . $subject2 . '. ' . $message2 . '</p> ';
@@ -1497,7 +1497,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $expected2 = $this->responsejson;
         $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
                 . $announcements . ' Would you like anything else?</speak>';
-                
+
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
 
@@ -2727,7 +2727,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         preg_match(LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEX, $coursename, $matches);
         $expected = strtolower($matches[1]);
-        
+
         $this->assertEquals($expected, $actual);
 
         $coursename = LOCAL_ALEXASKILL_TEST_CONFIG_COURSENAMEREGEXNOMATCH;

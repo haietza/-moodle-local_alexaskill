@@ -185,7 +185,7 @@ class local_alexaskill_external extends external_api {
 
     /**
      * Determine if Moodle instance is non-internet accessible development site.
-     * 
+     *
      * @return mixed|string|boolean|unknown|StdClass|NULL
      */
     private static function is_development_site() {

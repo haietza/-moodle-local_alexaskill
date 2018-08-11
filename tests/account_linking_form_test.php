@@ -46,7 +46,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
 
     /**
      * Test account linking form, valid with PIN.
-     * 
+     *
      * @group
      */
     public function test_account_linking_valid_new_pin() {
@@ -685,7 +685,7 @@ class local_alexaskill_account_linking_form_testcase extends advanced_testcase {
 
         // Alexa Skill external service has already been created.
         $service = 'alexa_skill_service';
-  
+
         // Set form values.
         $responsetype = 'token';
         $state = 'abc123';

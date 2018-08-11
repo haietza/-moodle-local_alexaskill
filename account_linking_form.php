@@ -60,12 +60,12 @@ class account_linking_form extends moodleform {
     /**
      * Validate account linking form data.
      * Some code taken from login/token.php
-     * 
+     *
      * @param $data data submitted
      * @param $files files submitted
      * @return $errors array of error message to display on form
      */
-     public function validation($data, $files) {
+    public function validation($data, $files) {
         global $DB;
         $errors = array();
 
@@ -74,14 +74,15 @@ class account_linking_form extends moodleform {
         $serviceshortname = $data['service'];
         $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
         if (empty($service)) {
-            // No external service found, display error message on form. 
+            // No external service found, display error message on form.
             $errors['pin'] = get_string('servicenotavailable', 'webservice');
             // Have to return $errors here to stop running of validation, $service is used in token retrieval.
             return $errors;
         }
 
         // Redirect URI is not valid, display error message and log.
-        if (isset($data['redirect_uri']) && stripos(get_config('local_alexaskill', 'alexaskill_redirecturis'), $data['redirect_uri']) === false) {
+        if (isset($data['redirect_uri'])
+                && stripos(get_config('local_alexaskill', 'alexaskill_redirecturis'), $data['redirect_uri']) === false) {
             $errors['pin'] = get_string('alexaskill_accountlinking_plugin_error', 'local_alexaskill');
             debugging('Amazon Alexa skill redirect URI does not match configured settings.', DEBUG_DEVELOPER);
         }

@@ -47,7 +47,7 @@ if ($fromform = $mform->get_data()) {
     global $USER, $DB;
     $serviceshortname = $fromform->service;
 
-    // Copied from login/token.php
+    // Copied from login/token.php.
     $service = $DB->get_record('external_services', array('shortname' => $serviceshortname, 'enabled' => 1));
 
     // Get an existing token or create a new one.

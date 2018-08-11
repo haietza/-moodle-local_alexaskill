@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 
 function xmldb_local_alexaskill_install() {
     global $DB, $CFG;
-    
+
     // Add webservice role.
     if (!$DB->record_exists('role', array('shortname' => 'webservice'))) {
         $webservicerole = new stdClass();
@@ -40,7 +40,7 @@ function xmldb_local_alexaskill_install() {
         $role = $DB->get_record('role', array('shortname' => 'webservice'), 'id');
         $roleid = $role->id;
     }
-    
+
     // Add system context assignability to role.
     if (!$DB->record_exists('role_context_levels', array('roleid' => $roleid, 'contextlevel' => 10))) {
         $webservicerolecontext = new stdClass();
@@ -48,7 +48,7 @@ function xmldb_local_alexaskill_install() {
         $webservicerolecontext->contextlevel = 10;
         $DB->insert_record('role_context_levels', $webservicerolecontext);
     }
-    
+
     // Add capabilities to webservice role.
     if (!$DB->record_exists('role_capabilities', array('roleid' => $roleid, 'capability' => 'moodle/webservice:createtoken'))) {
         $tokencapability = new stdClass();
@@ -58,7 +58,7 @@ function xmldb_local_alexaskill_install() {
         $tokencapability->permission = 1;
         $DB->insert_record('role_capabilities', $tokencapability);
     }
-    
+
     if (!$DB->record_exists('role_capabilities', array('roleid' => $roleid, 'capability' => 'webservice/restalexa:use'))) {
         $restalexacapability = new stdClass();
         $restalexacapability->contextid = 1;
@@ -67,7 +67,7 @@ function xmldb_local_alexaskill_install() {
         $restalexacapability->permission = 1;
         $DB->insert_record('role_capabilities', $restalexacapability);
     }
-    
+
     // Add webservice user.
     if (!$DB->record_exists('user', array('username' => 'webservice'))) {
         $webserviceuser = new stdClass();
@@ -83,7 +83,7 @@ function xmldb_local_alexaskill_install() {
         $user = $DB->get_record('user', array('username' => 'webservice'), 'id');
         $userid = $user->id;
     }
-    
+
     // Assign webservice role to webservice user.
     if (!$DB->record_exists('role_assignments', array('userid' => $userid, 'roleid' => $roleid))) {
         $webserviceroleassign = new stdClass();
@@ -92,7 +92,7 @@ function xmldb_local_alexaskill_install() {
         $webserviceroleassign->userid = $userid;
         $DB->insert_record('role_assignments', $webserviceroleassign);
     }
-    
+
     // Enable web services.
     $enablewebservices = new stdClass();
     $enablewebservices->name = 'enablewebservices';
@@ -104,7 +104,7 @@ function xmldb_local_alexaskill_install() {
         $enablewebservices->id = $config->id;
         $DB->update_record('config', $enablewebservices);
     }
-    
+
     // Enable RESTALEXA protocol.
     $enablerestalexa = new stdClass();
     $enablerestalexa->name = 'webserviceprotocols';
