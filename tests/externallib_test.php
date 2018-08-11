@@ -514,8 +514,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
-        $fieldid = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
-        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $fieldid->id, 'data' => '4321'));
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->insert_record('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id, 'data' => '4321'));
         local_alexaskill_external::$requestjson['request']['intent']['slots']['pin']['value'] = '1234';
 
         $actual = $pinisvalid->invokeArgs(null, array());
@@ -523,7 +523,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test pin_is_valid, invalid no field.
+     * Test pin_is_valid, invalid no field record.
      */
     public function test_pin_is_valid_invalid_no_field() {
         global $DB;
@@ -532,6 +532,23 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $DB->delete_records('user_info_field', array('shortname' => 'amazonalexaskillpin'));
 
+        $actual = $pinisvalid->invokeArgs(null, array());
+        $this->assertFalse($actual);
+    }
+    
+    /**
+     * Test pin_is_valid, invalid no pin record.
+     */
+    public function test_pin_is_valid_invalid_no_pin() {
+        global $DB;
+        $this->resetAfterTest();
+        $pinisvalid = self::getMethod('pin_is_valid');
+        
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $field = $DB->get_record('user_info_field', array('shortname' => 'amazonalexaskillpin'), 'id');
+        $DB->delete_records('user_info_data', array('userid' => $user->id, 'fieldid' => $field->id));
+        
         $actual = $pinisvalid->invokeArgs(null, array());
         $this->assertFalse($actual);
     }
