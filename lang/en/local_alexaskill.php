@@ -46,3 +46,6 @@ $string['alexaskill_accountlinking_pin_help'] = 'Create an optional 4-digit PIN 
 $string['alexaskill_accountlinking_pin_error'] = 'PIN must be 4-digits.';
 $string['alexaskill_accountlinking_plugin_error'] = 'Alexa skill plugin has not been installed correctly. Contact the site administrator.';
 $string['alexaskill_accountlinking_submit'] = 'Link account';
+$string['privacy:metadata:preference:local_alexaskill_pin'] = 'The PIN a user has set to secure access from Amazon Alexa.';
+$string['privacy:metadata:alexaskill_alexa'] = 'In order to integrate with the Amazon Alexa skill front-end, user data needs to be exchanged with that service.';
+$string['privacy:metadata:alexaskill_alexa:accessToken'] = 'The Alexa skill web service token for the user is sent from Moodle to allow you to access your data from Alexa.';
