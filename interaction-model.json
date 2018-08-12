@@ -1,0 +1,857 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "test invocation name",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": [
+                        "none of those",
+                        "none",
+                        "nothing",
+                        "i'm good",
+                        "i'm done"
+                    ]
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": [
+                        "what can i ask for",
+                        "get help",
+                        "help",
+                        "what information can i get"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": [
+                        "quit",
+                        "exit"
+                    ]
+                },
+                {
+                    "name": "GetSiteAnnouncementsIntent",
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE"
+                        }
+                    ],
+                    "samples": [
+                        "site announcements",
+                        "my site announcements ",
+                        "the site announcements ",
+                        "there are site announcements ",
+                        "there are any site announcements ",
+                        "there are site announcements for me",
+                        "i have site announcements ",
+                        "i have any site announcements ",
+                        "i need site announcements ",
+                        "i need the site announcements ",
+                        "i need my site announcements ",
+                        "i want site announcements ",
+                        "i want the site announcements ",
+                        "i want my site announcements ",
+                        "what are the site announcements ",
+                        "what are my site announcements ",
+                        "what's the site announcements ",
+                        "what's my site announcements ",
+                        "how's my site announcements ",
+                        "how are my site announcements ",
+                        "do i have site announcements ",
+                        "can i get site announcements ",
+                        "can i get the site announcements ",
+                        "can i get my site announcements ",
+                        "could i get site announcements ",
+                        "could i get the site announcements ",
+                        "could i get my site announcements ",
+                        "may i get site announcements ",
+                        "may i get the site announcements ",
+                        "may i get my site announcements ",
+                        "are there site announcements ",
+                        "are there any site announcements ",
+                        "have i got site announcements ",
+                        "have i got any site announcements ",
+                        "what the site announcements are",
+                        "what my site announcements are",
+                        "give me site announcements ",
+                        "give me the site announcements ",
+                        "give me my site announcements ",
+                        "tell me site announcements ",
+                        "tell me the site announcements ",
+                        "tell me my site announcements ",
+                        "get me site announcements ",
+                        "get me the site announcements ",
+                        "get me my site announcements ",
+                        "find site announcements",
+                        "find the site announcements",
+                        "find my site announcements"
+                    ]
+                },
+                {
+                    "name": "GetGradesIntent",
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE"
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "grades",
+                        "find my grades",
+                        "find grades",
+                        "get me my grades",
+                        "get me grades",
+                        "tell me grades",
+                        "give me grades",
+                        "have i got any grades",
+                        "have i got grades",
+                        "are there any grades",
+                        "are there grades",
+                        "may i get my grades",
+                        "may i get grades",
+                        "may i get the grades",
+                        "could i get my grades",
+                        "could i get grades",
+                        "can i get my grades",
+                        "can i get grades",
+                        "how's my grades",
+                        "what's my grades",
+                        "what are the grades",
+                        "i want grades",
+                        "i need my grades",
+                        "i need grades",
+                        "i have any grades",
+                        "i have grades",
+                        "there are any grades",
+                        "there are grades for me",
+                        "I want my grades",
+                        "my grades",
+                        "get my grades",
+                        "can i get the grades",
+                        "could i get the grades",
+                        "do i have grades",
+                        "find the grades",
+                        "get me the grades",
+                        "give me the grades",
+                        "i need the grades",
+                        "i want the grades",
+                        "tell me the grades",
+                        "the grades",
+                        "there are grades",
+                        "what my grades are",
+                        "what the grades are",
+                        "what's the grades",
+                        "check for grades",
+                        "current grade averages",
+                        "go to gradebook",
+                        "go to grades",
+                        "grade book",
+                        "grade overview",
+                        "gradebook",
+                        "how am i doing",
+                        "tell me my grade",
+                        "what am i making",
+                        "what are my current grades",
+                        "what are my grades in my current courses",
+                        "what are my grades overall",
+                        "what are my grades right now",
+                        "what are my recent grades",
+                        "what did i get",
+                        "what did i make",
+                        "what grade did i get",
+                        "what grade did i make",
+                        "what grade did i receive",
+                        "what is my current grade",
+                        "what is my current grade right now",
+                        "what is my grade",
+                        "what is my most recent grade",
+                        "what is my overall class grade",
+                        "what was my final grade",
+                        "what was my grade",
+                        "what's my grade"
+                    ]
+                },
+                {
+                    "name": "GetDueDatesIntent",
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE"
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "upcoming due dates",
+                        "what assignments are due soon",
+                        "my due dates",
+                        "the due dates",
+                        "there are due dates",
+                        "there are due dates for me",
+                        "there are any due dates",
+                        "i have due dates",
+                        "i have any due dates",
+                        "i need due dates",
+                        "i need the due dates",
+                        "i need my due dates",
+                        "i want due dates",
+                        "i want the due dates",
+                        "i want my due dates",
+                        "what are my due dates",
+                        "what's the due dates",
+                        "what's my due dates",
+                        "how's my due dates",
+                        "how are my due dates",
+                        "do i have due dates",
+                        "can i get due dates",
+                        "can i get the due dates",
+                        "can i get my due dates",
+                        "could i get due dates",
+                        "could i get the due dates",
+                        "could i get my due dates",
+                        "may i get due dates",
+                        "may i get the due dates",
+                        "may i get my due dates",
+                        "are there due dates",
+                        "are there any due dates",
+                        "have i got due dates",
+                        "have i got any due dates",
+                        "what the due dates are",
+                        "what my due dates are",
+                        "give me due dates",
+                        "give me the due dates",
+                        "tell me due dates",
+                        "tell me the due dates",
+                        "tell me my due dates",
+                        "get me the due dates",
+                        "find due dates",
+                        "find the due dates",
+                        "find my due dates",
+                        "activities",
+                        "any dates coming up",
+                        "are there any course tasks due this week",
+                        "are there any new assignments",
+                        "are there any new assignments added to my calendar",
+                        "assignments",
+                        "assignments due for the week",
+                        "assignments due this week",
+                        "calendar",
+                        "do i have any assignments due soon",
+                        "do i have any deadlines coming up",
+                        "do i have any new assignments",
+                        "due dates",
+                        "find information about our homework",
+                        "find information about our tests",
+                        "get course calendar",
+                        "get dates",
+                        "get homework",
+                        "get me my events calendar",
+                        "get me this week's assignments",
+                        "get me this week's due dates",
+                        "get what's due",
+                        "give me a list of dates for the class",
+                        "give me assignment dates",
+                        "give me assignment information",
+                        "give me deadlines",
+                        "give me homework updates",
+                        "give me my calendar",
+                        "give me my upcoming due dates",
+                        "give me quiz dates",
+                        "give me the calendar",
+                        "give me the next due date",
+                        "is there a quiz coming up",
+                        "is there homework due today",
+                        "open assignments",
+                        "open calendar",
+                        "open due dates for assignments",
+                        "open due dates for quizzes",
+                        "open this week's calendar",
+                        "quizzes",
+                        "read me the most recent assignments",
+                        "read the calendar assignments for this week",
+                        "upcoming assignment reminders",
+                        "upcoming quizzes",
+                        "upcoming tests",
+                        "what are my assignments",
+                        "what are my tests",
+                        "what are the dates for assignments",
+                        "what are the dates for my assignments",
+                        "what are the dates for quizzes",
+                        "what are the due dates for my assignments",
+                        "what are the nearest due dates",
+                        "what are the upcoming deadlines",
+                        "what are upcoming dates",
+                        "what assignment is due next",
+                        "what assignments are due this week",
+                        "what assignments do i have",
+                        "what assignments do i have for this week",
+                        "what assignments do you have",
+                        "what do i have due next week",
+                        "what do i have due this week",
+                        "what do i have due today",
+                        "what do i have due tomorrow",
+                        "what due dates are approaching",
+                        "what due dates are coming up",
+                        "what homework do i have",
+                        "what homework is due",
+                        "what homework is due this week",
+                        "what homework is due today",
+                        "what homework is due tomorrow",
+                        "what homework is due tonight",
+                        "what is due next",
+                        "what is due next week",
+                        "what is due this week",
+                        "what is due today",
+                        "what is due tomorrow",
+                        "what is my homework",
+                        "what is my next assignment due",
+                        "what is the next assignment due date",
+                        "what is the next quiz due date",
+                        "what's coming up",
+                        "what's due this week",
+                        "what's my next assignment that's due soon",
+                        "when are due dates",
+                        "when are my assignments due",
+                        "when is my homework due",
+                        "when is my next assignment due",
+                        "when is our next homework assignment due",
+                        "when is our next quiz",
+                        "when is the next assignment or quiz"
+                    ]
+                },
+                {
+                    "name": "GetCourseAnnouncementsIntent",
+                    "slots": [
+                        {
+                            "name": "course",
+                            "type": "COURSE",
+                            "samples": [
+                                "i'd like announcements for {course}"
+                            ]
+                        },
+                        {
+                            "name": "else",
+                            "type": "ELSE"
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "latest course announcements for {course}",
+                        "get announcements for {course}",
+                        "{course} announcements",
+                        "my {course} announcements",
+                        "the {course} announcements",
+                        "there are {course} announcements",
+                        "there are any {course} announcements",
+                        "there are {course} announcements for me",
+                        "i have {course} announcements",
+                        "i have any {course} announcements",
+                        "i need {course} announcements",
+                        "i need the {course} announcements",
+                        "i need my {course} announcements",
+                        "i want {course} announcements",
+                        "i want the {course} announcements",
+                        "i want my {course} announcements",
+                        "what are the {course} announcements",
+                        "what are my {course} announcements",
+                        "what's the {course} announcements",
+                        "what's my {course} announcements",
+                        "how's my {course} announcements",
+                        "how are my {course} announcements",
+                        "do i have {course} announcements",
+                        "can i get {course} announcements",
+                        "can i get the {course} announcements",
+                        "can i get my {course} announcements",
+                        "could i get {course} announcements",
+                        "could i get the {course} announcements",
+                        "could i get my {course} announcements",
+                        "may i get {course} announcements",
+                        "may i get the {course} announcements",
+                        "may i get my {course} announcements",
+                        "are there {course} announcements",
+                        "are there any {course} announcements",
+                        "have i got {course} announcements",
+                        "have i got any {course} announcements",
+                        "what the {course} announcements are",
+                        "what my {course} announcements are",
+                        "give me {course} announcements",
+                        "give me the {course} announcements",
+                        "give me my {course} announcements",
+                        "tell me {course} announcements",
+                        "tell me the {course} announcements",
+                        "tell me my {course} announcements",
+                        "get me {course} announcements",
+                        "get me the {course} announcements",
+                        "get me my {course} announcements",
+                        "find {course} announcements",
+                        "find the {course} announcements",
+                        "find my {course} announcements",
+                        "any updates fro {course}",
+                        "any updates this week for {course}",
+                        "are there any {course} updates this week",
+                        "are there any new announcements for {course}",
+                        "are there any new announcements from my professor for {course}",
+                        "are there any new updates for {course}",
+                        "are there any recent notifications from my current professor for {course}",
+                        "are there any updates for {course}",
+                        "can i get all updates for {course}",
+                        "can you read the {course} announcements to me",
+                        "check messages for {course}",
+                        "check my emails in {course}",
+                        "class updates for {course}",
+                        "discussion topics for {course}",
+                        "do i have any class notifications in {course}",
+                        "do i have any new emails in {course}",
+                        "do i have any new messages in {course}",
+                        "do i have any new posts in {course}",
+                        "do i have any post updates in {course}",
+                        "do i have any updates in {course}",
+                        "email for {course}",
+                        "email updates for {course}",
+                        "emails for {course}",
+                        "give me announcements for {course}",
+                        "give me class information for {course}",
+                        "give me class updates for {course}",
+                        "give me {course} updates",
+                        "give me messages for {course}",
+                        "give me my announcements from {course}",
+                        "give me my emails for {course}",
+                        "give me my notifications for {course}",
+                        "give me my updates for {course}",
+                        "give me the last update about homework in {course}",
+                        "give me the latest update from {course}",
+                        "give me the most recent announcements in {course}",
+                        "give me updates for {course}",
+                        "go to messages for {course}",
+                        "has anything new been posted in {course}",
+                        "is there an update for {course}",
+                        "me updates for {course}",
+                        "new email in {course}",
+                        "new notifications for {course}",
+                        "new posts in {course}",
+                        "news forum for {course}",
+                        "open last email in {course}",
+                        "open recent updates for {course}",
+                        "play emails from {course}",
+                        "read me my notifications for {course}",
+                        "read me the last update sent in {course}",
+                        "recent {course} updates",
+                        "recent email and updates in {course}",
+                        "recent emails in {course}",
+                        "tell me my new email updates for {course}",
+                        "what are {course} updates",
+                        "what are my new updates in {course}",
+                        "what are the most recent announcements in {course}",
+                        "what are the new updates for {course}",
+                        "what are the recent updates in {course}",
+                        "what are the updates for {course}",
+                        "what does my {course} teacher need me to know",
+                        "what is my latest update in {course}",
+                        "what is the latest class update for {course}",
+                        "what is the latest post for {course}",
+                        "what is the latest update for {course}",
+                        "what new updates are there for {course}",
+                        "what updates did my professor make in {course}",
+                        "what updates have been made in {course}",
+                        "what's new in {course}",
+                        "course announcements",
+                        "my course announcements",
+                        "the course announcements",
+                        "there are course announcements",
+                        "there are any course announcements",
+                        "there are course announcements for me",
+                        "i have course announcements",
+                        "i have any course announcements",
+                        "i need course announcements",
+                        "i need the course announcements",
+                        "i need my course announcements",
+                        "i want course announcements",
+                        "i want the course announcements",
+                        "i want my course announcements",
+                        "what are the course announcements",
+                        "what are my course announcements",
+                        "what's the course announcements",
+                        "what's my course announcements",
+                        "how's my course announcements",
+                        "how are my course announcements",
+                        "do i have course announcements",
+                        "can i get course announcements",
+                        "can i get the course announcements",
+                        "can i get my course announcements",
+                        "could i get course announcements",
+                        "could i get the course announcements",
+                        "could i get my course announcements",
+                        "may i get course announcements",
+                        "may i get the course announcements",
+                        "may i get my course announcements",
+                        "are there course announcements",
+                        "are there any course announcements",
+                        "have i got course announcements",
+                        "have i got any course announcements",
+                        "what the course announcements are",
+                        "what my course announcements are",
+                        "give me course announcements",
+                        "give me the course announcements",
+                        "give me my course announcements",
+                        "tell me course announcements",
+                        "tell me the course announcements",
+                        "tell me my course announcements",
+                        "get me course announcements",
+                        "get me the course announcements",
+                        "get me my course announcements",
+                        "find course announcements",
+                        "find the course announcements",
+                        "find my course announcements",
+                        "any updates",
+                        "any updates this week",
+                        "are there any course updates this week",
+                        "are there any new announcements",
+                        "are there any new announcements from my professors",
+                        "are there any new updates",
+                        "are there any recent notifications from my current professors",
+                        "are there any updates",
+                        "can i get all updates",
+                        "can you read the announcements to me",
+                        "check messages",
+                        "check my emails",
+                        "class updates",
+                        "course updates",
+                        "discussion topics",
+                        "do i have any class notifications",
+                        "do i have any new emails",
+                        "do i have any new messages",
+                        "do i have any new posts",
+                        "do i have any post updates",
+                        "do i have any updates",
+                        "email",
+                        "email updates",
+                        "emails",
+                        "give me announcements",
+                        "give me class information",
+                        "give me class updates",
+                        "give me course updates",
+                        "give me messages",
+                        "give me my announcements",
+                        "give me my emails",
+                        "give me my notifications",
+                        "give me my updates",
+                        "give me the last update about homework",
+                        "give me the latest update",
+                        "give me the most recent announcements",
+                        "give me updates",
+                        "go to messages",
+                        "has anything new been posted",
+                        "is there an update",
+                        "list assignment updates",
+                        "me updates",
+                        "new email",
+                        "new notifications",
+                        "new posts",
+                        "news forum",
+                        "open last email",
+                        "open recent updates",
+                        "play emails",
+                        "read me my notifications",
+                        "read me the last update sent",
+                        "recent course updates",
+                        "recent email and updates",
+                        "recent emails",
+                        "tell me my new email updates",
+                        "updates",
+                        "what are class updates",
+                        "what are my new updates",
+                        "what are my upcoming assignments",
+                        "what are the most recent announcements",
+                        "what are the new updates",
+                        "what are the recent updates",
+                        "what are the updates",
+                        "what does my teacher need me to know",
+                        "what is my latest update",
+                        "what is the latest class update",
+                        "what is the latest post",
+                        "what is the latest update",
+                        "what new updates are there",
+                        "what updates did my professor make",
+                        "what updates have been made",
+                        "what's new"
+                    ]
+                },
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": [
+                        "missing assignments",
+                        "attendance",
+                        "office hours",
+                        "contact teacher",
+                        "syllabus"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "COURSE",
+                    "values": [
+                        {
+                            "id": "CS1234",
+                            "name": {
+                                "value": "test course",
+                                "synonyms": [
+                                    "c s 1234",
+                                    "synonym for test course"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ELSE",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "no",
+                                "synonyms": [
+                                    "nothing",
+                                    "i'm done",
+                                    "i'm good",
+                                    "not at all",
+                                    "no way",
+                                    "negative",
+                                    "not",
+                                    "nay",
+                                    "nope",
+                                    "no thanks"
+                                ]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "yes",
+                                "synonyms": [
+                                    "that would be great",
+                                    "yes thanks",
+                                    "sure",
+                                    "of course",
+                                    "definitely",
+                                    "yea",
+                                    "ok",
+                                    "okay",
+                                    "yup",
+                                    "yep",
+                                    "yeah",
+                                    "please",
+                                    "yes please"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "GetCourseAnnouncementsIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "course",
+                            "type": "COURSE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.122874166323.957728141067"
+                            }
+                        },
+                        {
+                            "name": "else",
+                            "type": "ELSE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.418169822952.79410635273"
+                            }
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.516456148391.915223687115"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "GetSiteAnnouncementsIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.171787133700.19796506092"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "GetGradesIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.446043549831.279972197496"
+                            }
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1510885182536.391768068076"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "GetDueDatesIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "else",
+                            "type": "ELSE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.281907989864.532533628679"
+                            }
+                        },
+                        {
+                            "name": "pin",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1206902608248.723393909716"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.122874166323.957728141067",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "what course would you like announcements for?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.171787133700.19796506092",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "would you like anything else"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.446043549831.279972197496",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "would you like anything else"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.281907989864.532533628679",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "would you like anything else"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.205727468418.810422844946",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "would you like anything else"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.418169822952.79410635273",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "would you like anything else"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.516456148391.915223687115",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "please say your amazon alexa pin"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.397965988289.980664581851",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "please say your amazon alexa pin"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1510885182536.391768068076",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "please say your amazon alexa pin"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1206902608248.723393909716",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "please say your amazon alexa pin"
+                    }
+                ]
+            }
+        ]
+    }
+}
