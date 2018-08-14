@@ -505,9 +505,9 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-            return self::anything_else();
-        }
+        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+        //    return self::anything_else();
+        //}
 
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
@@ -518,12 +518,12 @@ class local_alexaskill_external extends external_api {
         // User has no courses, and therefore no announcements.
         if ($numcourses == 0) {
             $responses = array(
-                    'Sorry, you are not enrolled in any courses. Would you like anything else?',
-                    'I apologize, but there are no active courses listed for you. Can I get you anything else?'
+                    'Sorry, you are not enrolled in any courses.',
+                    'I apologize, but there are no active courses listed for you.'
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, false, 'else');
+            return self::complete_response($outputspeech, true, 'else');
         }
 
         // User only has one course, no need to prompt.
@@ -544,11 +544,11 @@ class local_alexaskill_external extends external_api {
             $count = 0;
             foreach ($usercourses as $usercourse) {
                 if ($count < $numcourses - 1) {
-                    $prompt .= $usercourse->preferredname . '<break time = "350ms"/> ';
+                    $prompt .= $usercourse->preferredname . ', <break time = "350ms"/> ';
                     $count++;
                 }
             }
-            $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
+            $prompt .= 'or ' . $usercourse->preferredname . '.';
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
             return self::complete_response($outputspeech, false, 'course');
@@ -573,12 +573,12 @@ class local_alexaskill_external extends external_api {
             if ($courseid == -1) {
                 // We did not find course in list of user's courses.
                 $responses = array(
-                        'Sorry, there are no records for ' . $coursevalue . '. Would you like anything else?',
-                        'I apologize, but ' . $coursevalue . ' does not have any records. Can I get you any other information?'
+                        'Sorry, there are no records for ' . $coursevalue . '.',
+                        'I apologize, but ' . $coursevalue . ' does not have any records.'
                 );
 
                 $outputspeech = $responses[rand(0, count($responses) - 1)];
-                return self::complete_response($outputspeech, false, 'else');
+                return self::complete_response($outputspeech, true, 'else');
             } else {
                 // We found a valid course.
                 return self::get_announcements($courseid, $coursename);
@@ -636,7 +636,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, true, '');
+            return self::complete_response($outputspeech);
         } else {
             $responses = array(
                     '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
@@ -644,7 +644,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . '</speak>';
-            return self::complete_response($outputspeech, true, '');
+            return self::complete_response($outputspeech);
         }
     }
 
@@ -670,9 +670,9 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-            return self::anything_else();
-        }
+        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+        //    return self::anything_else();
+        //}
 
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
@@ -683,25 +683,25 @@ class local_alexaskill_external extends external_api {
             }
             $course = $DB->get_record('course', array('id' => $grade['courseid']), 'fullname');
             $coursename = self::get_preferred_course_name($course->fullname);
-            $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p> ';
+            $grades .= '<p>Your grade in ' . $coursename . ' is ' . $grade['grade'] . '.</p>';
         }
 
         if ($grades == '') {
             $responses = array(
-                    'Sorry, you have no overall grades posted. Would you like anything else?',
-                    'I apologize, but there are no overall grades posted for your courses. Can I get you any other information?'
+                    'Sorry, you have no overall grades posted.',
+                    'I apologize, but there are no overall grades posted for your courses.'
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, false, 'else');
+            return self::complete_response($outputspeech, true, 'else');
         } else {
             $responses = array(
                     '<speak>Got it. Here are your overall course grades: ',
                     '<speak>Okay. These are your course grades overall: '
             );
 
-            $outputspeech = $responses[rand(0, count($responses) - 1)] . $grades . ' Would you like anything else?</speak>';
-            return self::complete_response($outputspeech, false, 'else');
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $grades . '</speak>';
+            return self::complete_response($outputspeech, true, 'else');
         }
     }
 
@@ -727,9 +727,9 @@ class local_alexaskill_external extends external_api {
         }
 
         // Handle dialog directive response to "Would you like anything else?"
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-            return self::anything_else();
-        }
+        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+        //    return self::anything_else();
+        //}
 
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
@@ -764,27 +764,27 @@ class local_alexaskill_external extends external_api {
         $count = 0;
         foreach ($events['events'] as $event) {
             if ($count < $limit && $event['timestart'] < $lookahead) {
-                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
+                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p>';
                 $count++;
             }
         }
 
         if ($duedates == '') {
             $responses = array(
-                    'Sorry, you have no upcoming events. Would you like anything else?',
-                    'I apologize, but there are no upcoming events on your calendar. Do you need any other information?'
+                    'Sorry, you have no upcoming events.',
+                    'I apologize, but there are no upcoming events on your calendar.'
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, false, 'else');
+            return self::complete_response($outputspeech, true, 'else');
         } else {
             $responses = array(
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
                     '<speak>Okay. The next ' . $count . ' important dates are: '
             );
 
-            $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . 'Would you like anything else? </speak>';
-            return self::complete_response($outputspeech, false, 'else');
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . '</speak>';
+            return self::complete_response($outputspeech, true, 'else');
         }
     }
 
@@ -809,14 +809,14 @@ class local_alexaskill_external extends external_api {
      *
      * @return array JSON response
      */
-    private static function anything_else() {
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])
-                && self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-            return self::say_good_bye();
-        } else {
-            return self::get_help();
-        }
-    }
+    //private static function anything_else() {
+    //    if (isset(self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])
+    //           && self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
+    //        return self::say_good_bye();
+    //    } else {
+    //        return self::get_help();
+    //    }
+    //}
 
     /**
      * Return help response.
@@ -825,10 +825,10 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_help() {
         $responses = array(
-                '<speak>You can get site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
-                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
-                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                '<speak>You can get site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                    . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                '<speak>I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                    . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
 
         $outputspeech = $responses[rand(0, count($responses) - 1)];
@@ -847,17 +847,17 @@ class local_alexaskill_external extends external_api {
             if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
                 // Response is with PIN request.
                 $reprompt['text'] = "I didn't quite catch that. Please say your PIN.";
-            } else {
-                $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";
-            }
+            } //else {
+            //    $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";
+            //}
         } else {
             $reprompt['type'] = 'SSML';
             if (stripos(self::$responsejson['response']['outputSpeech']['ssml'], 'Which would you like?') !== false) {
                 // Response is to LaunchRequest.
                 $reprompt['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-            } else {
-                $reprompt['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-            }
+            } //else {
+            //    $reprompt['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
+            //}
         }
         return $reprompt;
     }
