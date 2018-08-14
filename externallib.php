@@ -548,7 +548,7 @@ class local_alexaskill_external extends external_api {
                     $count++;
                 }
             }
-            $prompt .= 'or ' . $usercourse->preferredname . '.';
+            $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
             return self::complete_response($outputspeech, false, 'course');
