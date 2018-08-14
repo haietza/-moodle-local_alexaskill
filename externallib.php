@@ -427,17 +427,17 @@ class local_alexaskill_external extends external_api {
         if ($token == 'valid') {
             // User account is linked, include first name in welcome response.
             $responses = array(
-                    '<speak>Welcome to ' . $SITE->fullname . ', ' . $USER->firstname . '. You can get site announcements <break time = "350ms"/>'
-                    . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                    '<speak>Hello ' . $USER->firstname . '. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
-                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                    '<speak>Welcome to ' . $SITE->fullname . ', ' . $USER->firstname . '. You can get site announcements, <break time = "350ms"/>'
+                    . 'course announcements, <break time = "350ms"/>grades, <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                    '<speak>Hello ' . $USER->firstname . '. I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                    . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>'
             );
         } else {
             $responses = array(
-                    '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements <break time = "350ms"/>'
-                    . 'course announcements <break time = "350ms"/>grades <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                    '<speak>Hello. I can get you site announcements <break time = "350ms"/>course announcements <break time = "350ms"/>'
-                    . 'grades <break time = "350ms"/>or due dates. Which would you like?</speak>'
+                    '<speak>Welcome to ' . $SITE->fullname . '. You can get site announcements, <break time = "350ms"/>'
+                    . 'course announcements, <break time = "350ms"/>grades, <break time = "350ms"/>or due dates. Which would you like?</speak>',
+                    '<speak>Hello. I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                    . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>'
             );
         }
 
@@ -474,9 +474,9 @@ class local_alexaskill_external extends external_api {
      */
     private static function get_site_announcements() {
         // Handle dialog directive response to "Would you like anything else?"
-        if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-            return self::anything_else();
-        }
+        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
+        //    return self::anything_else();
+        //}
 
         return self::get_announcements(1, 'the site');
     }
@@ -623,7 +623,7 @@ class local_alexaskill_external extends external_api {
                 // Only return $limit number of original posts (not replies).
                 if ($post->parent == 0 && $count < $limit) {
                     $message = strip_tags($post->message);
-                    $announcements .= '<p>' . $post->subject . '. ' . $message . '</p> ';
+                    $announcements .= '<p>Subject: ' . $post->subject . '. Message: ' . $message . '</p>';
                     $count++;
                 }
             }
@@ -631,20 +631,20 @@ class local_alexaskill_external extends external_api {
 
         if ($announcements == '') {
             $responses = array(
-                    'Sorry, there are no announcements for ' . $coursename . '. Would you like anything else?',
-                    'I apologize, but ' . $coursename . ' does not have any announcements. Can I get you any other information?'
+                    'Sorry, there are no announcements for ' . $coursename . '.',
+                    'I apologize, but ' . $coursename . ' does not have any announcements.'
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, false, 'else');
+            return self::complete_response($outputspeech, true, '');
         } else {
             $responses = array(
                     '<speak>Okay. Here are the ' . $count . ' most recent announcements for ' . $coursename . ': ',
                     '<speak>Sure. The ' . $count . ' latest announcements for ' . $coursename . ' are: '
             );
 
-            $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . ' Would you like anything else?</speak>';
-            return self::complete_response($outputspeech, false, 'else');
+            $outputspeech = $responses[rand(0, count($responses) - 1)] . $announcements . '</speak>';
+            return self::complete_response($outputspeech, true, '');
         }
     }
 
