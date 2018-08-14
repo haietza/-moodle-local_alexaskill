@@ -112,8 +112,10 @@ class local_alexaskill_external extends external_api {
                 case "AMAZON.StopIntent":
                     return self::say_good_bye();
                     break;
-                case "AMAZON.HelpIntent":
                 case "AMAZON.FallbackIntent":
+                    return self::get_help(true);
+                    break;
+                case "AMAZON.HelpIntent":
                 default:
                     return self::get_help();
                     break;
@@ -764,7 +766,7 @@ class local_alexaskill_external extends external_api {
         $count = 0;
         foreach ($events['events'] as $event) {
             if ($count < $limit && $event['timestart'] < $lookahead) {
-                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p>';
+                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
                 $count++;
             }
         }
@@ -823,11 +825,16 @@ class local_alexaskill_external extends external_api {
      *
      * @return array JSON response
      */
-    private static function get_help() {
+    private static function get_help($fallback = false) {
+        if ($fallback) {
+            $intro = "<speak>I'm sorry, I can't help you with that yet. ";
+        } else {
+            $intro = '<speak>';
+        }
         $responses = array(
-                '<speak>You can get site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                $intro . 'You can get site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
                     . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>',
-                '<speak>I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                $intro . 'I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
                     . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>'
         );
 
