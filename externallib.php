@@ -97,7 +97,7 @@ class local_alexaskill_external extends external_api {
         } else if (self::$requestjson['request']['type'] == 'IntentRequest') {
             switch(self::$requestjson['request']['intent']['name']) {
                 case "GetSiteAnnouncementsIntent":
-                    return self::get_site_announcements();
+                    return self::get_announcements(1, 'the site');
                     break;
                 case "GetCourseAnnouncementsIntent":
                     return self::get_course_announcements($token);
@@ -299,8 +299,8 @@ class local_alexaskill_external extends external_api {
         if (isset(self::$requestjson['request']['intent']['slots']['pin']['value'])) {
             // User has responded with PIN for verification. Verify PIN.
             if (!self::pin_is_valid()) {
-                self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. Please check your "
-                        . $SITE->fullname . " profile.";
+                self::$responsejson['response']['outputSpeech']['text'] = "I'm sorry, that PIN is invalid. "
+                        . "You can use the Alexa app to relink your account and reset your PIN.";
                 return self::$responsejson;
             }
 
@@ -472,18 +472,6 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Get front page site announcements.
-     */
-    private static function get_site_announcements() {
-        // Handle dialog directive response to "Would you like anything else?"
-        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-        //    return self::anything_else();
-        //}
-
-        return self::get_announcements(1, 'the site');
-    }
-
-    /**
      * Get course announcements.
      *
      * @param string $token
@@ -506,11 +494,6 @@ class local_alexaskill_external extends external_api {
             // PIN exists and is valid; continue with request.
         }
 
-        // Handle dialog directive response to "Would you like anything else?"
-        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-        //    return self::anything_else();
-        //}
-
         $usercourses = enrol_get_my_courses(array('id', 'fullname'));
         foreach ($usercourses as $usercourse) {
             $usercourse->preferredname = self::get_preferred_course_name($usercourse->fullname);
@@ -525,7 +508,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, true, 'else');
+            return self::complete_response($outputspeech);
         }
 
         // User only has one course, no need to prompt.
@@ -580,7 +563,7 @@ class local_alexaskill_external extends external_api {
                 );
 
                 $outputspeech = $responses[rand(0, count($responses) - 1)];
-                return self::complete_response($outputspeech, true, 'else');
+                return self::complete_response($outputspeech);
             } else {
                 // We found a valid course.
                 return self::get_announcements($courseid, $coursename);
@@ -671,11 +654,6 @@ class local_alexaskill_external extends external_api {
             // PIN exists and is valid; continue with request.
         }
 
-        // Handle dialog directive response to "Would you like anything else?"
-        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-        //    return self::anything_else();
-        //}
-
         $gradereport = gradereport_overview_external::get_course_grades($USER->id);
         $coursenames = array();
         $grades = '';
@@ -695,7 +673,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, true, 'else');
+            return self::complete_response($outputspeech);
         } else {
             $responses = array(
                     '<speak>Got it. Here are your overall course grades: ',
@@ -703,7 +681,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $grades . '</speak>';
-            return self::complete_response($outputspeech, true, 'else');
+            return self::complete_response($outputspeech);
         }
     }
 
@@ -727,11 +705,6 @@ class local_alexaskill_external extends external_api {
             }
             // PIN exists and is valid; continue with request.
         }
-
-        // Handle dialog directive response to "Would you like anything else?"
-        //if (isset(self::$requestjson['request']['intent']['slots']['else']['value'])) {
-        //    return self::anything_else();
-        //}
 
         $courses = enrol_get_my_courses('id');
         $courses = array_keys($courses);
@@ -766,7 +739,7 @@ class local_alexaskill_external extends external_api {
         $count = 0;
         foreach ($events['events'] as $event) {
             if ($count < $limit && $event['timestart'] < $lookahead) {
-                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p> ';
+                $duedates .= '<p>' . $event['name'] . ' on ' . date('l F j Y g:i a', $event['timestart']) . '.</p>';
                 $count++;
             }
         }
@@ -778,7 +751,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
-            return self::complete_response($outputspeech, true, 'else');
+            return self::complete_response($outputspeech);
         } else {
             $responses = array(
                     '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
@@ -786,7 +759,7 @@ class local_alexaskill_external extends external_api {
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . '</speak>';
-            return self::complete_response($outputspeech, true, 'else');
+            return self::complete_response($outputspeech);
         }
     }
 
@@ -805,20 +778,6 @@ class local_alexaskill_external extends external_api {
         }
         return strtolower($coursename);
     }
-
-    /**
-     * Handle in progress response.
-     *
-     * @return array JSON response
-     */
-    //private static function anything_else() {
-    //    if (isset(self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'])
-    //           && self::$requestjson['request']['intent']['slots']['else']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] == 'no') {
-    //        return self::say_good_bye();
-    //    } else {
-    //        return self::get_help();
-    //    }
-    //}
 
     /**
      * Return help response.
@@ -852,19 +811,15 @@ class local_alexaskill_external extends external_api {
         if (self::$responsejson['response']['outputSpeech']['type'] == 'PlainText') {
             $reprompt['type'] = 'PlainText';
             if (stripos(self::$responsejson['response']['outputSpeech']['text'], 'PIN') !== false) {
-                // Response is with PIN request.
+                // Response is from request_pin.
                 $reprompt['text'] = "I didn't quite catch that. Please say your PIN.";
-            } //else {
-            //    $reprompt['text'] = "I didn't quite catch that. Would you like anything else?";
-            //}
+            }
         } else {
             $reprompt['type'] = 'SSML';
             if (stripos(self::$responsejson['response']['outputSpeech']['ssml'], 'Which would you like?') !== false) {
-                // Response is to LaunchRequest.
+                // Response is from launch_request or get_course_announcements course prompt.
                 $reprompt['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-            } //else {
-            //    $reprompt['ssml'] = "<speak>I didn't quite catch that. Would you like anything else?</speak>";
-            //}
+            }
         }
         return $reprompt;
     }
