@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "test invocation name",
+            "invocationName": "as you learn",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -31,12 +31,7 @@
                 },
                 {
                     "name": "GetSiteAnnouncementsIntent",
-                    "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE"
-                        }
-                    ],
+                    "slots": [],
                     "samples": [
                         "site announcements",
                         "my site announcements ",
@@ -91,10 +86,6 @@
                 {
                     "name": "GetGradesIntent",
                     "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE"
-                        },
                         {
                             "name": "pin",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER"
@@ -179,10 +170,6 @@
                 {
                     "name": "GetDueDatesIntent",
                     "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE"
-                        },
                         {
                             "name": "pin",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER"
@@ -335,10 +322,6 @@
                             "samples": [
                                 "i'd like announcements for {course}"
                             ]
-                        },
-                        {
-                            "name": "else",
-                            "type": "ELSE"
                         },
                         {
                             "name": "pin",
@@ -602,54 +585,75 @@
                     "name": "COURSE",
                     "values": [
                         {
-                            "id": "CS1234",
                             "name": {
-                                "value": "test course",
+                                "value": "search committee"
+                            }
+                        },
+                        {
+                            "id": "CS3481",
+                            "name": {
+                                "value": "computer systems i",
                                 "synonyms": [
-                                    "c s 1234",
-                                    "synonym for test course"
+                                    "c s 3481",
+                                    "computer systems",
+                                    "systems"
                                 ]
                             }
-                        }
-                    ]
-                },
-                {
-                    "name": "ELSE",
-                    "values": [
+                        },
                         {
+                            "id": "CS3460",
                             "name": {
-                                "value": "no",
+                                "value": "data structures",
                                 "synonyms": [
-                                    "nothing",
-                                    "i'm done",
-                                    "i'm good",
-                                    "not at all",
-                                    "no way",
-                                    "negative",
-                                    "not",
-                                    "nay",
-                                    "nope",
-                                    "no thanks"
+                                    "structures",
+                                    "c s 3460"
                                 ]
                             }
                         },
                         {
                             "name": {
-                                "value": "yes",
+                                "value": "testing course",
                                 "synonyms": [
-                                    "that would be great",
-                                    "yes thanks",
-                                    "sure",
-                                    "of course",
-                                    "definitely",
-                                    "yea",
-                                    "ok",
-                                    "okay",
-                                    "yup",
-                                    "yep",
-                                    "yeah",
-                                    "please",
-                                    "yes please"
+                                    "test",
+                                    "testing"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "CS2440",
+                            "name": {
+                                "value": "computer science ii",
+                                "synonyms": [
+                                    "computer science 2",
+                                    "c s 2440",
+                                    "c s 2",
+                                    "c s ii",
+                                    "comp sci 2",
+                                    "comp sci ii"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "CS1100",
+                            "name": {
+                                "value": "discrete mathematics",
+                                "synonyms": [
+                                    "c s 1100",
+                                    "discrete math"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "CS1440",
+                            "name": {
+                                "value": "computer science i",
+                                "synonyms": [
+                                    "computer science 1",
+                                    "c s 1",
+                                    "c s i",
+                                    "c s 1440",
+                                    "comp sci i",
+                                    "comp sci 1"
                                 ]
                             }
                         }
@@ -674,15 +678,6 @@
                             }
                         },
                         {
-                            "name": "else",
-                            "type": "ELSE",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.418169822952.79410635273"
-                            }
-                        },
-                        {
                             "name": "pin",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER",
                             "confirmationRequired": false,
@@ -697,32 +692,13 @@
                     "name": "GetSiteAnnouncementsIntent",
                     "confirmationRequired": false,
                     "prompts": {},
-                    "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.171787133700.19796506092"
-                            }
-                        }
-                    ]
+                    "slots": []
                 },
                 {
                     "name": "GetGradesIntent",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.446043549831.279972197496"
-                            }
-                        },
                         {
                             "name": "pin",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER",
@@ -739,15 +715,6 @@
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
-                        {
-                            "name": "else",
-                            "type": "ELSE",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.281907989864.532533628679"
-                            }
-                        },
                         {
                             "name": "pin",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER",
