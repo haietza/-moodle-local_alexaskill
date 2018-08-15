@@ -34,10 +34,11 @@ require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/grade/report/overview/classes/external.php');
 
 class local_alexaskill_external extends external_api {
-    // Static variable for web service request JSON.
+
+    // Web service request JSON.
     static $requestjson;
 
-    // Static variable for web service response.
+    // Web service response JSON.
     static $responsejson;
 
     /**
@@ -57,7 +58,7 @@ class local_alexaskill_external extends external_api {
      *
      * @param string $request
      * @param string $token
-     * @return mixed|string|array|string[]|boolean[][]|string[][][]|array
+     * @return mixed web service response
      */
     public static function alexa($request, $token = '') {
         self::$requestjson = json_decode($request, true);
@@ -165,7 +166,7 @@ class local_alexaskill_external extends external_api {
      * Verify signature certificate URL.
      *
      * @param string $certurl
-     * @return boolean cert URL is avlid
+     * @return boolean true if cert URL is valid
      */
     private static function signature_certificate_url_is_valid($certurl) {
         // The protocol is equal to https (case insensitive).
@@ -188,7 +189,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Determine if Moodle instance is non-internet accessible development site.
      *
-     * @return mixed|string|boolean|unknown|StdClass|NULL
+     * @return 1 if development site
      */
     private static function is_development_site() {
         return get_config('local_alexaskill', 'alexaskill_development');
@@ -201,7 +202,7 @@ class local_alexaskill_external extends external_api {
      * @param string $certurl
      * @param string $signature
      * @param string $request
-     * @return boolean signature is valid
+     * @return boolean true if signature is valid
      */
     private static function signature_is_valid($certurl, $signature, $request) {
         global $CFG;
@@ -273,7 +274,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Parse ISO 8601 formatted string to verify within 150 seconds.
      *
-     * @return boolean timestamp is valid
+     * @return boolean true if timestamp is valid
      */
     private static function timestamp_is_valid() {
         return (time() - strtotime(self::$requestjson['request']['timestamp'])) < 150;
@@ -282,7 +283,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Verify appliation ID.
      *
-     * @return boolean application ID is valid
+     * @return boolean True if application ID is valid
      */
     private static function applicationid_is_valid() {
         return self::$requestjson['session']['application']['applicationId'] == get_config('local_alexaskill', 'alexaskill_applicationid');
@@ -291,7 +292,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Ask for PIN or validate PIN.
      *
-     * @return void|string[]|boolean[][]|string[][][]|string[]|array|][[]
+     * @return mixed PIN response
      */
     private static function process_pin() {
         global $SITE;
@@ -315,7 +316,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Check if PIN has been set for user.
      *
-     * @return boolean
+     * @return boolean true if PIN exists
      */
     private static function pin_exists() {
         global $DB, $USER;
@@ -335,7 +336,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Return response asking for PIN.
      *
-     * @return string[]|boolean[][]|string[][][]
+     * @return mixed JSON responst asking for PIN
      */
     private static function request_pin() {
         $outputspeech = 'Please say your Amazon Alexa PIN.';
@@ -345,7 +346,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Verify PIN; set session attribute if valid.
      *
-     * @return boolean
+     * @return boolean true if PIN is valid
      */
     private static function pin_is_valid() {
         global $DB, $USER;
@@ -386,12 +387,12 @@ class local_alexaskill_external extends external_api {
     }
 
     /**
-     * Complete and send JSON response.
+     * Complete JSON response.
      *
      * @param string $outputspeech
      * @param boolean $endsession
      * @param string $slot
-     * @return string[]|boolean[][]|string[][][]
+     * @return mixed JSON response
      */
     private static function complete_response($outputspeech, $endsession = true, $slot = '') {
         if (stripos($outputspeech, '<speak') !== false) {
@@ -574,6 +575,8 @@ class local_alexaskill_external extends external_api {
     /**
      * Get announcements for the site or a course.
      *
+     * @param $courseid
+     * @param $coursename
      * @return array JSON response with site or course announcements
      */
     private static function get_announcements($courseid, $coursename) {
@@ -782,6 +785,7 @@ class local_alexaskill_external extends external_api {
     /**
      * Return help response.
      *
+     * @param $fallback True if called from FallbackIntent
      * @return array JSON response
      */
     private static function get_help($fallback = false) {

@@ -36,7 +36,7 @@ class provider implements
 {
     /**
      * Describe user preference stored for plugin and external link user data sent to.
-     * 
+     *
      * @param collection $collection
      * @return collection
      */
