@@ -2136,6 +2136,81 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_help.
+     */
+    public function test_get_help() {
+        $this->resetAfterTest();
+        $gethelp = self::getMethod('get_help');
+
+        $actual = $gethelp->invokeArgs(null, array());
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+
+        $expected = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>You can get site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>I can get you site announcements, <break time = "350ms"/>course announcements, <break time = "350ms"/>'
+                . 'grades, <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test get_help, fallback intent.
+     */
+    public function test_get_help_fallback() {
+        $this->resetAfterTest();
+        $gethelp = self::getMethod('get_help');
+
+        $actual = $gethelp->invokeArgs(null, array(true));
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = "<speak>I'm sorry, I can't help you with that yet. You can get site announcements, "
+                . '<break time = "350ms"/>course announcements, <break time = "350ms"/>grades, <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = "<speak>I'm sorry, I can't help you with that yet. I can get you site announcements, "
+                . '<break time = "350ms"/>course announcements, <break time = "350ms"/>grades, <break time = "350ms"/>or due dates. Which would you like?</speak>';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test say_good_bye.
+     */
+    public function test_say_good_bye() {
+        $this->resetAfterTest();
+        $saygoodbye = self::getMethod('say_good_bye');
+
+        $actual = $saygoodbye->invokeArgs(null, array());
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['text'] = 'Okay, have a nice day!';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['text'] = 'Great. Take care!';
+
+        $expected3 = $this->responsejson;
+        $expected3['response']['outputSpeech']['text'] = 'Thanks. Good bye!';
+
+        $expected4 = $this->responsejson;
+        $expected4['response']['outputSpeech']['text'] = 'Sure. Until next time!';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual
+                || $expected3 == $actual || $expected4 == $actual);
+    }
+
+    /**
      * Test session_ended_request.
      */
     public function test_session_ended_request() {
