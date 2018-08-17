@@ -72,7 +72,7 @@ class local_alexaskill_external extends external_api {
 
         // Only perform signature validation on live, internet accessible server that can receive requests directly from Alexa.
         // Signature is encrypted version of request, no way to simulate.
-        if (self::is_development_site()) {
+        if (!self::is_development_site()) {
             // Check the signature of the request.
             if (!self::signature_is_valid($_SERVER['HTTP_SIGNATURECERTCHAINURL'], $_SERVER['HTTP_SIGNATURE'], $request)) {
                 debugging('Invalid signature', DEBUG_DEVELOPER);
@@ -583,8 +583,18 @@ class local_alexaskill_external extends external_api {
         global $DB;
         $forumposts = array();
 
+        // Get announcements from news forums.
         try {
-            $discussions = $DB->get_records('forum_discussions', array('course' => $courseid), 'id DESC', 'id');
+            $sql = 'SELECT id FROM {forum_discussions}
+                    WHERE course = :courseidfd
+                    AND forum IN (
+                        SELECT id FROM {forum}
+                        WHERE course = :courseidf
+                        AND TYPE = "news"
+                    )
+                    ORDER BY id DESC';
+
+            $discussions = $DB->get_records_sql($sql, array('courseidfd' => $courseid, 'courseidf' => $courseid));
             foreach ($discussions as $discussion) {
                 $forumposts[] = mod_forum_external::get_forum_discussion_posts($discussion->id);
             }

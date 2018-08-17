@@ -953,6 +953,86 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
+     * Test get_course_announcements, more than 1 forum.
+     */
+    public function test_get_course_announcements_multiple_forums() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        $coursename = 'test course';
+        $course = $this->getDataGenerator()->create_course(array('fullname' => $coursename));
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', 1);
+
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'news'));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course->id, 'type' => 'general'));
+
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        $subject3 = 'Test subject 3';
+        $message3 = 'Test message 3.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject3,
+                'message' => $message3
+        ));
+
+        $subject4 = 'Test subject 4';
+        $message4 = 'Test message 4.';
+        $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject4,
+                'message' => $message4
+        ));
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $announcements = '<p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p><p>Subject: '
+                . $subject1 . '. Message: ' . $message1 . '</p>';
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 2 most recent announcements for '
+                . $coursename . ': ' . $announcements . '</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 2 latest announcements for ' . $coursename
+                . ' are: ' . $announcements . '</speak>';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
      * Test get_course_announcements, over course limit posts.
      */
     public function test_get_course_announcements_over_limit() {
