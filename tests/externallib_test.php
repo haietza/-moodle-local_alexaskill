@@ -692,8 +692,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array(1, 'the site'));
 
-        $announcements = '<p>Subject: ' . $subject4 . '. Message: ' . $message4 . '</p> <p>Subject: ' . $subject3 . '. Message: '
-                . $message3 . '</p> <p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> ';
+        $announcements = 'Subject: ' . $subject4 . '. Message: ' . $message4 . ' Subject: ' . $subject3 . '. Message: '
+                . $message3 . ' Subject: ' . $subject2 . '. Message: ' . $message2 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -787,7 +787,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getsiteannouncements->invokeArgs(null, array(1, 'the site'));
 
-        $announcements = '<p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> ';
+        $announcements = 'Subject: ' . $subject2 . '. Message: ' . $message2 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1016,8 +1016,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> <p>Subject: '
-                . $subject1 . '. Message: ' . $message1 . '</p> ';
+        $announcements = 'Subject: ' . $subject2 . '. Message: ' . $message2 . ' Subject: '
+                . $subject1 . '. Message: ' . $message1 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1095,8 +1095,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject4 . '. Message: ' . $message4 . '</p> <p>Subject: ' . $subject3 . '. Message: '
-                . $message3 . '</p> <p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> ';
+        $announcements = 'Subject: ' . $subject4 . '. Message: ' . $message4 . ' Subject: ' . $subject3 . '. Message: '
+                . $message3 . ' Subject: ' . $subject2 . '. Message: ' . $message2 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1194,9 +1194,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject6 . '. Message: ' . $message6 . '</p> <p>Subject: '
-                . $subject5 . '. Message: ' . $message5 . '</p> <p>Subject: ' . $subject4 . '. Message: ' . $message4 . '</p> <p>Subject: '
-                . $subject3 . '. Message: ' . $message3 . '</p> <p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> ';
+        $announcements = 'Subject: ' . $subject6 . '. Message: ' . $message6 . ' Subject: '
+                . $subject5 . '. Message: ' . $message5 . ' Subject: ' . $subject4 . '. Message: ' . $message4 . ' Subject: '
+                . $subject3 . '. Message: ' . $message3 . ' Subject: ' . $subject2 . '. Message: ' . $message2 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1331,7 +1331,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject1 . '. Message: ' . $message1 . '</p> ';
+        $announcements = 'Subject: ' . $subject1 . '. Message: ' . $message1 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1397,7 +1397,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject1 . '. Message: ' . $message1 . '</p> ';
+        $announcements = 'Subject: ' . $subject1 . '. Message: ' . $message1 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
@@ -1557,7 +1557,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = '<p>Subject: ' . $subject2 . '. Message: ' . $message2 . '</p> ';
+        $announcements = 'Subject: ' . $subject2 . '. Message: ' . $message2 . ' ';
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
