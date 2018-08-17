@@ -620,8 +620,16 @@ class local_alexaskill_external extends external_api {
             foreach ($forumpost['posts'] as $post) {
                 // Only return $limit number of original posts (not replies).
                 if ($post->parent == 0 && $count < $limit) {
-                    $message = strip_tags($post->message);
-                    $announcements .= '<p>Subject: ' . $post->subject . '. Message: ' . $message . '</p> ';
+                    // Strip and convert unsupported tags for SSML.
+                    $message = strip_tags($post->message, '<p><br><h3><h4><h5><h6><b><i><u><li><caption><th><td>');
+                    $message = preg_replace('/(h3>|h4>|h5>|h6>)/', 'p>', $message);
+                    $message = preg_replace('/(b>|u>)/', 'emphasis>', $message);
+                    $message = preg_replace('/(<i>)/', '<emphasis>', $message);
+                    $message = preg_replace('/(<\/i>)/', '</emphasis>', $message);
+                    $message = preg_replace('/(li>|td>|caption>|th>)/', 'emphasis>', $message);
+                    $message = preg_replace('/(<caption[^>]*|<th[^>]*)/', '<emphasis', $message);
+                    $message = preg_replace('/(<br \/>)/', ' ', $message);
+                    $announcements .= 'Subject: ' . $post->subject . '. Message: ' . $message . ' ';
                     $count++;
                 }
             }
