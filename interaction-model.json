@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "as you learn",
+            "invocationName": "[INVOCATION NAME]",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -33,6 +33,8 @@
                     "name": "GetSiteAnnouncementsIntent",
                     "slots": [],
                     "samples": [
+                        "get the site announcements",
+                        "get site announcements",
                         "site announcements",
                         "my site announcements ",
                         "the site announcements ",
@@ -92,6 +94,8 @@
                         }
                     ],
                     "samples": [
+                        "what are my grades",
+                        "give me my grades",
                         "grades",
                         "find my grades",
                         "find grades",
@@ -176,6 +180,8 @@
                         }
                     ],
                     "samples": [
+                        "get my due dates",
+                        "give me my due dates",
                         "upcoming due dates",
                         "what assignments are due soon",
                         "my due dates",
@@ -566,7 +572,10 @@
                         "what new updates are there",
                         "what updates did my professor make",
                         "what updates have been made",
-                        "what's new"
+                        "what's new",
+                        "get course announcements",
+                        "course announcements",
+                        "get my course announcements"
                     ]
                 },
                 {
@@ -586,75 +595,7 @@
                     "values": [
                         {
                             "name": {
-                                "value": "search committee"
-                            }
-                        },
-                        {
-                            "id": "CS3481",
-                            "name": {
-                                "value": "computer systems i",
-                                "synonyms": [
-                                    "c s 3481",
-                                    "computer systems",
-                                    "systems"
-                                ]
-                            }
-                        },
-                        {
-                            "id": "CS3460",
-                            "name": {
-                                "value": "data structures",
-                                "synonyms": [
-                                    "structures",
-                                    "c s 3460"
-                                ]
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "testing course",
-                                "synonyms": [
-                                    "test",
-                                    "testing"
-                                ]
-                            }
-                        },
-                        {
-                            "id": "CS2440",
-                            "name": {
-                                "value": "computer science ii",
-                                "synonyms": [
-                                    "computer science 2",
-                                    "c s 2440",
-                                    "c s 2",
-                                    "c s ii",
-                                    "comp sci 2",
-                                    "comp sci ii"
-                                ]
-                            }
-                        },
-                        {
-                            "id": "CS1100",
-                            "name": {
-                                "value": "discrete mathematics",
-                                "synonyms": [
-                                    "c s 1100",
-                                    "discrete math"
-                                ]
-                            }
-                        },
-                        {
-                            "id": "CS1440",
-                            "name": {
-                                "value": "computer science i",
-                                "synonyms": [
-                                    "computer science 1",
-                                    "c s 1",
-                                    "c s i",
-                                    "c s 1440",
-                                    "comp sci i",
-                                    "comp sci 1"
-                                ]
+                                "value": "test course"
                             }
                         }
                     ]
@@ -735,51 +676,6 @@
                     {
                         "type": "PlainText",
                         "value": "what course would you like announcements for?"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.171787133700.19796506092",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "would you like anything else"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.446043549831.279972197496",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "would you like anything else"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.281907989864.532533628679",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "would you like anything else"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.205727468418.810422844946",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "would you like anything else"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.418169822952.79410635273",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "would you like anything else"
                     }
                 ]
             },
