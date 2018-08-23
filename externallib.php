@@ -542,18 +542,32 @@ class local_alexaskill_external extends external_api {
             // User has requested announcements for a specific course.
             $courseid = -1;
             $courseuserreply = self::$requestjson['request']['intent']['slots']['course']['value'];
-            $coursevalue = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'];
+            
+            $coursevalues = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'];
+            if (count($coursevalues > 1)) {
+                // The user response was too ambiguous, Alexa's request contained more than one COURSE slot value match.
+                $responses = array(
+                        "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: ",
+                        "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: "
+                );
+                
+                $prompt = '';
+                $count = 0;
+                foreach ($usercourses as $usercourse) {
+                    if ($count < $numcourses - 1) {
+                        $prompt .= $usercourse->preferredname . ', <break time = "350ms"/> ';
+                        $count++;
+                    }
+                }
+                $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
+                
+                $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
+                return self::complete_response($outputspeech, false, 'course');
+            }
 
-            foreach ($usercourses as $usercourse) {
+            $coursevalue = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'];
+            foreach ($usercourses as $usercourse) {     
                 if ($coursevalue == $usercourse->preferredname) {
-                    // First, check response is exact preferred name or synonym mapped to preferred name.
-                    // Do this first in case user has courses with similar names, i.e. Computer Science II and Computer Science Theory.
-                    $courseid = $usercourse->id;
-                    $coursename = $usercourse->preferredname;
-                    break;
-                } else if (stripos($usercourse->preferredname, $courseuserreply) !== false) {
-                    // Otherwise check if response is part of preferred name.
-                    // Only check substring if there is not an exact match first.
                     $courseid = $usercourse->id;
                     $coursename = $usercourse->preferredname;
                     break;
