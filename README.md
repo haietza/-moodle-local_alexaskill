@@ -1,7 +1,7 @@
 # Installation instructions
 ## Alexa developer console
 
-- Upload interaction-model.json to the **JSON Editor** to use as a base for building your custom Moodle skill front-end. Make sure you update the placeholder invocation name and COURSE slot values for your skill (see Moodle instructions below for getting COURSE slot values).
+- Upload interaction-model.json to the **JSON Editor** to use as a base for building your custom Moodle skill front-end. Make sure you update the placeholder invocation name and COURSE slot values for your skill (see Moodle instructions below for getting COURSE slot values). COURSE slot values should use preferred name format and include a comprehensive list of synonyms.
 - Under **Endpoint**, select **HTTPS** and enter your web service URL in the **Default Region** field: `https://[YOUR MOODLE URL]/webservice/restalexa/server.php?wsfunction=local_alexaskill_alexa&wstoken=[YOUR WEB SERVICE USER ALEXA SKILL TOKEN]` (see Moodle instructions below for getting token). Select the appropriate **SSL certificate type** for your Moodle site.
 - Enable **Account Linking**, select **Implicit Grant** for the authorization grant type, and enter your web service account linking URL in the **Authorization URI** field: `https://[YOUR MOODLE URL]/local/alexaskill/account_linking.php`. Enter the web service shortname `alexa_skill_service` in the **Client ID** field. 
   

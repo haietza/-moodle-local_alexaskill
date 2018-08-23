@@ -538,18 +538,22 @@ class local_alexaskill_external extends external_api {
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
             return self::complete_response($outputspeech, false, 'course');
-        } else if ($coursevalue = self::$requestjson['request']['intent']['slots']['course']['value']) {
+        } else if (isset(self::$requestjson['request']['intent']['slots']['course']['value'])) {
             // User has requested announcements for a specific course.
             $courseid = -1;
-            $coursename = $coursevalue;
+            $courseuserreply = self::$requestjson['request']['intent']['slots']['course']['value'];
+            $coursevalue = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'];
 
             foreach ($usercourses as $usercourse) {
                 if ($coursevalue == $usercourse->preferredname) {
-                    // Check if they say the exact preferred name first.
+                    // First, check response is exact preferred name or synonym mapped to preferred name.
+                    // Do this first in case user has courses with similar names, i.e. Computer Science II and Computer Science Theory.
                     $courseid = $usercourse->id;
+                    $coursename = $usercourse->preferredname;
                     break;
-                } else if (stripos($usercourse->preferredname, $coursevalue) !== false) {
-                    // Otherwise check if they said part of the preferred name.
+                } else if (stripos($usercourse->preferredname, $courseuserreply) !== false) {
+                    // Otherwise check if response is part of preferred name.
+                    // Only check substring if there is not an exact match first.
                     $courseid = $usercourse->id;
                     $coursename = $usercourse->preferredname;
                     break;
@@ -559,8 +563,8 @@ class local_alexaskill_external extends external_api {
             if ($courseid == -1) {
                 // We did not find course in list of user's courses.
                 $responses = array(
-                        'Sorry, there are no records for ' . $coursevalue . '.',
-                        'I apologize, but ' . $coursevalue . ' does not have any records.'
+                        'Sorry, there are no records for ' . $courseuserreply . '.',
+                        'I apologize, but ' . $courseuserreply . ' does not have any records.'
                 );
 
                 $outputspeech = $responses[rand(0, count($responses) - 1)];
