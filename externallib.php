@@ -544,7 +544,7 @@ class local_alexaskill_external extends external_api {
             $courseuserreply = self::$requestjson['request']['intent']['slots']['course']['value'];
             
             $coursevalues = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'];
-            if (count($coursevalues > 1)) {
+            if (count($coursevalues) > 1) {
                 // The user response was too ambiguous, Alexa's request contained more than one COURSE slot value match.
                 $responses = array(
                         "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: ",
