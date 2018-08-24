@@ -542,7 +542,7 @@ class local_alexaskill_external extends external_api {
             // User has requested announcements for a specific course.
             $statuscode = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'];
             $courseid = -1;
-            
+
             if ($statuscode == 'ER_SUCCESS_MATCH') {
                 $coursevalues = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'];
                 if (count($coursevalues) > 1) {
@@ -551,7 +551,7 @@ class local_alexaskill_external extends external_api {
                             "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: ",
                             "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: "
                     );
-                    
+
                     $prompt = '';
                     $count = 0;
                     foreach ($usercourses as $usercourse) {
@@ -561,7 +561,7 @@ class local_alexaskill_external extends external_api {
                         }
                     }
                     $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
-                    
+
                     $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
                     return self::complete_response($outputspeech, false, 'course');
                 } else {
@@ -574,35 +574,23 @@ class local_alexaskill_external extends external_api {
                             break;
                         }
                     }
-                    
-                    // No exact matching user course was found.
+
+                    // No matching user course was found.
                     if ($courseid == -1) {
-                        // Check close match.
-                        foreach ($usercourses as $usercourse) {
-                            if (stripos($usercourse->preferredname, $courseuserreply) !== false) {
-                                $courseid = $usercourse->id;
-                                $coursename = $usercourse->preferredname;
-                                break;
-                            }
-                        }
-                        
-                        if ($courseid == -1) {
-                            // We did not find close match either.
-                            $responses = array(
-                                    'Sorry, there are no records for ' . $courseuserreply . '.',
-                                    'I apologize, but ' . $courseuserreply . ' does not have any records.'
-                            );
-                            
-                            $outputspeech = $responses[rand(0, count($responses) - 1)];
-                            return self::complete_response($outputspeech);
-                        } 
+                        $responses = array(
+                                'Sorry, there are no records for ' . $courseuserreply . '.',
+                                'I apologize, but ' . $courseuserreply . ' does not have any records.'
+                        );
+
+                        $outputspeech = $responses[rand(0, count($responses) - 1)];
+                        return self::complete_response($outputspeech);
                     }
-                    
+
                     // We found a valid course.
                     return self::get_announcements($courseid, $coursename);
                 }
             }
-            
+
             // We did not find course in list of user's courses.
             if ($statuscode == 'ER_SUCCESS_NO_MATCH') {
                 // Check if user response is similar to any user courses.
@@ -613,18 +601,18 @@ class local_alexaskill_external extends external_api {
                         break;
                     }
                 }
-                
+
                 if ($courseid == -1) {
                     // We did not find a similar match.
                     $responses = array(
                             'Sorry, there are no records for ' . $courseuserreply . '.',
                             'I apologize, but ' . $courseuserreply . ' does not have any records.'
                     );
-                    
+
                     $outputspeech = $responses[rand(0, count($responses) - 1)];
                     return self::complete_response($outputspeech);
                 }
-                
+
                 // We found a valid course.
                 return self::get_announcements($courseid, $coursename);
             }

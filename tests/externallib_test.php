@@ -1582,7 +1582,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
-    
+
     /**
      * Test get_course_announcements, multiple courses, course known, no COURSE slot match, valid.
      */
@@ -1590,7 +1590,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
-        
+
         // Create course 1 and forum post.
         $coursename1 = 'foo course';
         $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
@@ -1604,7 +1604,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject1,
                 'message' => $message1
         ));
-        
+
         // Create course 2 and forum post.
         $coursename2 = 'test course 2';
         $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
@@ -1618,16 +1618,16 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
                 'name' => $subject2,
                 'message' => $message2
         ));
-        
+
         // Create and enrol user as student with capabilities.
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
-        
+
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'foo';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_NO_MATCH';
-        
+
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
