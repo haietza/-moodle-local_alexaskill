@@ -1279,9 +1279,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcements, multiple courses, course known valid, not exact name in response.
+     * Test get_course_announcements, multiple courses, course known, COURSE slot match, valid.
      */
-    public function test_get_course_announcements_multiple_courses_known_valid_exact() {
+    public function test_get_course_announcements_multiple_courses_known_match_valid() {
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
@@ -1320,7 +1320,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test course 1';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'test course 1';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_MATCH';
@@ -1347,15 +1346,15 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcements, multiple courses, course known valid, not exact name in response.
+     * Test get_course_announcements, multiple courses, course known, COURSE slot match, invalid.
      */
-    public function test_get_course_announcements_multiple_courses_known_valid_not_exact() {
+    public function test_get_course_announcements_multiple_courses_known_match_invalid() {
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
 
         // Create course 1 and forum post.
-        $coursename1 = 'test course 1';
+        $coursename1 = 'course 1';
         $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
         $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
         $subject1 = 'Test subject 1';
@@ -1388,9 +1387,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test';
-        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'test course 1';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'test course 3';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_MATCH';
 
         $limit = 3;
@@ -1399,17 +1397,86 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $announcements = 'Subject: ' . $subject1 . '. Message: ' . $message1 . ' ';
-
-        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
-
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1
-            . ': ' . $announcements . '</speak>';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no records for test.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
-                . $announcements . '</speak>';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but test does not have any records.';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+
+    /**
+     * Test get_course_announcements, multiple courses, course known, COURSE slot match, multiple matches.
+     */
+    public function test_get_course_announcements_multiple_courses_known_match_multiple() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+
+        // Create course 1 and forum post.
+        $coursename1 = 'test course 1';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion1 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+
+        // Create course 2 and forum post.
+        $coursename2 = 'test course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+
+        // Create and enrol user as student with capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
+
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = $coursename1;
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][1]['value']['name'] = $coursename2;
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_MATCH';
+
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'course'
+                )
+        );
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: "
+                . $coursename2 . ', <break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: "
+                . $coursename2 . ', <break time = "350ms"/> or ' . $coursename1 . '. Which would you like?</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1457,9 +1524,9 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
     }
 
     /**
-     * Test get_course_announcements, multiple courses, course known invalid.
+     * Test get_course_announcements, multiple courses, course known, no COURSE slot match, invalid.
      */
-    public function test_get_course_announcements_multiple_courses_known_invalid() {
+    public function test_get_course_announcements_multiple_courses_known_no_match_invalid() {
         global $DB;
         $this->resetAfterTest();
         $getcourseannouncements = self::getMethod('get_course_announcements');
@@ -1498,7 +1565,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'foo';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_NO_MATCH';
 
@@ -1508,24 +1574,77 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
-        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
-        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
-        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
-        $this->responsejson['response']['shouldEndSession'] = false;
-        $this->responsejson['response']['directives'] = array(
-                array(
-                        'type' => 'Dialog.ElicitSlot',
-                        'slotToElicit' => 'course'
-                )
-        );
-
-        $prompt = 'test course 2, <break time = "350ms"/> or test course 1. Which would you like?</speak>';
-
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: " . $prompt;
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no records for foo.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: " . $prompt;
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but foo does not have any records.';
+
+        $this->assertTrue($expected1 == $actual || $expected2 == $actual);
+    }
+    
+    /**
+     * Test get_course_announcements, multiple courses, course known, no COURSE slot match, valid.
+     */
+    public function test_get_course_announcements_multiple_courses_known_no_match_valid() {
+        global $DB;
+        $this->resetAfterTest();
+        $getcourseannouncements = self::getMethod('get_course_announcements');
+        
+        // Create course 1 and forum post.
+        $coursename1 = 'foo course';
+        $course1 = $this->getDataGenerator()->create_course(array('fullname' => $coursename1));
+        $forum1 = $this->getDataGenerator()->create_module('forum', array('course' => $course1->id, 'type' => 'news'));
+        $subject1 = 'Test subject 1';
+        $message1 = 'Test message 1.';
+        $discussion1 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course1->id,
+                'forum' => $forum1->id,
+                'userid' => '2',
+                'name' => $subject1,
+                'message' => $message1
+        ));
+        
+        // Create course 2 and forum post.
+        $coursename2 = 'test course 2';
+        $course2 = $this->getDataGenerator()->create_course(array('fullname' => $coursename2));
+        $forum2 = $this->getDataGenerator()->create_module('forum', array('course' => $course2->id, 'type' => 'news'));
+        $subject2 = 'Test subject 2';
+        $message2 = 'Test message 2.';
+        $discussion2 = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion(array(
+                'course' => $course2->id,
+                'forum' => $forum2->id,
+                'userid' => '2',
+                'name' => $subject2,
+                'message' => $message2
+        ));
+        
+        // Create and enrol user as student with capabilities.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+        $this->getDataGenerator()->enrol_user($user->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
+        
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_NO_MATCH';
+        
+        $limit = 3;
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
+        $DB->set_field('course', 'newsitems', $limit, array('id' => $course2->id));
+
+        $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
+
+        $announcements = 'Subject: ' . $subject1 . '. Message: ' . $message1 . ' ';
+
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+
+        $expected1 = $this->responsejson;
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Okay. Here are the 1 most recent announcements for ' . $coursename1
+        . ': ' . $announcements . '</speak>';
+
+        $expected2 = $this->responsejson;
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Sure. The 1 latest announcements for ' . $coursename1 . ' are: '
+                . $announcements . '</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
