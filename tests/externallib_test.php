@@ -1254,8 +1254,6 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->getDataGenerator()->enrol_user($user->id, $course2->id, 'student');
         $roleid = $this->assignUserCapability('mod/forum:viewdiscussion', 1);
 
-        local_alexaskill_external::$requestjson['request']['dialogState'] = 'STARTED';
-
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
@@ -1324,6 +1322,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test course 1';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'test course 1';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_MATCH';
 
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
@@ -1390,6 +1390,8 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'test';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'] = 'test course 1';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_MATCH';
 
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
@@ -1498,6 +1500,7 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         local_alexaskill_external::$requestjson['request']['dialogState'] = 'IN_PROGRESS';
         local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['value'] = 'foo';
+        local_alexaskill_external::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] = 'ER_SUCCESS_NO_MATCH';
 
         $limit = 3;
         $DB->set_field('course', 'newsitems', $limit, array('id' => $course1->id));
@@ -1505,11 +1508,24 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
 
         $actual = $getcourseannouncements->invokeArgs(null, array('token' => 'valid'));
 
+        $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['type'] = 'SSML';
+        $this->responsejson['response']['reprompt']['outputSpeech']['ssml'] = "<speak>I didn't quite catch that. Which would you like?</speak>";
+        $this->responsejson['response']['shouldEndSession'] = false;
+        $this->responsejson['response']['directives'] = array(
+                array(
+                        'type' => 'Dialog.ElicitSlot',
+                        'slotToElicit' => 'course'
+                )
+        );
+
+        $prompt = 'test course 2, <break time = "350ms"/> or test course 1. Which would you like?</speak>';
+
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, there are no records for foo.';
+        $expected1['response']['outputSpeech']['ssml'] = "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: " . $prompt;
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but foo does not have any records.';
+        $expected2['response']['outputSpeech']['ssml'] = "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: " . $prompt;
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }

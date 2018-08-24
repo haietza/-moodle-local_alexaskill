@@ -542,15 +542,17 @@ class local_alexaskill_external extends external_api {
             // User has requested announcements for a specific course.
             $courseid = -1;
             $courseuserreply = self::$requestjson['request']['intent']['slots']['course']['value'];
-            
-            $coursevalues = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'];
-            if (count($coursevalues) > 1) {
-                // The user response was too ambiguous, Alexa's request contained more than one COURSE slot value match.
+            $statuscode = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['status']['code'];
+
+            // If there is no match for COURSE slot value, or if there is more than one match,
+            // prompt for more precise response.
+            if ($statuscode == 'ER_SUCCESS_NO_MATCH' || ($statuscode == 'ER_SUCCESS_MATCH' 
+                    && count(self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values']) > 1)) {
                 $responses = array(
                         "<speak>I'm sorry, I didn't quite catch that. You can get announcements for the following courses: ",
                         "<speak>Sorry, I didn't catch that. I can get announcements from the following courses for you: "
                 );
-                
+
                 $prompt = '';
                 $count = 0;
                 foreach ($usercourses as $usercourse) {
@@ -560,10 +562,10 @@ class local_alexaskill_external extends external_api {
                     }
                 }
                 $prompt .= 'or ' . $usercourse->preferredname . '. Which would you like?';
-                
+
                 $outputspeech = $responses[rand(0, count($responses) - 1)] . $prompt . '</speak>';
                 return self::complete_response($outputspeech, false, 'course');
-            }
+            } 
 
             $coursevalue = self::$requestjson['request']['intent']['slots']['course']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['name'];
             foreach ($usercourses as $usercourse) {     
