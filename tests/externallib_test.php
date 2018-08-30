@@ -1917,10 +1917,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -1981,10 +1981,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next ' . $limit . ' upcoming events: ' . $duedates . '</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next ' . $limit . ' upcoming events for 3 weeks: ' . $duedates . '</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next ' . $limit . ' important dates are: ' . $duedates . '</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next ' . $limit . ' important dates for 3 weeks are: ' . $duedates . '</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2025,10 +2025,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: ' . $duedates . '</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events for 3 weeks: ' . $duedates . '</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: ' . $duedates . '</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates for 3 weeks are: ' . $duedates . '</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2069,10 +2069,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: ' . $duedates . '</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events for 3 weeks: ' . $duedates . '</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: ' . $duedates . '</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates for 3 weeks are: ' . $duedates . '</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2109,10 +2109,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2149,10 +2149,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2189,10 +2189,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2229,10 +2229,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2274,10 +2274,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $this->responsejson['response']['outputSpeech']['type'] = 'SSML';
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events: ' . $duedates . '</speak>';
+        $expected1['response']['outputSpeech']['ssml'] = '<speak>Got it. Here are the next 1 upcoming events for 3 weeks: ' . $duedates . '</speak>';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates are: ' . $duedates . '</speak>';
+        $expected2['response']['outputSpeech']['ssml'] = '<speak>Okay. The next 1 important dates for 3 weeks are: ' . $duedates . '</speak>';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }
@@ -2319,10 +2319,10 @@ class local_alexaskill_externallib_testcase extends externallib_advanced_testcas
         $actual = $getduedates->invokeArgs(null, array('token' => 'valid'));
 
         $expected1 = $this->responsejson;
-        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events.';
+        $expected1['response']['outputSpeech']['text'] = 'Sorry, you have no upcoming events in the next 3 weeks.';
 
         $expected2 = $this->responsejson;
-        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar.';
+        $expected2['response']['outputSpeech']['text'] = 'I apologize, but there are no upcoming events on your calendar for the next 3 weeks.';
 
         $this->assertTrue($expected1 == $actual || $expected2 == $actual);
     }

@@ -796,11 +796,33 @@ class local_alexaskill_external extends external_api {
 
         // Get site calendar setting for days to look ahead.
         // If not set, use default of 3 weeks.
-        if (isset($CFG->calendar_lookahead) && is_number($CFG->calendar_lookahead)) {
+        $lookaheadoptions = array(365 => new lang_string('numyear', '', 1),
+                270 => new lang_string('nummonths', '', 9),
+                180 => new lang_string('nummonths', '', 6),
+                150 => new lang_string('nummonths', '', 5),
+                120 => new lang_string('nummonths', '', 4),
+                90  => new lang_string('nummonths', '', 3),
+                60  => new lang_string('nummonths', '', 2),
+                30  => new lang_string('nummonth', '', 1),
+                21  => new lang_string('numweeks', '', 3),
+                14  => new lang_string('numweeks', '', 2),
+                7  => new lang_string('numweek', '', 1),
+                6  => new lang_string('numdays', '', 6),
+                5  => new lang_string('numdays', '', 5),
+                4  => new lang_string('numdays', '', 4),
+                3  => new lang_string('numdays', '', 3),
+                2  => new lang_string('numdays', '', 2),
+                1  => new lang_string('numday', '', 1)
+        );
+
+        if (isset($CFG->calendar_lookahead) && is_number($CFG->calendar_lookahead) && array_key_exists($CFG->calendar_lookahead, $lookaheadoptions)) {
             $lookahead = $CFG->calendar_lookahead;
         } else {
             $lookahead = 21;
         }
+        $lookaheadhuman = $lookaheadoptions[$lookahead];
+
+        // Format lookahead for UNIX time comparison.
         $lookahead = strtotime($lookahead . ' days');
 
         $duedates = '';
@@ -814,16 +836,16 @@ class local_alexaskill_external extends external_api {
 
         if ($duedates == '') {
             $responses = array(
-                    'Sorry, you have no upcoming events.',
-                    'I apologize, but there are no upcoming events on your calendar.'
+                    'Sorry, you have no upcoming events in the next ' . $lookaheadhuman . '.',
+                    'I apologize, but there are no upcoming events on your calendar for the next ' . $lookaheadhuman . '.'
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)];
             return self::complete_response($outputspeech);
         } else {
             $responses = array(
-                    '<speak>Got it. Here are the next ' . $count . ' upcoming events: ',
-                    '<speak>Okay. The next ' . $count . ' important dates are: '
+                    '<speak>Got it. Here are the next ' . $count . ' upcoming events for ' . $lookaheadhuman . ': ',
+                    '<speak>Okay. The next ' . $count . ' important dates for ' . $lookaheadhuman . ' are: '
             );
 
             $outputspeech = $responses[rand(0, count($responses) - 1)] . $duedates . '</speak>';
