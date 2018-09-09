@@ -866,7 +866,7 @@ class local_alexaskill_external extends external_api {
         if (preg_match($pattern, $coursefullname, $coursenamearray)) {
             $coursename = $coursenamearray[1];
         }
-        return strtolower($coursename);
+        return strtolower(format_text($coursename, FORMAT_HTML));
     }
 
     /**
