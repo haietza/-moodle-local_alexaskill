@@ -566,7 +566,7 @@ class local_alexaskill_external extends external_api {
                     return self::complete_response($outputspeech, false, 'course');
                 } else {
                     // Match COURSE value to user course.
-                    $coursevalue = $coursevalues[0]['value']['name'];
+                    $coursevalue = format_text($coursevalues[0]['value']['name'], FORMAT_HTML);
                     foreach ($usercourses as $usercourse) {
                         if ($coursevalue == $usercourse->preferredname) {
                             $courseid = $usercourse->id;
